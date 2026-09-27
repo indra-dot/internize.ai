@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Vite / dev
+.vite/
+*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+.env.production
+
+# ONNX / AI model cache (large binary files)
+*.onnx
+*.wasm
+/models/
+/cache/
+
+# Test artifacts
+coverage/
+.nyc_output/
+
+# Temp / scratch
+*.tmp
+*.temp
+
+# Supabase local
+.supabase/
