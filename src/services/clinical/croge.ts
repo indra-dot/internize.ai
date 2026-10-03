@@ -22,40 +22,62 @@ import { lookupSnomedConcepts } from './snomedDictionary';
 import { synthesizeSoapNote } from './soapSynthesizer';
 
 /**
- * NegEx-style negation detector with clause boundary awareness.
+ * Bilingual (Indonesian & English) NegEx-style clinical negation detector
+ * with clause boundary awareness, medical symbol recognition, and ID disambiguation.
  */
 export function isNegatedSpan(text: string, start: number, end: number): boolean {
   if (!text || start < 0) return false;
 
   const lower = text.toLowerCase();
-  const preText = lower.slice(Math.max(0, start - 45), start);
+  const preText = lower.slice(Math.max(0, start - 60), start);
 
-  // Trigger directly preceding the term (allowing optional filler words)
-  const immediateNegRegex =
-    /\b(no|not|denies|denied|denying|without|negative for|never had|rules out|ruled out|free of)\s+(?:(?:any|prior|known|reported|evidence of|signs of|history of)\s+)?$/i;
+  // 1. Check if "no" is an Indonesian abbreviation for "nomor" (e.g. "no rm", "no telp", "no hp", "no reg")
+  const isIndoNomor = /\bno\.?\s*(?:rm|rekam\s*medis|telp|telepon|hp|registrasi|reg|antrian|kamar|bed|peserta|bpjs)\b/i.test(preText);
+
+  // Filler words in both languages
+  const fillers = '(?:(?:any|prior|known|reported|evidence of|signs of|history of|riwayat|keluhan|tanda|gejala|adanya|tampak|bukti|kejadian)\\s+)?';
+
+  // Indonesian & English immediate pre-triggers
+  const preTriggers = isIndoNomor
+    ? '(?:not|denies|denied|denying|without|negative for|never had|rules out|ruled out|free of|tidak ada|tidak terdapat|tidak ditemukan|tidak pernah|tidak|tanpa|disangkal|menyangkal|bukan|nihil|belum ada|belum tampak|bebas dari|bebas|negatif)'
+    : '(?:no|not|denies|denied|denying|without|negative for|never had|rules out|ruled out|free of|tidak ada|tidak terdapat|tidak ditemukan|tidak pernah|tidak|tanpa|disangkal|menyangkal|bukan|nihil|belum ada|belum tampak|bebas dari|bebas|negatif)';
+
+  const immediateNegRegex = new RegExp(`\\b${preTriggers}\\s+${fillers}$`, 'i');
   if (immediateNegRegex.test(preText)) {
     return true;
   }
 
-  // Trigger in the immediate clause without conjunction cancellation
-  const clauses = preText.split(/[.;]|\b(?:but|however|although|except|yet)\b/i);
+  // 2. Trigger in the immediate clause without conjunction cancellation
+  // Conjunctions breaking negation scope: but, however, although, except, yet, namun, tetapi, melainkan, akan tetapi, kecuali
+  const clauses = preText.split(/[.;\n]|\b(?:but|however|although|except|yet|namun|tetapi|melainkan|akan tetapi|kecuali)\b/i);
   const currentClause = clauses[clauses.length - 1] || '';
-  if (
-    /\b(no|not|denies|denied|without|negative for|no history of|ruled out|free of)\b/i.test(
-      currentClause,
-    )
-  ) {
+
+  const clauseNegTriggers = isIndoNomor
+    ? '\\b(not|denies|denied|without|negative for|never had|ruled out|free of|tidak ada|tidak terdapat|tidak ditemukan|tidak pernah|tanpa|disangkal|menyangkal|bukan|nihil|belum ada|negatif)\\b'
+    : '\\b(no|not|denies|denied|without|negative for|never had|ruled out|free of|tidak ada|tidak terdapat|tidak ditemukan|tidak pernah|tanpa|disangkal|menyangkal|bukan|nihil|belum ada|negatif)\\b';
+
+  if (new RegExp(clauseNegTriggers, 'i').test(currentClause)) {
     return true;
   }
 
-  // Post-triggers within immediate following clause
-  const postText = lower.slice(end, Math.min(lower.length, end + 30));
-  const postClause = postText.split(/[.;,]|\b(?:but|however|although)\b/i)[0] || '';
-  if (
-    /\b(?:was ruled out|is ruled out|ruled out|is negative|was negative|unlikely)\b/i.test(
-      postClause,
-    )
-  ) {
+  // 3. Post-triggers within immediate following clause
+  // Includes symbols: (-), (-/-), ( - ), : -
+  // Includes Indonesian post-triggers: disangkal, tidak ada, negatif, nihil, diragukan, disingkirkan
+  // Handles immediate triggers and compound lists (e.g. "mual muntah disangkal", "batuk dan pilek disangkal", "DM, HT disangkal")
+  const postText = lower.slice(end, Math.min(lower.length, end + 60));
+  const postClause = postText.split(/[.;\n]|\b(?:but|however|although|namun|tetapi|melainkan|akan tetapi)\b/i)[0] || '';
+
+  // Immediate post-trigger
+  const directPostNegRegex =
+    /^\s*(?::\s*)?(?:\(\s*-\s*(?:\/\s*-\s*)?\)|-\s*(?:\/-\s*)?|\b(?:was ruled out|is ruled out|ruled out|is negative|was negative|unlikely|disangkal|tidak ada|negatif|nihil|diragukan|disingkirkan|belum tampak)\b)/i;
+  if (directPostNegRegex.test(postClause)) {
+    return true;
+  }
+
+  // Compound list post-trigger: allows a list of symptoms/diseases preceding a terminal negation trigger
+  const listPostNegRegex =
+    /^[\s,\w\/\-()]*(?:\b(?:dan|maupun|atau|serta|\/)\b[\s,\w\/\-()]*)*\b(?:disangkal|tidak ada|negatif|nihil|diragukan|disingkirkan|belum tampak|was ruled out|is ruled out|ruled out)\b/i;
+  if (listPostNegRegex.test(postClause)) {
     return true;
   }
 

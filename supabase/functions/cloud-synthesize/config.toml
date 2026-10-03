@@ -1,0 +1,10 @@
+[cloud-synthesize]
+verify_jwt = false
+
+# Note: verify_jwt = false means requests only require the Supabase anon key
+# (passed as the Authorization Bearer token by the browser client).
+# The anon key has RLS applied on the database side — the edge function itself
+# does not need a signed JWT since it is authenticated through the anon key.
+#
+# To require a proper user JWT instead, set verify_jwt = true and ensure
+# the browser client calls the function with a valid user session token.

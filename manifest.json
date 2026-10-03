@@ -48,11 +48,14 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "wasm/*"
+        "wasm/*",
+        "models/*",
+        "models/clinical-ner/*"
       ],
       "matches": [
         "http://*/*",
-        "https://*/*"
+        "https://*/*",
+        "chrome-extension://*/*"
       ]
     }
   ]

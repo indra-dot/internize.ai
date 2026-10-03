@@ -12,6 +12,11 @@
  */
 
 import type { RxNormConcept, SnomedConcept, SoapCitation, SoapNote } from '../../types/clinical';
+import {
+  extractLabTrendsAndAbnormal,
+  extractVitals,
+  identifySpPdProblems,
+} from './internalMedicineEngine';
 
 export interface SoapSynthesizerOptions {
   includePertinentNegatives?: boolean;
@@ -22,7 +27,7 @@ export interface SoapSynthesizerOptions {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export const LAB_KEYWORDS =
-  /\b(wbc|rbc|hgb|hb|hct|mcv|mch|mchc|plt|trombosit|leukosit|ne#|ly#|mo#|eo#|ba#|neutrofil|limfosit|monosit|eosinofil|basofil|led|esr|diff|pt|aptt|inr|fibrinogen|d-dimer|ureum|urea|bun|kreatinin|creatinine|egfr|lfg|e-lfg|sgot|ast|sgpt|alt|bilirubin|alkali|alp|gamma|ggt|albumin|protein|globulin|natrium|na|kalium|k|klorida|cl|kalsium|ca|magnesium|mg|fosfat|p|gds|gdp|gd2pp|hba1c|crp|prokalsitonin|pct|fe\b|si\b|tibc|ferritin|asam urat|uric acid|troponin|ckmb|bnp|nt-probnp|ph\b|pco2|po2|beecf|be|hco3|so2c|tco2|urinalisis|sedimen|leukosituria|proteinuria|glukosuria|bakteriuria)\b/i;
+  /\b(wbc|rbc|hgb|hb|hct|mcv|mch|mchc|plt|trombosit|leukosit|ne#|ly#|mo#|eo#|ba#|neutrofil|limfosit|monosit|eosinofil|basofil|led|esr|diff|pt|aptt|inr|fibrinogen|d-dimer|ureum|urea|bun|kreatinin|creatinine|egfr|lfg|e-lfg|sgot|ast|sgpt|alt|bilirubin|alkali|alp|gamma|ggt|albumin|protein|globulin|natrium|na|kalium|k|klorida|cl|kalsium|ca|magnesium|mg|fosfat|p|gds|gdp|gd2pp|gda|bss|bst|bsp|blood\s*sugar|bs(?!\s*(?:mg|amp|tab\b|bedah\s*saraf))|hba1c|crp|prokalsitonin|pct|fe\b|si\b|tibc|ferritin|asam urat|uric acid|troponin|ckmb|bnp|nt-probnp|ph\b|pco2|po2|beecf|be|hco3|so2c|tco2|urinalisis|sedimen|leukosituria|proteinuria|glukosuria|bakteriuria)\b/i;
 
 export const VITAL_SIGNS_KEYWORDS =
   /\b(bp|blood pressure|tekanan darah|td|pulse|nadi|hr|heart rate|bpm|temp|temperature|suhu|o2|spo2|oxygen saturation|saturasi|rr|respiratory rate|frekuensi napas|gcs)\b/i;
@@ -451,6 +456,27 @@ function scoreSentence(
     return scores;
   }
 
+  // Strict anti-leakage: Pertinent negative statements NEVER belong to Assessment
+  const isPertinentNegative =
+    /\b(disangkal|menyangkal|tidak ada|tidak pernah|tidak ditemukan|bebas dari|negatif|tanpa riwayat|tanpa keluhan)\b/i.test(s) ||
+    /\(\s*-\s*(?:\/\s*-\s*)?\)/.test(sentence) ||
+    /:\s*-\s*$/.test(sentence);
+
+  if (isPertinentNegative) {
+    scores.assessment = -100;
+    // Physical exam negative (e.g. ronki (-), wheezing (-), edema (-), nyeri tekan (-)) -> Objective
+    if (
+      /\b(ronki|wheezing|murmur|gallop|edema|nyeri tekan|asites|ikterus|sianosis|rhonchi|rales|pupil|refleks)\b/i.test(s) ||
+      /\(\s*-\s*(?:\/\s*-\s*)?\)/.test(sentence)
+    ) {
+      scores.objective += 6;
+      return scores;
+    }
+    // Anamnesis negative (e.g. DM disangkal, alergi tidak ada) -> Subjective
+    scores.subjective += 6;
+    return scores;
+  }
+
   // ===== SUBJECTIVE SIGNALS (keluhan utama, anamnesis, riwayat) =====
   if (
     /\b(patient|pasien|presents|mengeluh|complains?|chief complaint|keluhan utama|states?|menyatakan|reports?|melaporkan|history|riwayat|hpi|feeling|merasa|experiencing|mengalami|denies|menyangkal|suffering|menderita)\b/.test(
@@ -669,66 +695,106 @@ export function synthesizeSoapNote(
     }
   }
 
-  // Enrichment
-  if (assessmentLines.length === 0) {
-    if (diagnoses.length > 0) {
-      for (const d of diagnoses) {
-        assessmentLines.push(`${d.preferredTerm} (SNOMED CT: ${d.code})`);
-        const matchIdx = cleanText.toLowerCase().indexOf(d.matchedText.toLowerCase());
-        if (matchIdx !== -1) {
-          assessmentCitations.push({
-            start: matchIdx,
-            end: matchIdx + d.matchedText.length,
-            sourceText: cleanText.slice(matchIdx, matchIdx + d.matchedText.length),
-          });
-        }
-      }
-    } else {
-      assessmentLines.push('Clinical findings and symptoms evaluated — no specific diagnosis code extracted from source text.');
-    }
+  // Enrichment with Local Clinical Engine Grounding
+  const vitals = extractVitals(cleanText);
+  const { abnormalLabs } = extractLabTrendsAndAbnormal(cleanText);
+  const detectedProblems = identifySpPdProblems(cleanText, vitals, abnormalLabs);
+
+  // ── Objective Enrichment (Vitals, Labs, Exams) ───────────────────────────
+  const vitalsFormatted = [
+    vitals.systolic && vitals.diastolic
+      ? `TD: ${vitals.systolic}/${vitals.diastolic} mmHg`
+      : vitals.rawMatched.bp
+        ? `TD: ${vitals.rawMatched.bp}`
+        : null,
+    vitals.heartRate ? `Nadi: ${vitals.heartRate} x/mnt` : null,
+    vitals.respiratoryRate ? `RR: ${vitals.respiratoryRate} x/mnt` : null,
+    vitals.temperature ? `Suhu: ${vitals.temperature} °C` : null,
+    vitals.spO2 ? `SpO2: ${vitals.spO2} %` : null,
+  ].filter(Boolean).join(', ');
+
+  if (vitalsFormatted && !objectiveLines.some((l) => /tanda\s*vital|td|bp/i.test(l))) {
+    objectiveLines.unshift(`Tanda Vital: ${vitalsFormatted}`);
   }
 
-  if (planLines.length === 0) {
-    if (medications.length > 0) {
-      for (const m of medications) {
-        const sigParts = [m.name];
-        if (m.dosage) sigParts.push(m.dosage);
-        if (m.route) sigParts.push(m.route);
-        if (m.frequency) sigParts.push(m.frequency);
-        planLines.push(`Continue ${sigParts.join(' ')}. Monitor clinical response.`);
-        const matchIdx = cleanText.toLowerCase().indexOf(m.name.toLowerCase());
-        if (matchIdx !== -1) {
-          planCitations.push({
-            start: matchIdx,
-            end: matchIdx + m.matchedText.length,
-            sourceText: cleanText.slice(matchIdx, matchIdx + m.matchedText.length),
-          });
-        }
+  if (abnormalLabs.length > 0) {
+    const labEntries = abnormalLabs.map(
+      (l) => `Hasil Penunjang Lab: ${l.name} ${l.value} ${l.unit} [${l.flag.toUpperCase()}] — ${l.interpretation}`,
+    );
+    for (const entry of labEntries) {
+      if (!objectiveLines.some((l) => l.toLowerCase().includes(entry.slice(0, 30).toLowerCase()))) {
+        objectiveLines.push(entry);
       }
-    } else {
-      planLines.push('Routine clinical observation and follow-up as clinically indicated.');
     }
   }
 
   if (objectiveLines.length === 0) {
     if (medications.length > 0) {
       const medSummary = medications.map((m) => `${m.name}${m.dosage ? ' ' + m.dosage : ''}`.trim()).join(', ');
-      objectiveLines.push(`Current medication regimen: ${medSummary}.`);
-      for (const m of medications) {
-        const matchIdx = cleanText.toLowerCase().indexOf(m.name.toLowerCase());
-        if (matchIdx !== -1) {
-          objectiveCitations.push({
-            start: matchIdx,
-            end: matchIdx + m.matchedText.length,
-            sourceText: cleanText.slice(matchIdx, matchIdx + m.matchedText.length),
-          });
-        }
-      }
+      objectiveLines.push(`Terapi Medis Berjalan: ${medSummary}`);
     } else {
-      objectiveLines.push('Vital signs and physical examination: Not documented in source excerpt.');
+      objectiveLines.push('Pemeriksaan Fisik & Penunjang: Dalam batas evaluasi / belum terinci pada ringkasan.');
     }
   }
 
+  // ── Assessment Enrichment (Numbered Active Problem List & PAPDI Divisions) ─
+  if (assessmentLines.length === 0) {
+    if (detectedProblems.length > 0) {
+      for (const p of detectedProblems) {
+        assessmentLines.push(`#${p.order}. ${p.title} [Divisi: ${p.divisionName}]`);
+      }
+    } else if (diagnoses.length > 0) {
+      for (const d of diagnoses) {
+        assessmentLines.push(`${d.preferredTerm} (SNOMED CT: ${d.code})`);
+      }
+    } else {
+      assessmentLines.push('Evaluasi Klinis Komprehensif — Menunggu kelengkapan data penunjang & konfirmasi diagnosis kerja.');
+    }
+  }
+
+  // ── Plan Enrichment (4P: Pdx, Ptx, Pmx, Pex) ─────────────────────────────
+  if (!planLines.some((l) => /plan\s*(?:diagnostik|terapeutik|monitoring|edukasi)/i.test(l))) {
+    const allPdx: string[] = [];
+    const allPtx: string[] = [];
+    const allPmx: string[] = [];
+    const allPex: string[] = [];
+
+    for (const p of detectedProblems) {
+      allPdx.push(...p.pdx);
+      allPtx.push(...p.ptx);
+      allPmx.push(...p.pmx);
+      allPex.push(...p.pex);
+    }
+
+    if (allPdx.length > 0) {
+      planLines.push(`Plan Diagnostik (Pdx): ${Array.from(new Set(allPdx)).slice(0, 3).join('; ')}`);
+    }
+    if (allPtx.length > 0) {
+      planLines.push(`Plan Terapeutik (Ptx): ${Array.from(new Set(allPtx)).slice(0, 4).join('; ')}`);
+    }
+    if (allPmx.length > 0) {
+      planLines.push(`Plan Monitoring (Pmx): ${Array.from(new Set(allPmx)).slice(0, 3).join('; ')}`);
+    }
+    if (allPex.length > 0) {
+      planLines.push(`Plan Edukasi (Pex): ${Array.from(new Set(allPex)).slice(0, 2).join('; ')}`);
+    }
+
+    if (planLines.length === 0) {
+      if (medications.length > 0) {
+        for (const m of medications) {
+          const sigParts = [m.name];
+          if (m.dosage) sigParts.push(m.dosage);
+          if (m.route) sigParts.push(m.route);
+          if (m.frequency) sigParts.push(m.frequency);
+          planLines.push(`Lanjutkan ${sigParts.join(' ')}. Evaluasi respons klinis.`);
+        }
+      } else {
+        planLines.push('Observasi klinis berkala, evaluasi perburukan tanda vital, dan rawat bersama sesuai indikasi.');
+      }
+    }
+  }
+
+  // ── Subjective Fallback ──────────────────────────────────────────────────
   if (subjectiveLines.length === 0 && cleanText.length > 0) {
     subjectiveLines.push(cleanText);
     subjectiveCitations.push({ start: 0, end: cleanText.length, sourceText: cleanText });

@@ -29,9 +29,19 @@ import {
   calculateImprove,
   calculateDeliriumPAPDI,
   calculateMorse,
+  formatAriscatLine,
+  formatRcriLine,
+  formatImproveLine,
+  formatCapriniLine,
+  CONSENSUS_OPTIMAL_CONDITIONS,
 } from './protocols';
+import { isNegatedSpan } from './croge';
+import {
+  convertOncologyDiagnosis,
+  isOncologyText,
+} from './oncologyStagingEngine';
 
-export type InternalMedicineDivision =
+export type PapdiCoreDivision =
   | 'endokrin'
   | 'ginjal'
   | 'tropik'
@@ -44,6 +54,13 @@ export type InternalMedicineDivision =
   | 'geriatri'
   | 'psikosomatik';
 
+export type CrossSpecialtyDivision =
+  | 'neuro'
+  | 'bedahsaraf'
+  | 'bedah_umum';
+
+export type InternalMedicineDivision = PapdiCoreDivision | CrossSpecialtyDivision;
+
 export interface DivisionMeta {
   id: InternalMedicineDivision;
   nameIndonesian: string;
@@ -52,7 +69,7 @@ export interface DivisionMeta {
   iconName: string;
 }
 
-export const PAPDI_DIVISIONS: Record<InternalMedicineDivision, DivisionMeta> = {
+export const PAPDI_DIVISIONS: Record<PapdiCoreDivision, DivisionMeta> = {
   endokrin: {
     id: 'endokrin',
     nameIndonesian: 'Endokrin, Nutrisi & Metabolik',
@@ -128,8 +145,37 @@ export const PAPDI_DIVISIONS: Record<InternalMedicineDivision, DivisionMeta> = {
     nameIndonesian: 'Psikosomatik & Kedokteran Holistik',
     nameEnglish: 'Psychosomatic Medicine',
     badgeColor: 'bg-indigo-100 text-indigo-900 border-indigo-300',
+    iconName: 'HeartHandshake',
+  },
+};
+
+export const CROSS_SPECIALTY_DIVISIONS: Record<CrossSpecialtyDivision, DivisionMeta> = {
+  neuro: {
+    id: 'neuro',
+    nameIndonesian: 'Neurologi / Saraf (Sp.N)',
+    nameEnglish: 'Neurology (Cross-Specialty)',
+    badgeColor: 'bg-violet-100 text-violet-900 border-violet-300',
     iconName: 'Brain',
   },
+  bedahsaraf: {
+    id: 'bedahsaraf',
+    nameIndonesian: 'Bedah Saraf (Sp.BS)',
+    nameEnglish: 'Neurosurgery (Cross-Specialty)',
+    badgeColor: 'bg-fuchsia-100 text-fuchsia-900 border-fuchsia-300',
+    iconName: 'Stethoscope',
+  },
+  bedah_umum: {
+    id: 'bedah_umum',
+    nameIndonesian: 'Bedah / Lintas Disiplin',
+    nameEnglish: 'Surgery / Cross-Specialty',
+    badgeColor: 'bg-slate-100 text-slate-900 border-slate-300',
+    iconName: 'Scissors',
+  },
+};
+
+export const ALL_CLINICAL_DIVISIONS: Record<InternalMedicineDivision, DivisionMeta> = {
+  ...PAPDI_DIVISIONS,
+  ...CROSS_SPECIALTY_DIVISIONS,
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -414,9 +460,40 @@ export function extractLabTrendsAndAbnormal(text: string): {
   const extractVal = (sourceText: string, pattern: RegExp): number | null => {
     const matches = Array.from(sourceText.matchAll(pattern));
     if (matches.length === 0) return null;
-    const m = matches[matches.length - 1];
-    const num = parseIndoNumber(m[1]);
-    return Number.isNaN(num) ? null : num;
+
+    // Search backwards from the most recent match to find the first valid non-date match
+    for (let i = matches.length - 1; i >= 0; i--) {
+      const m = matches[i];
+      const matchIndex = m.index ?? -1;
+      const fullMatchStr = m[0];
+      const rawNumStr = m[1];
+      if (!rawNumStr) continue;
+
+      // Anti-Date Guard: Check if the captured number is immediately followed by a date separator (/ or -) and digits (e.g. 3/10 or 3-10)
+      if (matchIndex >= 0) {
+        const afterMatch = sourceText.slice(matchIndex + fullMatchStr.length, matchIndex + fullMatchStr.length + 10);
+        if (/^\s*[\/\-]\s*\d{1,2}/.test(afterMatch)) {
+          continue; // Part of date header
+        }
+      }
+
+      // Anti-Newline Header Guard: If the match crosses a newline where the first line was a section header (e.g. "Monitoring BS:\n3")
+      if (fullMatchStr.includes('\n')) {
+        const parts = fullMatchStr.split(/\r?\n/);
+        const headerPart = parts[0].trim();
+        if (headerPart.endsWith(':') || /^(?:monitoring|evaluasi|pemeriksaan|lab|cek|target)\b/i.test(headerPart)) {
+          const nextPart = parts.slice(1).join(' ').trim();
+          if (/^\d{1,2}[\/\-]\d{1,2}/.test(nextPart)) {
+            continue; // Next line is a date!
+          }
+        }
+      }
+
+      const num = parseIndoNumber(rawNumStr);
+      if (!Number.isNaN(num)) return num;
+    }
+
+    return null;
   };
 
   // ── Step 1: Scan line-by-line for serial dates & tabular entries ───────────
@@ -499,12 +576,12 @@ export function extractLabTrendsAndAbnormal(text: string): {
         }
       }
 
-      // Format B: Key-Value / Bulleted entries (e.g. "- Kalium (K) - Serum: 1.87 mEq/L" or "- Glukosa: 46 mg/dL")
+      // Format B: Key-Value / Bulleted entries (e.g. "- Kalium (K) - Serum: 1.87 mEq/L" or "BS acak pk 13.35 WITA: 132")
       const kvMatch = rawLine.match(
-        /^[•\-*]?\s*([a-zA-Z0-9_\(\)\/\s\-\#\.]+?)\s*[:=]\s*(\d+(?:[.,]\d+)*)\s*([a-zA-Z\/%]+)?/i,
+        /^[•\-*]?\s*(.*?)\s*[:=]\s*(\d+(?:[.,]\d+)*)\s*([a-zA-Z\/%]+)?(?:\s*\(.*?\))?\s*$/i,
       );
       if (kvMatch) {
-        const paramName = kvMatch[1].trim();
+        let paramName = kvMatch[1].trim();
         const num = parseIndoNumber(kvMatch[2]);
         const unit = kvMatch[3]?.trim() || '';
 
@@ -514,6 +591,14 @@ export function extractLabTrendsAndAbnormal(text: string): {
             paramName,
           )
         ) {
+          // Extract time from paramName if present (e.g. "pk 13.35 WITA" or "jam 14:00")
+          let timeStr = '';
+          const timeMatch = paramName.match(/\b(?:pk\.?|pukul|jam|\()\s*(\d{1,2}[:.]\d{2}(?:\s*(?:wib|wita|wit))?)\s*\)?/i);
+          if (timeMatch) {
+            timeStr = timeMatch[0].trim();
+            paramName = paramName.replace(/\s*(?:pk\.?|pukul|jam|\()\s*\d{1,2}[:.]\d{2}(?:\s*(?:wib|wita|wit))?\s*\)?/i, '').trim();
+          }
+
           let resolvedUnit = unit;
           if (!resolvedUnit) {
             if (/kalium|natrium|klorida/i.test(paramName)) resolvedUnit = 'mEq/L';
@@ -521,7 +606,8 @@ export function extractLabTrendsAndAbnormal(text: string): {
             else if (/hgb|hb|kreatinin|bun|protein|albumin|bilirubin/i.test(paramName))
               resolvedUnit = 'g/dL';
             else if (/ast|alt|sgot|sgpt|alp|gamma/i.test(paramName)) resolvedUnit = 'U/L';
-            else if (/glukosa|gds/i.test(paramName)) resolvedUnit = 'mg/dL';
+            else if (/glukosa|gds|gda|gdp|gd2pp|blood\s*sugar|\bbs\b|\bbss\b|\bbst\b|\bbsp\b/i.test(paramName))
+              resolvedUnit = 'mg/dL';
           }
 
           const entry = trendMap.get(paramName) || {
@@ -529,8 +615,9 @@ export function extractLabTrendsAndAbnormal(text: string): {
             unit: resolvedUnit,
             points: [],
           };
-          const date = activeDates.length > 0 ? activeDates[0] : undefined;
-          entry.points.push({ date, value: num });
+          const baseDate = activeDates.length > 0 ? activeDates[0] : '';
+          const pointDate = baseDate ? (timeStr ? `${baseDate} ${timeStr}` : baseDate) : (timeStr || undefined);
+          entry.points.push({ date: pointDate, value: num });
           trendMap.set(paramName, entry);
           continue;
         }
@@ -557,7 +644,10 @@ export function extractLabTrendsAndAbnormal(text: string): {
       if (normPlt < 100000) flag = 'critical';
       else if (normPlt < 150000) flag = 'low';
       else if (normPlt > 450000) flag = 'high';
-    } else if (lowerName.includes('glukosa')) {
+    } else if (
+      lowerName.includes('glukosa') ||
+      /glukosa|gds|gda|gdp|gd2pp|blood\s*sugar|\bbs\b|\bbss\b|\bbst\b|\bbsp\b/i.test(name)
+    ) {
       if (data.specimen === 'serum') {
         if (val < 70 || val >= 350) flag = 'critical';
         else if (val >= 200) flag = 'high';
@@ -677,13 +767,13 @@ export function extractLabTrendsAndAbnormal(text: string): {
 
   // 3. Platelets / Trombosit
   const pltTrend = labTrends.find(
-    (t) => /trombosit|plt|platelet/i.test(t.name) && t.specimen === 'serum',
+    (t) => /trombosit|tromb|trombo|plt|platelet|tr\b/i.test(t.name) && t.specimen === 'serum',
   );
   let plt = pltTrend ? pltTrend.latestValue : null;
   if (plt === null) {
     plt = extractVal(
       text,
-      /\b(?:trombosit|plt|platelet)\s*[:=]?\s*(\d+(?:[.,]\d+)*)\s*(?:ribu|\.000|\/ul)?\b/gi,
+      /\b(?:trombosit|tromb|trombo|plt|platelet|tr(?!\s*(?:mg|amp|tab)))\s*[:=]?\s*(\d+(?:[.,]\d+)*)\s*(?:ribu|\.000|\/ul)?\b/gi,
     );
   }
   if (plt !== null) {
@@ -722,12 +812,12 @@ export function extractLabTrendsAndAbnormal(text: string): {
   }
 
   // 4. Leukosit / WBC
-  const wbcTrend = labTrends.find((t) => /leukosit|wbc/i.test(t.name) && t.specimen === 'serum');
+  const wbcTrend = labTrends.find((t) => /leukosit|leuko|leu|wbc/i.test(t.name) && t.specimen === 'serum');
   let wbc = wbcTrend ? wbcTrend.latestValue : null;
   if (wbc === null) {
     wbc = extractVal(
       text,
-      /\b(?:leukosit|wbc|white\s*blood\s*cell)\s*[:=]?\s*(\d+(?:[.,]\d+)*)\s*(?:ribu|\.000|\/ul)?\b/gi,
+      /\b(?:leukosit|leuko|leu|wbc|white\s*blood\s*cell|l(?!\s*(?:mg|amp|tab|mnt|menit|dtk|s|g\b|kg\b|[\/|\\])))\s*[:=]?\s*(\d+(?:[.,]\d+)*)\s*(?:ribu|\.000|\/ul)?\b/gi,
     );
   }
   if (wbc !== null) {
@@ -864,10 +954,10 @@ export function extractLabTrendsAndAbnormal(text: string): {
   }
 
   // 8. Liver Enzymes: SGOT & SGPT
-  const sgotTrend = labTrends.find((t) => /sgot|ast/i.test(t.name));
-  const sgptTrend = labTrends.find((t) => /sgpt|alt/i.test(t.name));
-  const sgotVal = sgotTrend ? sgotTrend.latestValue : extractVal(text, /\b(?:sgot|ast)\s*[:=]?\s*(\d+(?:[.,]\d+)*)\b/gi);
-  const sgptVal = sgptTrend ? sgptTrend.latestValue : extractVal(text, /\b(?:sgpt|alt)\s*[:=]?\s*(\d+(?:[.,]\d+)*)\b/gi);
+  const sgotTrend = labTrends.find((t) => /sgot|ast|ot\b/i.test(t.name));
+  const sgptTrend = labTrends.find((t) => /sgpt|alt|pt\b/i.test(t.name));
+  const sgotVal = sgotTrend ? sgotTrend.latestValue : extractVal(text, /\b(?:sgot|ast|ot(?!\s*(?:mg|amp|tab|iu)))\s*[:=]?\s*(\d+(?:[.,]\d+)*)\b/gi);
+  const sgptVal = sgptTrend ? sgptTrend.latestValue : extractVal(text, /\b(?:sgpt|alt|pt(?!\s*(?:mg|amp|tab|sec|dtk|iu)))\s*[:=]?\s*(\d+(?:[.,]\d+)*)\b/gi);
   if ((sgotVal !== null && sgotVal > 80) || (sgptVal !== null && sgptVal > 80)) {
     abnormalLabs.push({
       name: 'Transaminase Hepar (SGOT/SGPT)',
@@ -943,15 +1033,23 @@ export function extractLabTrendsAndAbnormal(text: string): {
     });
   }
 
-  // 12. Blood Glucose (GDS/GDP) — CRITICAL: Strip LCS and Urine sections first!
+  // 12. Blood Glucose (GDS/GDP/BS) — CRITICAL: Strip LCS and Urine sections first!
   const nonLcsText = text
     .replace(/hasil\s*analisa\s*lcs[\s\S]*?(?=(?:hasil\s*kultur|urin|tinja|hasil\s*lab|$))/gi, '')
     .replace(/urin\s*lengkap[\s\S]*?(?=(?:tinja|hasil\s*analisa|hasil\s*lab|$))/gi, '');
 
-  const gds = extractVal(
-    nonLcsText,
-    /\b(?:gds|gdp|gd2pp|gula\s*darah(?:\s*sewaktu|\s*puasa|\s*2\s*jam)?)\s*[:=]?\s*(\d+(?:[.,]\d+)*)\s*(?:mg\/dl)?\b/gi,
+  const gdsTrend = labTrends.find(
+    (t) =>
+      /glukosa|gds|gda|gdp|gd2pp|blood\s*sugar|\bbs\b|\bbss\b|\bbst\b|\bbsp\b/i.test(t.name) &&
+      t.specimen === 'serum',
   );
+  let gds = gdsTrend ? gdsTrend.latestValue : null;
+  if (gds === null) {
+    gds = extractVal(
+      nonLcsText,
+      /\b(?:gds|gdp|gd2pp|gda|bss|bst|bsp|blood\s*sugar|bs(?!\s*(?:mg|amp|tab\b|bedah\s*saraf))|glukosa(?:\s*darah)?|gula\s*darah)(?:\s*(?:sewaktu|acak|puasa|2\s*jam\s*(?:pp|post\s*prandial)|terjadwal|saat\s*ini|kontrol|evaluasi|pre-?meal|post-?meal|pagi|siang|sore|malam|bedtime|subuh))*(?:\s*(?:pk\.?|pukul|jam|\()\s*\d{1,2}[.:]\d{2}(?:\s*(?:wib|wita|wit))?\s*\)?)?[^\S\r\n]*[:=]?[^\S\r\n]*(\d+(?:[.,]\d+)*)(?!\s*[\/\-]\s*\d)\s*(?:mg\/dl)?\b/gi,
+    );
+  }
   if (gds !== null) {
     if (gds > 200) {
       abnormalLabs.push({
@@ -966,6 +1064,7 @@ export function extractLabTrendsAndAbnormal(text: string): {
             : 'Hiperglikemia Tak Terkontrol',
         division: 'endokrin',
         specimen: 'serum',
+        date: gdsTrend?.latestDate,
       });
     } else if (gds < 70) {
       abnormalLabs.push({
@@ -977,6 +1076,7 @@ export function extractLabTrendsAndAbnormal(text: string): {
         interpretation: 'Hipoglikemia Klinis (Emergency Metabolik - Bolus D40% Segera)',
         division: 'endokrin',
         specimen: 'serum',
+        date: gdsTrend?.latestDate,
       });
     }
   }
@@ -1163,28 +1263,57 @@ interface DivisionRule {
   ) => SpPdProblem | null;
 }
 
+/**
+ * Isolates and blanks Family History (RPK / Riwayat Penyakit Keluarga) text
+ * while preserving character offsets so family diagnoses do not pollute patient problems.
+ */
+export function stripFamilyHistory(text: string): string {
+  if (!text) return '';
+  return text.replace(
+    /(?:rpk|riwayat\s*(?:penyakit\s*)?keluarga)\s*[:=](?:[^\n\r]+)/gi,
+    (match) => ' '.repeat(match.length),
+  );
+}
+
+/**
+ * Checks whether any regex match in text is affirmative (NOT negated by NegEx).
+ */
+export function hasAffirmativeMatch(text: string, regex: RegExp): boolean {
+  if (!text) return false;
+  const re = new RegExp(regex.source, regex.flags.includes('g') ? regex.flags : regex.flags + 'g');
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(text)) !== null) {
+    if (!isNegatedSpan(text, match.index, match.index + match[0].length)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const DIVISION_RULES: DivisionRule[] = [
   // 1. ENDOKRIN & METABOLIK
   {
     division: 'endokrin',
     keywords:
-      /\b(diabetes|dm\s*tipe\s*[12]|dm\s*type\s*[12]|hiperglikemia|gds\s*\d+|hba1c|kad|ketoasidosis|hhs|honk|tiroid|hipertiroid|hipotiroid|graves|struma|tirotoksikosis|dislipidemia|kolesterol|trigliserida|metformin|glimepirid|insulin|novorapid|lantus|levemir|hipoglikemi|hipoglikemia)\b/i,
+      /\b(diabetes|dm\s*tipe\s*[12]|dm\s*type\s*[12]|dm\b|hiperglikemia|gds\s*\d+|hba1c|kad|ketoasidosis|hhs|honk|tiroid|hipertiroid|hipotiroid|graves|struma|tirotoksikosis|dislipidemia|kolesterol|trigliserida|metformin|glimepirid|insulin|novorapid|lantus|levemir|hipoglikemi|hipoglikemia)\b/i,
     generateProblem: (_matches, vitals, labs, fullText) => {
       const gdsLab = labs.find(
         (l) => l.name.includes('Gula Darah') && l.specimen !== 'lcs' && l.specimen !== 'urin',
       );
       const isHypoGluc =
-        (gdsLab && gdsLab.value < 70) || /\b(hipoglikemi|hipoglikemia)\b/i.test(fullText);
-      const isDk = /\b(kad|ketoasidosis|hhs|honk)\b/i.test(fullText);
-      const isThyroid = /\b(tiroid|hipertiroid|hipotiroid|graves|struma|tirotoksikosis)\b/i.test(
+        (gdsLab && gdsLab.value < 70) || hasAffirmativeMatch(fullText, /\b(hipoglikemi|hipoglikemia)\b/i);
+      const isDk = hasAffirmativeMatch(fullText, /\b(kad|ketoasidosis|hhs|honk)\b/i);
+      const isThyroid = hasAffirmativeMatch(
         fullText,
+        /\b(tiroid|hipertiroid|hipotiroid|graves|struma|tirotoksikosis)\b/i,
       );
       const isHighGluc =
         (gdsLab && (gdsLab.flag === 'critical' || gdsLab.flag === 'high') && gdsLab.value >= 200) ||
         /\b(gds\s*(?:2\d\d|3\d\d|4\d\d|5\d\d))\b/i.test(fullText);
       const hasDmHistory =
-        /\b(diabetes|dm\s*tipe\s*[12]|dm\s*type\s*[12]|metformin|glimepirid|insulin|novorapid|lantus|levemir)\b/i.test(
+        hasAffirmativeMatch(
           fullText,
+          /\b(diabetes|dm\s*tipe\s*[12]|dm\s*type\s*[12]|dm\b|metformin|glimepirid|insulin|novorapid|lantus|levemir)\b/i,
         ) || Boolean(labs.find((l) => l.name.includes('HbA1c') && l.value >= 6.5));
 
       if (isHypoGluc) {
@@ -1292,12 +1421,37 @@ const DIVISION_RULES: DivisionRule[] = [
       const isHighBp =
         (vitals.systolic && vitals.systolic >= 180) ||
         (vitals.diastolic && vitals.diastolic >= 110);
+      const isStage2Bp =
+        (vitals.systolic && vitals.systolic >= 140) ||
+        (vitals.diastolic && vitals.diastolic >= 90);
+      const hasHtnHistory = hasAffirmativeMatch(
+        fullText,
+        /\b(hipertensi|ht\b|tekanan darah tinggi|krisis hipertensi)\b/i,
+      );
       const isAki =
-        /\b(aki|acute kidney injury|oliguria|anuria)\b/i.test(fullText) ||
+        hasAffirmativeMatch(fullText, /\b(aki|acute kidney injury|oliguria|anuria)\b/i) ||
         (crLab && crLab.flag === 'critical');
-      const isCkd = /\b(ckd|pgk|hemodialisis|cuci darah|hd rutin)\b/i.test(fullText);
+      const isCkd = hasAffirmativeMatch(fullText, /\b(ckd|pgk|hemodialisis|cuci darah|hd rutin)\b/i);
+      const hasOtherRenal = hasAffirmativeMatch(
+        fullText,
+        /\b(bph|retensi urin|edema tungkai|hiponatremia|hipernatremia)\b/i,
+      );
 
-      let title = 'Hipertensi Stage 2 Terkontrol';
+      if (
+        !isHypoK &&
+        !isHyperK &&
+        !isHighBp &&
+        !isAki &&
+        !isCkd &&
+        !hasHtnHistory &&
+        !isStage2Bp &&
+        !hasOtherRenal &&
+        !crLab
+      ) {
+        return null;
+      }
+
+      let title = hasHtnHistory || isStage2Bp ? 'Hipertensi Stage 2 Terkontrol' : 'Gangguan Fungsi Ginjal & Saluran Kemih';
       let criticality: SpPdProblem['criticality'] = 'medium';
 
       if (isHypoK) {
@@ -1374,16 +1528,26 @@ const DIVISION_RULES: DivisionRule[] = [
       /\b(demam|febris|infeksi|sepsis|septik|shock septic|syok septik|dbd|dhf|dengue|tifoid|typhoid|malaria|leptospirosis|isk|infeksi saluran kemih|pneumonia|covid|hiv|aids|prokalsitonin|pct|crp|meningoensefalitis|ventrikulitis|corynebacterium|mrse|analisa lcs|cairan otak)\b/i,
     generateProblem: (_matches, vitals, labs, fullText) => {
       const isNeuroInf =
-        /\b(meningoensefalitis|ventrikulitis|corynebacterium|mrse|analisa lcs|cairan otak)\b/i.test(
+        hasAffirmativeMatch(
           fullText,
+          /\b(meningoensefalitis|ventrikulitis|corynebacterium|mrse|analisa lcs|cairan otak)\b/i,
         ) || Boolean(labs.find((l) => l.specimen === 'lcs' && l.flag === 'critical'));
-      const isSepsis = /\b(sepsis|septik|shock septic|syok septik|sofa)\b/i.test(fullText);
-      const isDengue = /\b(dbd|dhf|dengue|trombositopenia|ns1)\b/i.test(fullText);
+      const isSepsis = hasAffirmativeMatch(fullText, /\b(sepsis|septik|shock septic|syok septik|sofa)\b/i);
+      const isDengue = hasAffirmativeMatch(fullText, /\b(dbd|dhf|dengue|trombositopenia|ns1)\b/i);
       const isFever =
-        (vitals.temperature && vitals.temperature >= 38.0) || /\b(demam|febris)\b/i.test(fullText);
+        (vitals.temperature && vitals.temperature >= 38.0) || hasAffirmativeMatch(fullText, /\b(demam|febris)\b/i);
+      const hasGeneralInf = hasAffirmativeMatch(
+        fullText,
+        /\b(infeksi|tifoid|typhoid|malaria|leptospirosis|isk|infeksi saluran kemih|pneumonia|covid|hiv|aids|prokalsitonin|pct|crp)\b/i,
+      );
       const wbcLab = labs.find((l) => l.name.includes('Leukosit'));
+      const isHighWbc = wbcLab && (wbcLab.flag === 'critical' || wbcLab.flag === 'high');
       const lcsKultur = labs.find((l) => l.name.includes('Kultur Cairan Otak'));
       const bloodKultur = labs.find((l) => l.name.includes('Kultur Darah'));
+
+      if (!isNeuroInf && !isSepsis && !isDengue && !isFever && !hasGeneralInf && !isHighWbc && !lcsKultur && !bloodKultur) {
+        return null;
+      }
 
       let title = 'Sindrom Infeksi Akut on Evaluation';
       let criticality: SpPdProblem['criticality'] = 'medium';
@@ -1451,13 +1615,29 @@ const DIVISION_RULES: DivisionRule[] = [
     keywords:
       /\b(jantung|pjk|cad|koroner|stemi|nstemi|uap|angina|infark|serangan jantung|gagal jantung|heart failure|chf|adhf|nyha|aritmia|af\b|atrial fibrilasi|svt|vt\b|pacemaker|troponin|ckmb|clopidogrel|aspirin|ticagrelor|warfarin|aspilet)\b/i,
     generateProblem: (_matches, vitals, _labs, fullText) => {
-      const isAcs = /\b(stemi|nstemi|uap|infark miokard|troponin\s*\+)\b/i.test(fullText);
-      const isHf = /\b(gagal jantung|heart failure|chf|adhf|edema paru|ronki basah)\b/i.test(
+      const isAcs =
+        hasAffirmativeMatch(fullText, /\b(stemi|nstemi|uap|infark miokard|troponin\s*\+)\b/i) ||
+        Boolean(_labs.find((l) => l.name.includes('Troponin') && l.flag === 'critical'));
+      const isHf = hasAffirmativeMatch(
         fullText,
+        /\b(gagal jantung|heart failure|chf|adhf|edema paru|ronki basah)\b/i,
       );
-      const isAntiplatelet = /\b(clopidogrel|aspirin|ticagrelor|warfarin|aspilet)\b/i.test(
+      const isAntiplatelet = hasAffirmativeMatch(
         fullText,
+        /\b(clopidogrel|aspirin|ticagrelor|warfarin|aspilet)\b/i,
       );
+      const hasCad = hasAffirmativeMatch(
+        fullText,
+        /\b(pjk|cad|koroner|angina|infark|serangan jantung)\b/i,
+      );
+      const hasArrhythmia = hasAffirmativeMatch(
+        fullText,
+        /\b(aritmia|atrial fibrilasi|svt|vt\b|pacemaker)\b/i,
+      );
+
+      if (!isAcs && !isHf && !isAntiplatelet && !hasCad && !hasArrhythmia) {
+        return null;
+      }
 
       let title = 'Penyakit Jantung Koroner (PJK) / Ischemic Heart Disease Terkontrol';
       let criticality: SpPdProblem['criticality'] = 'medium';
@@ -1520,10 +1700,22 @@ const DIVISION_RULES: DivisionRule[] = [
     keywords:
       /\b(paru|batuk|sesak|pneumonia|cap\b|hap\b|ppok|copd|asma|asthma|tb\b|tbc|tuberkulosis|efusi pleura|infiltrat|ronki|wheezing|bta\b|spo2|inhaler|nebul|combivent)\b/i,
     generateProblem: (_matches, vitals, _labs, fullText) => {
-      const isPneumonia = /\b(pneumonia|cap|hap|infiltrat|ronki)\b/i.test(fullText);
-      const isCopd = /\b(ppok|copd|asma|asthma|wheezing)\b/i.test(fullText);
-      const isTb = /\b(tb|tbc|tuberkulosis|bta|oat)\b/i.test(fullText);
+      const isPneumonia =
+        hasAffirmativeMatch(fullText, /\b(pneumonia|cap\b|hap\b|infiltrat)\b/i) ||
+        hasAffirmativeMatch(fullText, /\bronki\s*(?:\+|basah|kasar|halus)\b/i);
+      const isCopd =
+        hasAffirmativeMatch(fullText, /\b(ppok|copd|asma|asthma)\b/i) ||
+        hasAffirmativeMatch(fullText, /\bwheezing\s*(?:\+|positif|ekspirato)\b/i);
+      const isTb = hasAffirmativeMatch(fullText, /\b(tb\b|tbc|tuberkulosis|bta|oat)\b/i);
       const isHypox = vitals.spO2 && vitals.spO2 < 93;
+      const hasPulmoGeneral = hasAffirmativeMatch(
+        fullText,
+        /\b(batuk|sesak|efusi pleura|inhaler|nebul|combivent)\b/i,
+      );
+
+      if (!isPneumonia && !isCopd && !isTb && !isHypox && !hasPulmoGeneral) {
+        return null;
+      }
 
       let title = 'Penyakit Paru Obstruktif / Gangguan Respirasi Terkontrol';
       let criticality: SpPdProblem['criticality'] = 'medium';
@@ -1583,11 +1775,26 @@ const DIVISION_RULES: DivisionRule[] = [
     keywords:
       /\b(lambung|maag|gerd|dispepsia|mual|muntah|melena|hematemesis|perdarahan saluran cerna|scba|ugib|sirosis|hati|hepar|hepatitis|ikterus|kuning|ascites|asites|sgot|sgpt|bilirubin|albumin|omeprazole|pantoprazole|sucralfate|diare|bab cair|mencret)\b/i,
     generateProblem: (_matches, _vitals, labs, fullText) => {
-      const isBleed = /\b(melena|hematemesis|perdarahan saluran cerna|scba|ugib)\b/i.test(fullText);
-      const isCirrhosis = /\b(sirosis|cirrhosis|ascites|asites|varises)\b/i.test(fullText);
-      const isDiarrhea = /\b(diare|bab cair|mencret|muntah)\b/i.test(fullText);
+      const isBleed = hasAffirmativeMatch(fullText, /\b(melena|hematemesis|perdarahan saluran cerna|scba|ugib)\b/i);
+      const isCirrhosis = hasAffirmativeMatch(fullText, /\b(sirosis|cirrhosis|ascites|asites|varises)\b/i);
+      const isDiarrhea = hasAffirmativeMatch(fullText, /\b(diare|bab cair|mencret|muntah)\b/i);
       const transLab = labs.find((l) => l.name.includes('Transaminase'));
       const albLab = labs.find((l) => l.name.includes('Albumin'));
+      const hasGastroGeneral = hasAffirmativeMatch(
+        fullText,
+        /\b(lambung|maag|gerd|dispepsia|nyeri ulu hati|mual|omeprazole|pantoprazole|sucralfate)\b/i,
+      );
+
+      if (
+        !isBleed &&
+        !isCirrhosis &&
+        !isDiarrhea &&
+        !transLab &&
+        !hasGastroGeneral &&
+        (!albLab || albLab.value >= 3.5)
+      ) {
+        return null;
+      }
 
       let title = 'Sindrom Dispepsia / GERD Terkontrol';
       let criticality: SpPdProblem['criticality'] = 'low';
@@ -1646,18 +1853,138 @@ const DIVISION_RULES: DivisionRule[] = [
     },
   },
 
-  // 7. HEMATOLOGI & ONKOLOGI MEDIK
+  // 7a. KEGANASAN AKTIF — ONKOLOGI MEDIK (AJCC 8th Ed., ECOG, Terapi Sistemik)
+  //     Fires when oncologyStagingEngine detects TNM / histology / chemo keywords.
+  //     Generates a Problem #1 (Hematologi & Onkologi Medik) with AJCC staging.
+  {
+    division: 'hemato',
+    keywords:
+      /\b(adenocarcinoma|karsinoma|carcinoma|keganasan|maligna|ca\s+\w+|nsclc|npc|hcc|kemoterapi|folfox|folfiri|capox|nac\s+|adjuvant|colostomy|sigmoidostomy|mrm\b|mastektomi|tiroidektomi|prostatektomi|t[1-4][ab]?n[0-3][ab]?m[01]|stadium\s+[ivIV]|ecog\s+ps)/i,
+    generateProblem: (_matches, _vitals, _labs, fullText) => {
+      // Only proceed if oncologyStagingEngine confirms it's a genuine oncology text
+      if (!isOncologyText(fullText)) return null;
+
+      const onco = convertOncologyDiagnosis(fullText);
+      if (!onco.isOncologyCase) return null;
+
+      const stageLabel = onco.ajccStage?.stageRoman || 'Stadium (konfirmasi)';
+      const tnmLabel = onco.tnm ? ` (${onco.tnm.fullTnm})` : '';
+      const ecogLabel = onco.ecog.label;
+      const therapySuffix = [
+        ...onco.surgicalInterventions.map(s => `post-${s.type}${s.date ? ` (${s.date})` : ''}`),
+        ...onco.systemicTherapies.map(t =>
+          `post-${t.setting !== 'unknown' ? t.setting.toUpperCase() + '-' : ''}${t.regimen}${t.cycle ? ` ${t.cycle}` : ''}${t.date ? ` (${t.date})` : ''}`
+        ),
+      ].join(', ');
+
+      const title = `${onco.histology} ${onco.organDisplay} ${stageLabel}${tnmLabel} ${ecogLabel}${therapySuffix ? ', ' + therapySuffix : ''}`;
+
+      const isStageIV = onco.ajccStage?.stage.startsWith('IV') || onco.tnm?.rawM.toUpperCase().startsWith('M1');
+      const ecogScore = onco.ecog.score;
+      const isPostNAC = onco.systemicTherapies.some(t => t.setting === 'NAC');
+
+      // Build organ-specific Pdx
+      const pdx: string[] = [];
+      if (isPostNAC) {
+        pdx.push('Re-evaluasi imaging pasca-NAC (CT Scan toraks-abdomen-pelvis ± MRI lokal) untuk penilaian respons tumor (downstaging/residual disease).');
+      }
+      pdx.push('Pemeriksaan laboratorium serial: Darah Lengkap (CBC), fungsi ginjal (BUN/Kreatinin), fungsi hati (SGOT/SGPT/albumin), tumor marker spesifik organ.');
+      if (onco.organ === 'kolorektal') {
+        pdx.push('CEA serial, CT Scan toraks-abdomen-pelvis, kolonoskopi evaluasi pasca-terapi.');
+        pdx.push('Skrining mutasi KRAS/NRAS/BRAF dan MSI-H/dMMR bila belum tersedia.');
+      } else if (onco.organ === 'payudara') {
+        pdx.push('ER/PR dan HER2 status (IHC + FISH bila IHC 2+). Bone scan atau CT bila klinis curiga metastasis tulang.');
+        pdx.push('Ekokardiografi sebelum regimen berbasis Anthrasiklin atau Trastuzumab.');
+      } else if (onco.organ === 'paru_nsclc') {
+        pdx.push('Panel mutasi molekuler lengkap: EGFR, ALK, ROS1, BRAF V600E, KRAS G12C, PD-L1 TPS. PET-CT staging bila belum dilakukan.');
+      } else if (onco.organ === 'nasofaring') {
+        pdx.push('EBV DNA kuantitatif sebagai biomarker monitoring respons dan surveillance. MRI nasofaring + basis kranii.');
+      } else if (onco.organ === 'hepatoseluler') {
+        pdx.push('AFP serial, Child-Pugh / ALBI Score, USG abdomen / CT triphasic hepar, evaluasi fungsi cadangan hati.');
+      } else if (onco.organ === 'tiroid') {
+        pdx.push('Tiroglobulin (Tg) + Anti-Tg antibodi, TSH, Free T4. Pertimbangkan sidik tiroid (RAI scan) atau SPECT/CT pasca-RAI ablasi.');
+      } else if (onco.organ === 'gaster') {
+        pdx.push('HER2 (IHC/FISH), MSI-H, endoskopi evaluasi pasca-terapi, CT Scan toraks-abdomen.');
+      } else if (onco.organ === 'prostat') {
+        pdx.push('PSA serial, PSMA PET-CT atau bone scan untuk evaluasi metastasis. Testosterone level bila pada ADT.');
+      }
+
+      // Build Ptx
+      const ptx: string[] = [];
+      if (isStageIV) {
+        if (ecogScore !== null && ecogScore >= 3) {
+          ptx.push('ECOG PS ≥ 3: Pertimbangkan Best Supportive Care (BSC) / Perawatan Paliatif sebagai prioritas tata laksana. Diskusi MDT Onkologi + Tim Paliatif.');
+        } else {
+          ptx.push('Stadium IV (M1): Tujuan terapi paliatif. Evaluasi regimen lini 1/2 sesuai organ primer, komorbiditas, dan ECOG PS dalam MDT Onkologi.');
+        }
+      } else if (isPostNAC) {
+        ptx.push(`Evaluasi respons NAC ${onco.systemicTherapies.find(t => t.setting === 'NAC')?.regimen || ''}: Re-staging imaging wajib sebelum rencana definitive surgery atau lanjutan kemoterapi.`);
+      }
+      ptx.push('Jaga nutrisi dan status hidrasi: konsultasi Nutrisi Klinik jika Body Mass Index < 18.5 atau albumin < 3 g/dL. Pertimbangkan suplemen nutrisi enteral/parenteral.');
+      ptx.push('Tata laksana nyeri kanker: WHO pain ladder (NSAID/Parasetamol → Tramadol → Morfin/Opioid kuat sesuai skala NRS). Konsultasi Tim Paliatif jika NRS ≥ 7.');
+      ptx.push('Profilaksis mual-muntah kemoterapi (CINV): Ondansetron 8mg IV 30 menit pre-kemo, Deksametason 8mg IV, dan Metoklopramid rescue PRN.');
+      ptx.push('Profilaksis tromboemboli vena (VTE): LMWH (Enoxaparin 40mg SC OD) pada pasien onkologi immobil atau ECOG PS ≥ 2 tanpa kontraindikasi perdarahan aktif.');
+
+      // Build Pmx
+      const pmx: string[] = [];
+      pmx.push('CBC serial tiap siklus kemoterapi: pantau nadir hematologi (hari ke-7–14 pasca-kemo) untuk deteksi neutropenia febril dan trombositopenia berat.');
+      pmx.push('Tanda vital: tekanan darah, suhu (waspada febris neutropenia: suhu ≥ 38°C pada ANC < 500/uL → CITO evaluasi sepsis), dan saturasi O2.');
+      pmx.push('Fungsi ginjal dan elektrolit serial: terutama kalium, natrium, magnesium, dan kreatinin selama kemoterapi berbasis Cisplatin/Carboplatin.');
+      if (onco.organ === 'hepatoseluler') {
+        pmx.push('Child-Pugh dan fungsi hati (bilirubin, albumin, PT/INR) berkala — perburukan hepatik dapat mengubah toleransi terapi.');
+      }
+
+      // Build Pex
+      const pex: string[] = [];
+      pex.push(`Edukasi pasien dan keluarga: ${isStageIV ? 'Diagnosis keganasan stadium lanjut (Stadium IV) dengan tujuan terapi paliatif memperpanjang kualitas hidup. Diskusi advance care planning dan direktif medis.' : `Tata laksana keganasan ${onco.organDisplay} ${stageLabel} memerlukan pendekatan multidisiplin (bedah, onkologi, dan Sp.PD). Prognosis dan rencana terapi akan dijelaskan bersama Tim Onkologi.`}`);
+      pex.push('Edukasi tanda bahaya yang wajib dilaporkan segera: demam ≥ 38°C, perdarahan aktif, nyeri hebat mendadak, sesak napas, atau penurunan kesadaran.');
+      pex.push('Edukasi kepatuhan jadwal kemoterapi, nutrisi tinggi protein, hidrasi cukup (≥ 2 liter/hari), dan istirahat cukup antara siklus.');
+
+      return {
+        order: 1, // keganasan aktif selalu Problem #1
+        title: title.trim(),
+        division: 'hemato',
+        divisionName: `${PAPDI_DIVISIONS.hemato.nameIndonesian} — AJCC 8th Ed.`,
+        criticality: isStageIV ? 'critical' : (onco.ajccStage?.stage.startsWith('III') ? 'high' : 'medium'),
+        assessment: `${title.trim()}. Evaluasi status onkologi aktif, toleransi terapi sistemik (ECOG PS ${ecogScore !== null ? ecogScore : '—'}), dan manajemen komplikasi kemoterapi/bedah dalam kerangka pelayanan multidisiplin onkologi (MDT/TMT).`,
+        sEvidence: [
+          onco.ecog.description,
+          ...onco.localInvasionDetails.slice(0, 2),
+        ].filter(Boolean),
+        oEvidence: [
+          `Diagnosis: ${onco.histology} ${onco.organDisplay} ${stageLabel}${tnmLabel}`,
+          ...onco.clinicalNotes.slice(0, 2),
+        ].filter(Boolean),
+        pdx,
+        ptx,
+        pmx,
+        pex,
+      };
+    },
+  },
+
+  // 7b. HEMATOLOGI & ONKOLOGI MEDIK
   {
     division: 'hemato',
     keywords:
       /\b(anemia|hb\s*\d+|pucat|transfusi|trombositopenia|trombosit|plt|leukemia|limfoma|kanker|kemoterapi|dvt|emboli|koagulopati|pt\b|aptt|inr|fibrinogen|d-dimer)\b/i,
-    generateProblem: (_matches, _vitals, labs, _fullText) => {
+    generateProblem: (_matches, _vitals, labs, fullText) => {
       const hbLab = labs.find((l) => l.name.includes('Hemoglobin'));
       const pltLab = labs.find((l) => l.name.includes('Trombosit'));
       const inrLab = labs.find((l) => l.name.includes('INR'));
       const isSevereAnemia = hbLab && hbLab.value < 8.0;
       const isSeverePlt = pltLab && pltLab.value < 100000;
       const isCoagulopathy = inrLab && inrLab.value > 1.4;
+      const isAbnormalHb = hbLab && (hbLab.flag === 'low' || hbLab.flag === 'critical');
+      const isAbnormalPlt = pltLab && (pltLab.flag === 'low' || pltLab.flag === 'critical');
+      const hasHemato = hasAffirmativeMatch(
+        fullText,
+        /\b(anemia|pucat|transfusi|trombositopenia|leukemia|limfoma|kanker|kemoterapi|dvt|emboli|koagulopati)\b/i,
+      );
+
+      if (!isAbnormalHb && !isAbnormalPlt && !isCoagulopathy && !hasHemato) {
+        return null;
+      }
 
       let title = 'Anemia Normositik Normokromik Ringan-Sedang';
       let criticality: SpPdProblem['criticality'] = 'medium';
@@ -1718,8 +2045,16 @@ const DIVISION_RULES: DivisionRule[] = [
     keywords:
       /\b(asam urat|gout|artritis|arthritis|osteoarthritis|oa\b|ra\b|rheumatoid|sle\b|lupus|bengkak sendi|kaku sendi|allopurinol|kolkisin|colchicine|metilprednisolon|steroid)\b/i,
     generateProblem: (_matches, _vitals, _labs, fullText) => {
-      const isLupus = /\b(sle|lupus)\b/i.test(fullText);
-      const isGout = /\b(gout|asam urat|tofus|podagra)\b/i.test(fullText);
+      const isLupus = hasAffirmativeMatch(fullText, /\b(sle\b|lupus)\b/i);
+      const isGout = hasAffirmativeMatch(fullText, /\b(gout|asam urat|tofus|podagra)\b/i);
+      const hasReuma = hasAffirmativeMatch(
+        fullText,
+        /\b(artritis|arthritis|osteoarthritis|oa\b|ra\b|rheumatoid|bengkak sendi|kaku sendi|allopurinol|kolkisin|colchicine)\b/i,
+      );
+
+      if (!isLupus && !isGout && !hasReuma) {
+        return null;
+      }
 
       const title = isLupus
         ? 'Systemic Lupus Erythematosus (SLE) — Evaluasi Keterlibatan Organ Sistemik'
@@ -1767,8 +2102,16 @@ const DIVISION_RULES: DivisionRule[] = [
     keywords:
       /\b(alergi|alergi obat|urtikaria|angioedema|anafilaksis|syok anafilaktik|sjs|ten\b|dress\b|gatal|ruam|biduran|eosinofil|ige)\b/i,
     generateProblem: (_matches, _vitals, _labs, fullText) => {
-      const isAnaphylaxis = /\b(anafilaksis|syok anafilaktik|angioedema)\b/i.test(fullText);
-      const isSevereDrug = /\b(sjs|ten|dress)\b/i.test(fullText);
+      const isAnaphylaxis = hasAffirmativeMatch(fullText, /\b(anafilaksis|syok anafilaktik|angioedema)\b/i);
+      const isSevereDrug = hasAffirmativeMatch(fullText, /\b(sjs|ten\b|dress\b)\b/i);
+      const hasAllergy = hasAffirmativeMatch(
+        fullText,
+        /\b(alergi|alergi obat|urtikaria|angioedema|gatal|ruam|biduran)\b/i,
+      );
+
+      if (!isAnaphylaxis && !isSevereDrug && !hasAllergy) {
+        return null;
+      }
 
       const title = isAnaphylaxis
         ? 'Reaksi Anafilaksis / Hipersensitivitas Berat — Kegawatan Imunologi'
@@ -1815,7 +2158,18 @@ const DIVISION_RULES: DivisionRule[] = [
     keywords:
       /\b(geriatri|lansia|usia\s*(?:6[5-9]|[7-9]\d)\s*th|delirium|demensia|frailty|jatuh|inkontinensia|polifarmasi|dekubitus|malnutrisi)\b/i,
     generateProblem: (_matches, _vitals, _labs, fullText) => {
-      const isDelirium = /\b(delirium|disorientasi|gelisah akut)\b/i.test(fullText);
+      const isDelirium = hasAffirmativeMatch(fullText, /\b(delirium|disorientasi|gelisah akut)\b/i);
+      const isGeriatricAge = /\busia\s*(?:6[5-9]|[7-9]\d)\s*th/i.test(fullText);
+      const hasGeriatric =
+        isGeriatricAge ||
+        hasAffirmativeMatch(
+          fullText,
+          /\b(geriatri|lansia|frailty|jatuh|inkontinensia|polifarmasi|dekubitus|malnutrisi)\b/i,
+        );
+
+      if (!isDelirium && !hasGeriatric) {
+        return null;
+      }
 
       const title = isDelirium
         ? 'Delirium Hipoaktif / Hiperaktif pada Sindrom Geriatri'
@@ -1860,8 +2214,22 @@ const DIVISION_RULES: DivisionRule[] = [
   {
     division: 'psikosomatik',
     keywords:
-      /\b(psikosomatik|ansietas|cemas|panik|depresi|somatoform|nyeri kronik|insomnia|jantung berdebar fungsional|hiperventilasi)\b/i,
-    generateProblem: (_matches, _vitals, _labs, _fullText) => {
+      /\b(psikosomatik|ansietas|cemas|panik|depresi|somatoform|insomnia|jantung berdebar fungsional|hiperventilasi)\b/i,
+    generateProblem: (_matches, _vitals, _labs, fullText) => {
+      // Guard: strictly ignore neurological / neurosurgical seizures and organic intracranial lesions
+      if (/\b(kejang|konvulsivus|status epileptikus|epilepsi|edh|sah|sdh|ich|stroke|hematom|perdarahan intrakranial)\b/i.test(fullText)) {
+        return null;
+      }
+
+      const hasPsiko = hasAffirmativeMatch(
+        fullText,
+        /\b(psikosomatik|ansietas|cemas|panik|depresi|somatoform|insomnia|jantung berdebar fungsional|hiperventilasi)\b/i,
+      );
+
+      if (!hasPsiko) {
+        return null;
+      }
+
       const title = 'Gangguan Psikosomatik / Ansietas Terkait Penyakit Medis Organik';
 
       return {
@@ -1896,6 +2264,118 @@ const DIVISION_RULES: DivisionRule[] = [
       };
     },
   },
+
+  // 12. NEUROLOGI / SARAF (LINTAS DISIPLIN SP.N)
+  {
+    division: 'neuro',
+    keywords:
+      /\b(status epileptikus|kejang|konvulsivus|epilepsi|stroke|stroke iskemik|stroke hemoragik|meningitis|ensefalopati|penurunan kesadaran intrakranial|paresis|hemiparesis)\b/i,
+    generateProblem: (_matches, vitals, _labs, fullText) => {
+      const isSeizure = /\b(status epileptikus|kejang|konvulsivus|epilepsi)\b/i.test(fullText);
+      const isStroke = /\b(stroke|iskemik|hemoragik|paresis|hemiparesis)\b/i.test(fullText);
+
+      let title = 'Masalah Neurologis Akut (Konsul Sejawat Spesialis Saraf / Sp.N)';
+      let criticality: 'critical' | 'high' | 'medium' = 'high';
+
+      if (/\bstatus epileptikus\b/i.test(fullText)) {
+        title = 'Status Epileptikus Konvulsivus (Kegawatan Neurologis Akut / Sp.N)';
+        criticality = 'critical';
+      } else if (isSeizure) {
+        title = 'Kejang Akut / Epilepsi Terkait Lesi Organik (Konsul Sp.N)';
+        criticality = 'critical';
+      } else if (isStroke) {
+        title = 'Stroke / Defisit Neurologis Fokal Akut (Konsul Sp.N)';
+        criticality = 'high';
+      }
+
+      return {
+        order: 1,
+        title,
+        division: 'neuro',
+        divisionName: ALL_CLINICAL_DIVISIONS.neuro.nameIndonesian,
+        criticality,
+        assessment: `${title}. Evaluasi dan penanganan kegawatan neurologis akut bersama Dokter Spesialis Neurologi (Sp.N).`,
+        sEvidence: [
+          isSeizure ? 'Riwayat kejang / penurunan kesadaran / bangkitan konvulsivus.' : 'Keluhan defisit neurologis atau penurunan kesadaran.',
+        ],
+        oEvidence: [
+          `GCS / Status Neurologis dalam evaluasi cito. TD: ${vitals.systolic || '-'}/${vitals.diastolic || '-'} mmHg`,
+        ],
+        pdx: [
+          'Head CT-Scan / MRI Brain CITO',
+          'Pemeriksaan EEG (Elektroensefalografi) berkala',
+          'Serial elektrolit cito (Na, K, Ca, Mg) dan GDS cito penyingkir kejang metabolik',
+        ],
+        ptx: [
+          'Jaga patensi jalan napas (Airway, Breathing, Circulation), suplementasi oksigen adekuat.',
+          'Tata laksana lini 1 kejang: Benzodiazepin IV (Diazepam 5-10 mg IV perlahan atau Midazolam).',
+          'Lini 2 antikonvulsan pemeliharaan: Fenitoin loading 15-20 mg/kgBB dilarutkan dalam NaCl 0.9% (hindari Dekstrosa) atau Levetiracetam IV.',
+          'Konsul cito Dokter Spesialis Neurologi (Sp.N) untuk evaluasi dan alih rawat bersama.',
+        ],
+        pmx: [
+          'Observasi frekuensi kejang, durasi bangkitan, dan status GCS ketat tiap 15-30 menit.',
+          'Monitoring saturasi O2, hemodinamik, dan tanda-tanda aspirasi paru.',
+        ],
+        pex: [
+          'Edukasi keluarga mengenai protokol kegawatan kejang dan proteksi trauma saat kejang.',
+        ],
+      };
+    },
+  },
+
+  // 13. BEDAH SARAF (LINTAS DISIPLIN SP.BS)
+  {
+    division: 'bedahsaraf',
+    keywords:
+      /\b(edh|epidural hemorrhage|epidural hematoma|sah|subarachnoid hemorrhage|sdh|subdural hematoma|ich|intracerebral hemorrhage|cedera kepala|trauma kepala|kraniotomi|lesi intrakranial)\b/i,
+    generateProblem: (_matches, _vitals, _labs, fullText) => {
+      let title = 'Cedera Intrakranial / Trauma Kapitis (Konsul Spesialis Bedah Saraf / Sp.BS)';
+      let criticality: 'critical' | 'high' | 'medium' = 'high';
+
+      if (/\b(edh|epidural)\b/i.test(fullText)) {
+        title = 'Epidural Hemorrhage (EDH) Post-Trauma (CITO Bedah Saraf / Sp.BS)';
+        criticality = 'critical';
+      } else if (/\b(sah|subarachnoid)\b/i.test(fullText)) {
+        title = 'Subarachnoid Hemorrhage (SAH) / Perdarahan Intrakranial (Sp.BS)';
+        criticality = 'critical';
+      } else if (/\b(sdh|subdural)\b/i.test(fullText)) {
+        title = 'Subdural Hematoma (SDH) Akut/Kronis (Sp.BS)';
+        criticality = 'critical';
+      }
+
+      return {
+        order: 1,
+        title,
+        division: 'bedahsaraf',
+        divisionName: ALL_CLINICAL_DIVISIONS.bedahsaraf.nameIndonesian,
+        criticality,
+        assessment: `${title}. Kasus kegawatan struktural intrakranial dalam ranah tindakan Spesialis Bedah Saraf (Sp.BS).`,
+        sEvidence: [
+          'Riwayat trauma kapitis, penurunan kesadaran progresif, atau lucid interval.',
+        ],
+        oEvidence: [
+          'CT-Scan Kepala menunjukkan lesi hiperdens intrakranial / tanda herniasi.',
+        ],
+        pdx: [
+          'Evaluasi ulang CT-Scan Kepala tanpa kontras cito (serial bila terjadi penurunan GCS)',
+          'Skrining profil hemostasis (PT, APTT, INR, Trombosit target ≥ 100.000 /uL)',
+        ],
+        ptx: [
+          'Konsul cito Dokter Spesialis Bedah Saraf (Sp.BS) untuk indikasi kraniotomi evakuasi hematoma.',
+          'Elevasi kepala 30 derajat untuk membantu venous return dan menurunkan tekanan intrakranial (TIK).',
+          'Cegah batuk, muntah, dan agitasi. Hindari cairan hipotonis (gunakan NaCl 0.9%).',
+          'Toleransi operasi penyakit dalam: optimalkan target hemostasis trombosit ≥ 100.000 /uL dan INR normal.',
+        ],
+        pmx: [
+          'Pupil isokor/anisokor, refleks cahaya, dan GCS tiap 1 jam.',
+          'Tekanan darah (pertahankan Cerebral Perfusion Pressure adekuat, hindari hipotensi).',
+        ],
+        pex: [
+          'Edukasi keluarga tentang kegawatan lesi intrakranial dan kemungkinan tindakan pembedahan cito kraniotomi.',
+        ],
+      };
+    },
+  },
 ];
 
 /**
@@ -1911,13 +2391,17 @@ export function identifySpPdProblems(
   let orderCounter = 1;
 
   if (clean.length > 0) {
+    // Strip family history so relative conditions do not pollute patient problems
+    const patientText = stripFamilyHistory(clean);
+
     for (const rule of DIVISION_RULES) {
-      const matches = clean.match(rule.keywords);
       // Also trigger if labs match that division
       const divisionLabs = labs.filter((l) => l.division === rule.division);
+      const isAffirmative = hasAffirmativeMatch(patientText, rule.keywords);
 
-      if (matches || divisionLabs.length > 0) {
-        const problem = rule.generateProblem(matches || [], vitals, labs, clean);
+      if (isAffirmative || divisionLabs.length > 0) {
+        const matches = patientText.match(rule.keywords) || [];
+        const problem = rule.generateProblem(matches, vitals, labs, patientText);
         if (problem) {
           problem.order = orderCounter++;
           foundProblems.push(problem);
@@ -2214,47 +2698,37 @@ export function generateConsultationAnswer(
         )
       : ['  - Parameter laboratorium utama dalam batas rujukan aman.']),
     '',
-    'III. STRATIFIKASI RISIKO PERIOPERATIF:',
-    `  - Indeks Risiko Jantung (RCRI Lee): Skor ${rcriScore} &bull; ${rcriClass}`,
-    `  - Risiko Komplikasi Paru (ARISCAT): ${ariscatRes.score !== null ? `${ariscatRes.score} points (${ariscatRes.interpretation})` : '___ points (___% risk of in-hospital post-op pulmonary complication)'}`,
-    `  - Risiko Perdarahan (Improve Score): ${improveRes.score !== null ? `${improveRes.score} points (${improveRes.interpretation})` : '___ points (No increased risk of bleeding)'}`,
-    `  - Risiko Tromboemboli Vena (Caprini VTE): ${capriniRes.score !== null ? `${capriniRes.score} points (${capriniRes.interpretation})` : '___ points (___% VTE risk)'}`,
+    `III. KESIMPULAN STATUS TOLERANSI OPERASI: [ ${toleranceStatus} ]`,
+    `Catatan: ${toleranceReason}`,
+    '',
+    'Saat ini dengan risiko tindakan :',
+    formatAriscatLine(ariscatRes.score),
+    formatRcriLine(rcriScore),
+    formatImproveLine(improveRes.score),
+    formatCapriniLine(capriniRes.score),
     ...(isGeriatric && deliriumRes
-      ? [`  - Risiko Delirium Geriatri (PAPDI): ${deliriumRes.score !== null ? `${deliriumRes.score} points (${deliriumRes.interpretation})` : '___ points (___% risk delirium post-op)'}`]
+      ? [`Risiko Delirium Geriatri (PAPDI): ${deliriumRes.score !== null ? `${deliriumRes.score} points (${deliriumRes.interpretation})` : '___ points'}`]
       : []),
     ...(isGeriatric && morseRes
-      ? [`  - Risiko Jatuh Geriatri (Morse Fall Risk): ${morseRes.score !== null ? `${morseRes.score} points (${morseRes.interpretation})` : '___ points (___)'}`]
+      ? [`Risiko Jatuh Geriatri (Morse Fall Risk): ${morseRes.score !== null ? `${morseRes.score} points (${morseRes.interpretation})` : '___ points'}`]
       : []),
-    `  - Kontrol Hemodinamik & Metabolik: ${toleranceReason}`,
     '',
-    `IV. KESIMPULAN STATUS TOLERANSI OPERASI: [ ${toleranceStatus} ]`,
-    `  Catatan: ${toleranceReason}`,
+    'Optimal dilakukan tindakan apabila :',
+    ...CONSENSUS_OPTIMAL_CONDITIONS,
     '',
-    urgencyType === 'elektif'
-      ? [
-          '  Optimal dilakukan tindakan elektif apabila:',
-          '  • TD < 160/90 mmHg',
-          '  • BS < 200 mg/dL',
-          '  • SC < 7 gr/dL',
-          '  • HB > 10 gr/dL',
-          '  • K 3.5 - 5.5 mmol/L',
-          '  • Eutiroid / Subklinis',
-          '',
-        ].join('\n')
-      : '',
-    'V. SARAN & REKOMENDASI SP.PD:',
-    '  A. RENCANA PRE-OPERATIF:',
-    ...preOpAdvis.slice(0, 4).map((a) => `     &bull; ${a}`),
+    'Advis & Rekomendasi Sp.PD:',
+    'A. Pre-Operatif:',
+    ...preOpAdvis.slice(0, 4).map((a) => `\t• ${a}`),
     '',
-    '  B. RENCANA INTRA-OPERATIF:',
-    ...intraOpAdvis.slice(0, 3).map((a) => `     &bull; ${a}`),
+    'B. Intra-Operatif:',
+    ...intraOpAdvis.slice(0, 3).map((a) => `\t• ${a}`),
     '',
-    '  C. RENCANA POST-OPERATIF & MONITORING:',
-    ...postOpAdvis.slice(0, 3).map((a) => `     &bull; ${a}`),
+    'C. Post-Operatif & Rawat Bersama:',
+    ...postOpAdvis.slice(0, 3).map((a) => `\t• ${a}`),
     '',
     urgencyType === 'life_saving' || urgencyOrPreset === 'raber' || urgencyOrPreset === 'akut'
-      ? 'VI. RENCANA RAWAT BERSAMA:\n  Kami bersedia rawat bersama untuk tatalaksana komorbiditas penyakit dalam. Tim Sp.PD akan visitasi rutin.'
-      : 'VI. TINDAK LANJUT:\n  Bila terjadi perubahan hemodinamik bermakna atau perburukan akut, mohon hubungi kami kembali.',
+      ? 'V. RENCANA RAWAT BERSAMA:\n  Kami bersedia rawat bersama untuk tatalaksana komorbiditas penyakit dalam. Tim Sp.PD akan visitasi rutin.'
+      : 'V. TINDAK LANJUT:\n  Bila terjadi perubahan hemodinamik bermakna atau perburukan akut, mohon hubungi kami kembali.',
     '',
     'Salam Sejawat,',
     'Tim Dokter Spesialis Penyakit Dalam (Sp.PD)',

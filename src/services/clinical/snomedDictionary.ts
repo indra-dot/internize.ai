@@ -35,6 +35,11 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
       'tensi tinggi',
       'hipertensi esensial',
       'hipertensi primer',
+      'ht',
+      'ht grade 1',
+      'ht grade 2',
+      'ht st 1',
+      'ht st 2',
     ],
     hierarchy: 'Disorder',
   },
@@ -159,7 +164,12 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
     term: 'Pulmonary Embolism',
     display: 'Pulmonary embolism (disorder)',
     fsn: 'Pulmonary embolism (disorder)',
-    synonyms: ['pulmonary embolism', 'pe', 'pulmonary thromboembolism'],
+    synonyms: [
+      'pulmonary embolism',
+      'pulmonary thromboembolism',
+      'emboli paru',
+      'tromboemboli paru',
+    ],
     hierarchy: 'Disorder',
   },
   {
@@ -167,7 +177,12 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
     term: 'Peripheral Vascular Disease',
     display: 'Peripheral vascular disease (disorder)',
     fsn: 'Peripheral vascular disease (disorder)',
-    synonyms: ['peripheral vascular disease', 'pvd', 'peripheral artery disease', 'pad'],
+    synonyms: [
+      'peripheral vascular disease',
+      'pvd',
+      'peripheral artery disease',
+      'penyakit arteri perifer',
+    ],
     hierarchy: 'Disorder',
   },
   {
@@ -269,7 +284,10 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
       'non-insulin-dependent diabetes mellitus',
       // Bahasa Indonesia
       'diabetes melitus',
+      'diabetes melitus tipe 2',
+      'dm',
       'dm tipe 2',
+      'dmt2',
       'kencing manis',
       'gula darah tinggi',
       'hiperglikemia',
@@ -831,7 +849,7 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
     term: 'Multiple Sclerosis',
     display: 'Multiple sclerosis (disorder)',
     fsn: 'Multiple sclerosis (disorder)',
-    synonyms: ['multiple sclerosis', 'ms', 'relapsing-remitting multiple sclerosis'],
+    synonyms: ['multiple sclerosis', 'sklerosis multipel', 'relapsing-remitting multiple sclerosis'],
     hierarchy: 'Disorder',
   },
   {
@@ -950,7 +968,7 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
     term: 'Carpal Tunnel Syndrome',
     display: 'Carpal tunnel syndrome (disorder)',
     fsn: 'Carpal tunnel syndrome (disorder)',
-    synonyms: ['carpal tunnel syndrome', 'carpal tunnel', 'cts'],
+    synonyms: ['carpal tunnel syndrome', 'carpal tunnel', 'sindrom lorong karpal'],
     hierarchy: 'Disorder',
   },
   {
@@ -1060,7 +1078,7 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
     term: 'Erectile Dysfunction',
     display: 'Erectile dysfunction (disorder)',
     fsn: 'Erectile dysfunction (disorder)',
-    synonyms: ['erectile dysfunction', 'ed', 'impotence'],
+    synonyms: ['erectile dysfunction', 'disfungsi ereksi', 'impotence', 'impotensi'],
     hierarchy: 'Disorder',
   },
 
@@ -1376,7 +1394,7 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
     term: 'Leukemia',
     display: 'Leukemia (disorder)',
     fsn: 'Leukemia (disorder)',
-    synonyms: ['leukemia', 'aml', 'cll', 'cml', 'all'],
+    synonyms: ['leukemia', 'leukemia akut', 'aml', 'cll', 'cml', 'acute lymphocytic leukemia'],
     hierarchy: 'Disorder',
   },
   {
@@ -1861,7 +1879,7 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
     term: 'Laceration',
     display: 'Laceration (disorder)',
     fsn: 'Laceration (disorder)',
-    synonyms: ['laceration', 'cut', 'skin tear'],
+    synonyms: ['laceration', 'vulnus laceratum', 'luka robek', 'skin tear'],
     hierarchy: 'Disorder',
   },
   {
@@ -2168,7 +2186,12 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
     term: 'Aortic Insufficiency',
     display: 'Aortic valve insufficiency (disorder)',
     fsn: 'Aortic valve insufficiency (disorder)',
-    synonyms: ['aortic regurgitation', 'aortic insufficiency', 'ai'],
+    synonyms: [
+      'aortic regurgitation',
+      'aortic insufficiency',
+      'insufisiensi aorta',
+      'regurgitasi aorta',
+    ],
     hierarchy: 'Disorder',
   },
   {
@@ -2184,7 +2207,13 @@ export const SNOMED_LEXICON: SnomedLexiconEntry[] = [
     term: 'Mitral Regurgitation',
     display: 'Mitral valve regurgitation (disorder)',
     fsn: 'Mitral valve regurgitation (disorder)',
-    synonyms: ['mitral regurgitation', 'mitral valve regurgitation', 'mitral insufficiency', 'mr'],
+    synonyms: [
+      'mitral regurgitation',
+      'mitral valve regurgitation',
+      'mitral insufficiency',
+      'regurgitasi mitral',
+      'insufisiensi mitral',
+    ],
     hierarchy: 'Disorder',
   },
   {

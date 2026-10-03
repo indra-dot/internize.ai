@@ -15,6 +15,8 @@ When parsing Indonesian medical records and clinical narratives, always adhere t
 - **Lab & Drug Disambiguation (Collision Prevention)**:
   - `Vitamin K` vs `Kalium`: Use negative lookbehind/lookahead to prevent `Vitamin K 10 mg` from triggering critical hyperkalemia.
   - `CR: 2 detik` (Capillary Refill Time) vs `Kreatinin`: Prevent CRT from being parsed as serum creatinine.
+  - `BS` / `BSS` / `BST` / `BSP` / `GDS` / `GDA` -> Blood Sugar / Gula Darah: Support clinical timestamps (e.g. `BS acak pk 13.35 WITA: 132`, `BS jam 14.00: 150`) and normalize time strings into trend points.
+  - **Anti-Date Guard**: Prevent section headers followed by dates (e.g. `Monitoring BS:\n3/10/26`) from erroneously capturing the day (`3`) as a clinical value. All numeric lab extractors must reject numbers immediately followed by date delimiters (`(?!\s*[\/\-]\s*\d)`).
   - Multi-dot thousand formatting: Support Indonesian number formats such as `1.050.000 /uL` or `250.000 /uL` without truncating at the first decimal dot.
   - Core Sp.PD markers: Always detect and calibrate thresholds for `HbA1c`, `Laktat`, `Trombosit`, `Kalium`, `Natrium`, `Ureum`, `Kreatinin`, and `Troponin`.
 

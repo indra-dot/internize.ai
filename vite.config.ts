@@ -14,6 +14,9 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  // Treat .onnx and .wasm binaries as static assets so Vite copies them
+  // into dist/ instead of trying to bundle them as JS modules.
+  assetsInclude: ['**/*.onnx', '**/*.wasm'],
   build: {
     target: 'esnext',
     emptyOutDir: true,
@@ -23,11 +26,22 @@ export default defineConfig({
       },
     },
   },
+  // Exclude @huggingface/transformers from Vite pre-bundling — it manages
+  // its own ONNX Runtime Web workers and WASM paths internally.
+  optimizeDeps: {
+    exclude: ['@huggingface/transformers'],
+  },
   server: {
     port: 5173,
     strictPort: true,
     hmr: {
       port: 5173,
     },
+    headers: {
+      // Required for SharedArrayBuffer (WASM threads) in dev server
+      'Cross-Origin-Opener-Policy':   'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
   },
 });
+

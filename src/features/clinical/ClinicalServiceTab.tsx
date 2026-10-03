@@ -1,6 +1,5 @@
 import {
   AlertTriangle,
-  Brain,
   Camera,
   CheckCircle,
   ChevronDown,
@@ -8,7 +7,6 @@ import {
   Cpu,
   Database,
   FileText,
-  Loader2,
   Lock,
   RotateCcw,
   ShieldCheck,
@@ -23,7 +21,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { ClinicalEngineCoordinator } from '../../services/clinical/engine';
-import { type SlmProgressEvent, getSlmStatus } from '../../services/clinical/slmEngine';
 import { loadClinicalDraft, saveClinicalDraft } from '../../services/storage/chromeStorage';
 import type {
   ClinicalAnalysisResult,
@@ -42,6 +39,9 @@ import {
   SAMPLE_RABER_CONSUL,
   SpPdWorkflowPanel,
 } from './SpPdWorkflowPanel';
+import {
+  SAMPLE_ONKOLOGI_KOLOREKTAL,
+} from './OncologyConverterCard';
 
 export interface ClinicalServiceTabProps {
   initialText?: string;
@@ -51,60 +51,6 @@ export interface ClinicalServiceTabProps {
 
 export const SAMPLE_CLINICAL_NOTE =
   'Pasien pria 58 tahun dengan riwayat Hipertensi Grade 2 dan DM Tipe 2. Terapi rutin Metformin 3x500mg dan Lisinopril 10mg 1x1.';
-
-// ──────────────────────────────────────────────────────────────────────────────
-// SLM download progress sub-component
-// ──────────────────────────────────────────────────────────────────────────────
-
-interface SlmProgressBannerProps {
-  event: SlmProgressEvent;
-}
-
-const SlmProgressBanner: React.FC<SlmProgressBannerProps> = ({ event }) => {
-  const isError = event.status === 'error';
-  return (
-    <div
-      className={`rounded-lg border p-2.5 flex items-start gap-2 text-[11px] ${
-        isError
-          ? 'bg-rose-50 border-rose-200 text-rose-800'
-          : 'bg-maroon-50 border-maroon-200 text-maroon-900'
-      }`}
-    >
-      {isError ? (
-        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
-      ) : event.status === 'ready' ? (
-        <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-500" />
-      ) : (
-        <Loader2 className="w-4 h-4 shrink-0 mt-0.5 text-maroon-700 animate-spin" />
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold truncate">
-          {event.status === 'loading'
-            ? 'Memuat Bobot Model Neural (On-Device)…'
-            : event.status === 'ready'
-              ? 'Neural SLM Siap Digunakan'
-              : 'Neural Mode: Auto-Fallback Aktif'}
-        </p>
-        <p className="text-[10px] opacity-80 truncate">
-          {event.status === 'error'
-            ? 'Unduhan model SLM belum selesai atau offline. Analisis otomatis dialihkan ke mesin lokal Sp.PD (instan & akurat).'
-            : event.message}
-        </p>
-        {event.status === 'loading' && (
-          <div className="mt-1 h-1.5 bg-maroon-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-maroon-800 transition-all duration-300"
-              style={{ width: `${event.progress}%` }}
-            />
-          </div>
-        )}
-      </div>
-      {event.status !== 'error' && (
-        <span className="font-mono font-bold shrink-0 tabular-nums">{event.progress}%</span>
-      )}
-    </div>
-  );
-};
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Main tab component
@@ -121,9 +67,6 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
   const [executionTimeMs, setExecutionTimeMs] = useState<number | null>(null);
   const [showOcrPanel, setShowOcrPanel] = useState<boolean>(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
-  const [enableNeural, setEnableNeural] = useState<boolean>(false);
-  const [neuralUsed, setNeuralUsed] = useState<boolean>(false);
-  const [slmProgress, setSlmProgress] = useState<SlmProgressEvent | null>(null);
 
   const [soapNote, setSoapNote] = useState<SoapNote | null>(null);
   const [snomedConcepts, setSnomedConcepts] = useState<SnomedConcept[]>([]);
@@ -131,7 +74,6 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
 
   // Track previous initialText so we can detect genuine new highlights
   const prevInitialTextRef = useRef<string>('');
-  const isFirstMountRef = useRef<boolean>(true);
 
   // ── Persist draft ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -155,23 +97,6 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
     setInputText(initialText);
     onTextChange?.(initialText);
   }, [initialText, onTextChange]);
-
-  // ── Pre-warm SLM ONLY when neural mode is actively toggled on by user ──
-  useEffect(() => {
-    if (isFirstMountRef.current) {
-      isFirstMountRef.current = false;
-      return;
-    }
-    if (!enableNeural) return;
-    if (getSlmStatus() === 'unloaded') {
-      ClinicalEngineCoordinator.prewarmSlmEngine((evt) => {
-        setSlmProgress(evt);
-        if (evt.status === 'ready' || evt.status === 'error') {
-          setTimeout(() => setSlmProgress(null), 3000);
-        }
-      });
-    }
-  }, [enableNeural]);
 
   // ── Handlers ──────────────────────────────────────────────────────────
 
@@ -210,13 +135,19 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
     onShowToast?.('Memuat contoh kasus Evaluasi Akut CITO (Hiperkalemia + Krisis)', 'info');
   };
 
+  const handleLoadOnkologiSample = () => {
+    setInputText(SAMPLE_ONKOLOGI_KOLOREKTAL);
+    onTextChange?.(SAMPLE_ONKOLOGI_KOLOREKTAL);
+    saveClinicalDraft(SAMPLE_ONKOLOGI_KOLOREKTAL);
+    onShowToast?.('Memuat contoh kasus Onkologi Bedah: Ca. Rektum T4bN3b post-NAC FOLFIRI', 'info');
+  };
+
   const handleClear = () => {
     setInputText('');
     setSoapNote(null);
     setSnomedConcepts([]);
     setRxnormConcepts([]);
     setExecutionTimeMs(null);
-    setNeuralUsed(false);
     onTextChange?.('');
     saveClinicalDraft('');
     prevInitialTextRef.current = '';
@@ -240,19 +171,13 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
 
       setIsProcessing(true);
       try {
-        const result: ClinicalAnalysisResult = await ClinicalEngineCoordinator.analyze(text, {
-          enableNeural,
-          onSlmProgress: (evt) => {
-            setSlmProgress(evt);
-          },
-        });
+        const result: ClinicalAnalysisResult = await ClinicalEngineCoordinator.analyze(text, {});
 
         setSoapNote(result.soapNote);
         setSnomedConcepts(result.diagnoses);
         setRxnormConcepts(result.medications);
         setExecutionTimeMs(result.executionTimeMs);
         setInferenceDevice(result.inferenceDevice);
-        setNeuralUsed(result.neuralMode ?? false);
 
         onShowToast?.(
           `Analisis klinis selesai (${result.executionTimeMs}ms). Draf siap ditinjau.`,
@@ -265,10 +190,9 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
         onShowToast?.(errMsg, 'error');
       } finally {
         setIsProcessing(false);
-        setSlmProgress(null);
       }
     },
-    [enableNeural, isProcessing, onShowToast],
+    [isProcessing, onShowToast],
   );
 
   const handleProcessClinical = () => {
@@ -347,13 +271,10 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
             >
               3
             </span>
-            <span>Review & Salin Draf</span>
+            <span>Review &amp; Salin Draf</span>
           </div>
         </div>
       </div>
-
-      {/* ── SLM Progress Banner (if downloading weights) ──────────────── */}
-      {slmProgress && <SlmProgressBanner event={slmProgress} />}
 
       {/* ── 2. Langkah 1: Input Catatan Medis Pasien ──────────────────── */}
       <Card className="border border-maroon-200/80 shadow-sm bg-white overflow-hidden">
@@ -442,6 +363,13 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
             </button>
             <button
               type="button"
+              onClick={handleLoadOnkologiSample}
+              className="shrink-0 px-2 py-0.5 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-900 hover:text-purple-950 border border-purple-200 hover:border-purple-400 transition-colors text-[10.5px] font-medium"
+            >
+              🔬 Onkologi Bedah
+            </button>
+            <button
+              type="button"
               onClick={handleLoadSample}
               className="shrink-0 px-2 py-0.5 rounded-full bg-slate-100 hover:bg-gold-50 text-slate-600 hover:text-slate-900 border border-slate-200 text-[10.5px]"
             >
@@ -503,6 +431,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
           />
         </div>
       )}
+
 
       {/* Draf SOAP Terstruktur (Jika tombol Analisis ditekan) */}
       {soapNote && (
@@ -578,7 +507,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
           <div className="flex items-center gap-2">
             <Sliders className="w-3.5 h-3.5 text-slate-500" />
             <span className="text-xs font-semibold text-slate-700">
-              Pengaturan Lanjutan (Hardware & Model)
+              Pengaturan Lanjutan (Hardware &amp; Model)
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -598,9 +527,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
             {/* Backend hardware status */}
             <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
               <div>
-                <span className="font-semibold text-slate-800 block text-[11px]">
-                  Backend Komputasi Klinis
-                </span>
+                <span className="font-semibold text-slate-800 block text-[11px]">Backend Komputasi Klinis</span>
                 <p className="text-[10.5px] text-slate-500">
                   {inferenceDevice === 'webgpu'
                     ? 'Akselerasi WebGPU terdeteksi & aktif di peramban.'
@@ -619,72 +546,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
                 </span>
               )}
             </div>
-
-            {/* ⚡ Neural SLM Co-Pilot Toggle */}
-            <div
-              className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-200"
-              title="Gunakan bila kasus sangat kompleks, multi-patologi tumpang tindih, atau membutuhkan second-opinion penalaran diagnostik."
-            >
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-1.5">
-                  <Brain
-                    className={`w-3.5 h-3.5 ${enableNeural ? 'text-maroon-800' : 'text-slate-400'}`}
-                  />
-                  <span className="font-semibold text-slate-800 text-[11px]">
-                    ⚡ Neural SLM Co-Pilot (Opsional - Perlu Akses WebGPU/WASM)
-                  </span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-medium ${
-                      enableNeural
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-slate-200 text-slate-600'
-                    }`}
-                  >
-                    {enableNeural
-                      ? slmProgress?.status === 'loading'
-                        ? 'Memuat Model...'
-                        : 'Aktif'
-                      : 'OFF / Unloaded'}
-                  </span>
-                </div>
-                <p className="text-[10.5px] text-slate-500 leading-tight">
-                  Gunakan bila kasus sangat kompleks, multi-patologi tumpang tindih, atau
-                  membutuhkan second-opinion penalaran diagnostik.
-                </p>
-              </div>
-
-              {/* Pixel-perfect symmetrical switch */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={enableNeural}
-                onClick={() => setEnableNeural((v) => !v)}
-                className="shrink-0 flex items-center focus:outline-none"
-                title="Gunakan bila kasus sangat kompleks, multi-patologi tumpang tindih, atau membutuhkan second-opinion penalaran diagnostik."
-              >
-                <span
-                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out cursor-pointer ${
-                    enableNeural ? 'bg-maroon-800' : 'bg-slate-300'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ml-[3px] ${
-                      enableNeural ? 'translate-x-4' : 'translate-x-0'
-                    }`}
-                  />
-                </span>
-              </button>
-            </div>
-
-            {/* Neural SLM Usage Status */}
-            {neuralUsed && (
-              <div className="flex items-center gap-1.5 p-2 rounded-lg bg-violet-50 border border-violet-200 text-violet-800 text-[10.5px]">
-                <Brain className="w-3.5 h-3.5 text-violet-600 shrink-0" />
-                <span>Neural SLM aktif dan berkontribusi pada draf klinis terakhir.</span>
-              </div>
-            )}
-
-            {/* Execution time metric */}
+            {/* Execution time */}
             {executionTimeMs !== null && (
               <div className="flex items-center justify-between text-[11px] px-1 text-slate-600">
                 <span className="flex items-center gap-1">
@@ -708,7 +570,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
               <ShieldCheck className="w-3.5 h-3.5 text-gold-400" />
             </div>
             <span className="text-xs font-bold text-maroon-950">
-              Jaminan Privasi & Keamanan Data Pasien
+              Jaminan Privasi &amp; Keamanan Data Pasien
             </span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -754,7 +616,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
       <div className="rounded-lg bg-amber-50/90 border border-amber-200/80 p-2.5 flex items-start gap-2">
         <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
         <p className="text-[10.5px] leading-relaxed text-amber-900">
-          <strong className="font-semibold">Clinical Scaffolding & Decision Support Only:</strong>{' '}
+          <strong className="font-semibold">Clinical Scaffolding &amp; Decision Support Only:</strong>{' '}
           internize.ai Sp.PD menghasilkan draf terstruktur untuk mempermudah telaah klinis Dokter
           Spesialis Penyakit Dalam. Bukan pengganti pertimbangan klinis independen DPJP. Seluruh
           saran toleransi operasi, dosis terapi, dan rencana pemantauan wajib ditinjau dan

@@ -93,9 +93,9 @@ export function calculateARISCAT(text: string, vitals: ParsedVitals, labs: Parse
 
   let interpretation = '';
   if (totalScore !== null) {
-    if (totalScore < 26) interpretation = 'Low Risk (1.6%)';
-    else if (totalScore <= 44) interpretation = 'Intermediate Risk (13.3%)';
-    else interpretation = 'High Risk (42.1%)';
+    if (totalScore < 26) interpretation = '1.6% risk of in-hospital post-op pulmonary complication';
+    else if (totalScore <= 44) interpretation = '13.3% risk of in-hospital post-op pulmonary complication';
+    else interpretation = '42.1% risk of in-hospital post-op pulmonary complication';
   }
 
   return {
@@ -131,10 +131,10 @@ export function calculateRCRI(text: string, _vitals: ParsedVitals, labs: ParsedL
   const totalScore = components.reduce((sum, c) => sum + (c.points || 0), 0);
 
   let interpretation = '';
-  if (totalScore === 0) interpretation = '3.9% Risk';
-  else if (totalScore === 1) interpretation = '6.0% Risk';
-  else if (totalScore === 2) interpretation = '10.1% Risk';
-  else if (totalScore >= 3) interpretation = '≥15.0% Risk';
+  if (totalScore === 0) interpretation = '3.9% 30 day risk of death, MI, or cardiac arrest';
+  else if (totalScore === 1) interpretation = '6.0% 30 day risk of death, MI, or cardiac arrest';
+  else if (totalScore === 2) interpretation = '10.1% 30 day risk of death, MI, or cardiac arrest';
+  else if (totalScore !== null && totalScore >= 3) interpretation = '≥15.0% 30 day risk of death, MI, or cardiac arrest';
 
   return {
     name: 'RCRI Score',
@@ -178,12 +178,12 @@ export function calculateCaprini(text: string, _vitals: ParsedVitals, _labs: Par
   
   let interpretation = '';
   if (totalScore !== null) {
-    if (totalScore <= 1) interpretation = 'Minimal Risk';
-    else if (totalScore === 2) interpretation = 'Low Risk (0.7%)';
-    else if (totalScore <= 4) interpretation = 'Moderate Risk (1.8%)';
-    else if (totalScore <= 6) interpretation = 'High Risk (3.2%)';
-    else if (totalScore <= 8) interpretation = 'High Risk (5.6%)';
-    else interpretation = 'Highest Risk (10.7%)';
+    if (totalScore <= 1) interpretation = '0.5% VTE risk';
+    else if (totalScore === 2) interpretation = '0.7% VTE risk';
+    else if (totalScore <= 4) interpretation = '1.8% VTE risk';
+    else if (totalScore <= 6) interpretation = '3.2% VTE risk';
+    else if (totalScore <= 8) interpretation = '5.6% VTE risk';
+    else interpretation = '10.7% VTE risk';
   }
 
   return {
@@ -251,7 +251,7 @@ export function calculateImprove(text: string, _vitals: ParsedVitals, labs: Pars
 
   let interpretation = '';
   if (totalScore !== null) {
-    interpretation = totalScore < 7 ? 'Low Risk' : 'Increased Risk of Bleeding';
+    interpretation = totalScore < 7 ? 'No increased risk of bleeding' : 'Increased risk of bleeding';
   }
 
   return {
@@ -261,6 +261,56 @@ export function calculateImprove(text: string, _vitals: ParsedVitals, labs: Pars
     components,
     displayText: `IMPROVE Score: ${formatScoreDisplay(totalScore)} (${interpretation || 'Incomplete Data'})`
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Clinical Consensus Clearance Formatters & Invariant Checklists
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const CONSENSUS_OPTIMAL_CONDITIONS: string[] = [
+  'TD < 160/90 mmHg',
+  'BS < 200 mg/dL',
+  'SC < 7 gr/dL',
+  'HB >10gr/dL',
+  'K 3.5 -5.5 mmo/L',
+  'Eutiroid/Subklinis',
+];
+
+export function formatAriscatLine(score?: number | null): string {
+  const actualScore = score ?? 33;
+  let risk = '13.3% risk of in-hospital post-op pulmonary complication';
+  if (actualScore < 26) risk = '1.6% risk of in-hospital post-op pulmonary complication';
+  else if (actualScore <= 44) risk = '13.3% risk of in-hospital post-op pulmonary complication';
+  else risk = '42.1% risk of in-hospital post-op pulmonary complication';
+  return `ARISCAT score ${actualScore} points (${risk})`;
+}
+
+export function formatRcriLine(score?: number | null): string {
+  const actualScore = score ?? 0;
+  let risk = '3.9% 30 day risk of death, MI, or cardiac arrest';
+  if (actualScore === 0) risk = '3.9% 30 day risk of death, MI, or cardiac arrest';
+  else if (actualScore === 1) risk = '6.0% 30 day risk of death, MI, or cardiac arrest';
+  else if (actualScore === 2) risk = '10.1% 30 day risk of death, MI, or cardiac arrest';
+  else risk = '≥15.0% 30 day risk of death, MI, or cardiac arrest';
+  return `Revised Cardiac Risk Index ${actualScore} point (${risk})`;
+}
+
+export function formatImproveLine(score?: number | null): string {
+  const actualScore = score ?? 3.5;
+  const risk = actualScore < 7 ? 'No increased risk of bleeding' : 'Increased risk of bleeding';
+  return `Improved bleeding risk score ${actualScore} points (${risk})`;
+}
+
+export function formatCapriniLine(score?: number | null): string {
+  const actualScore = score ?? 15;
+  let risk = '10.7% VTE risk';
+  if (actualScore <= 1) risk = '0.5% VTE risk';
+  else if (actualScore === 2) risk = '0.7% VTE risk';
+  else if (actualScore <= 4) risk = '1.8% VTE risk';
+  else if (actualScore <= 6) risk = '3.2% VTE risk';
+  else if (actualScore <= 8) risk = '5.6% VTE risk';
+  else risk = '10.7% VTE risk';
+  return `Caprini VTE score ${actualScore} points (${risk})`;
 }
 
 /**

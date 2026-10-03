@@ -18,6 +18,20 @@ export interface ClinicalEntity {
   isNegated?: boolean;
 }
 
+/**
+ * A neural NER entity span produced by the on-device ONNX NER model.
+ * Character offsets reference positions in the original (pre-subword) input string.
+ * Compatible with ClinicalEntity but includes the neural model's confidence output.
+ */
+export interface ClinicalEntitySpan {
+  text:       string;   // Surface form from original text
+  label:      string;   // Canonical BIO label: DISEASE | DRUG | LAB | ANATOMY | SYMPTOM | PROCEDURE | DOSAGE | ROUTE | FREQUENCY
+  start:      number;   // Inclusive character offset
+  end:        number;   // Exclusive character offset
+  confidence: number;   // Aggregate model score, 0–1
+  isNegated?: boolean;  // True if NegEx heuristic triggered
+}
+
 export interface SnomedConcept {
   code: string; // e.g. "38341003"
   display: string; // e.g. "Hypertensive disorder, systemic arterial (disorder)"

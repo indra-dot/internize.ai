@@ -1,4 +1,12 @@
-import { Check, Copy, Download, MousePointerClick, Stethoscope } from 'lucide-react';
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Download,
+  MousePointerClick,
+  Stethoscope,
+} from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { Badge } from '../../components/ui/Badge';
@@ -10,12 +18,26 @@ import type { SoapNote } from '../../types/clinical';
 export interface SoapNoteViewerProps {
   soapNote: SoapNote;
   onShowToast?: (message: string, type: 'info' | 'success' | 'warning' | 'error') => void;
+  defaultExpanded?: boolean;
 }
 
-export const SoapNoteViewer: React.FC<SoapNoteViewerProps> = ({ soapNote, onShowToast }) => {
+export const SoapNoteViewer: React.FC<SoapNoteViewerProps> = ({
+  soapNote,
+  onShowToast,
+  defaultExpanded = false,
+}) => {
+  const [isExpanded, setIsExpanded] = useState<boolean>(defaultExpanded);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [copiedFull, setCopiedFull] = useState<boolean>(false);
   const [insertedSection, setInsertedSection] = useState<string | null>(null);
+
+  const toggleSection = (key: string) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   const sections = [
     {
@@ -112,16 +134,40 @@ export const SoapNoteViewer: React.FC<SoapNoteViewerProps> = ({ soapNote, onShow
   };
 
   return (
-    <Card className="border border-slate-200 shadow-sm overflow-hidden">
-      <CardHeader className="py-2.5 px-3.5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Stethoscope className="w-4 h-4 text-emerald-600" />
-          <CardTitle className="text-xs font-bold text-slate-800">Draf Catatan SOAP Terstruktur</CardTitle>
+    <Card className="border border-slate-200 shadow-sm overflow-hidden transition-all duration-200">
+      <CardHeader
+        className={`py-2.5 px-3.5 bg-slate-50/80 flex items-center justify-between cursor-pointer select-none hover:bg-slate-100/70 transition-colors ${
+          isExpanded ? 'border-b border-slate-100' : ''
+        }`}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        onClick={() => setIsExpanded((prev) => !prev)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsExpanded((prev) => !prev);
+          }
+        }}
+      >
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Stethoscope className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <CardTitle className="text-xs font-bold text-slate-800">
+            Draf Catatan SOAP Terstruktur
+          </CardTitle>
           <Badge variant="success" size="sm" className="ml-1 text-[10px]">
             Bebas Halusinasi
           </Badge>
+          {!isExpanded && (
+            <span className="text-[10px] text-slate-400 font-medium ml-1">
+              (S, O, A, P — klik untuk membuka)
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1">
+        <div
+          className="flex items-center gap-1 flex-shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Button
             type="button"
             variant="ghost"
@@ -147,112 +193,179 @@ export const SoapNoteViewer: React.FC<SoapNoteViewerProps> = ({ soapNote, onShow
           >
             <Download className="w-3.5 h-3.5" />
           </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="h-7 px-2 text-[11px] gap-1 text-slate-600 hover:text-slate-900 font-medium"
+            title={isExpanded ? 'Ciutkan draf SOAP' : 'Buka draf SOAP'}
+            aria-label={isExpanded ? 'Ciutkan draf SOAP' : 'Buka draf SOAP'}
+          >
+            <span className="text-[11px] hidden sm:inline">
+              {isExpanded ? 'Tutup' : 'Buka'}
+            </span>
+            {isExpanded ? (
+              <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+            )}
+          </Button>
         </div>
       </CardHeader>
 
-      <CardContent className="p-3 space-y-3">
-        {sections.map(({ key, section, badgeColor, pillColor, code }) => {
-          const isCopied = copiedSection === key;
-          const isInserted = insertedSection === key;
-          const hasContent = section.content && section.content.length > 0;
+      {isExpanded && (
+        <CardContent className="p-3 space-y-3">
+          {sections.map(({ key, section, badgeColor, pillColor, code }) => {
+            const isCopied = copiedSection === key;
+            const isInserted = insertedSection === key;
+            const hasContent = section.content && section.content.length > 0;
+            const isSectionCollapsed = Boolean(collapsedSections[key]);
 
-          return (
-            <div
-              key={key}
-              className="bg-white rounded-lg p-2.5 border border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors hover:border-slate-300"
-            >
-              <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-slate-100">
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className={`inline-flex items-center justify-center w-4 h-4 rounded text-[10px] font-bold border ${badgeColor}`}
-                  >
-                    {code}
-                  </span>
-                  <span className={`text-xs font-bold uppercase tracking-wider ${pillColor}`}>
-                    {section.title}
-                  </span>
-                </div>
-                <div className="flex items-center gap-0.5">
-                  {/* Insert to EMR button */}
-                  <button
-                    type="button"
-                    onClick={() => handleInsertToEmr(key, section.title, section.content)}
-                    className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded transition-colors ${
-                      isInserted
-                        ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                        : 'text-slate-400 hover:text-emerald-700 hover:bg-emerald-50'
-                    }`}
-                    title={`Insert ${section.title} into active EMR field`}
-                  >
-                    {isInserted ? (
-                      <Check className="w-3 h-3 text-emerald-600" />
-                    ) : (
-                      <MousePointerClick className="w-3 h-3" />
-                    )}
-                    <span>{isInserted ? 'OK' : 'EMR'}</span>
-                  </button>
-                  {/* Copy button */}
-                  <button
-                    type="button"
-                    onClick={() => handleCopySection(key, section.title, section.content)}
-                    className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
-                    title={`Copy ${section.title} section`}
-                  >
-                    {isCopied ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="text-xs text-slate-700 space-y-1.5 leading-relaxed font-sans">
-                {hasContent ? (
-                  section.content.map((line, idx) => {
-                    const trimmed = line.trim();
-                    if (!trimmed) {
-                      return <div key={`${key}-${idx}-empty`} className="h-1" />;
+            return (
+              <div
+                key={key}
+                className="bg-white rounded-lg p-2.5 border border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors hover:border-slate-300"
+              >
+                <div
+                  className={`flex items-center justify-between cursor-pointer select-none ${
+                    isSectionCollapsed ? '' : 'mb-1.5 pb-1 border-b border-slate-100'
+                  }`}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={!isSectionCollapsed}
+                  onClick={() => toggleSection(key)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleSection(key);
                     }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`inline-flex items-center justify-center w-4 h-4 rounded text-[10px] font-bold border ${badgeColor}`}
+                    >
+                      {code}
+                    </span>
+                    <span className={`text-xs font-bold uppercase tracking-wider ${pillColor}`}>
+                      {section.title}
+                    </span>
+                    {hasContent && (
+                      <span className="text-[10px] text-slate-400 font-normal">
+                        ({section.content.length} butir)
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    className="flex items-center gap-0.5"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Insert to EMR button */}
+                    <button
+                      type="button"
+                      onClick={() => handleInsertToEmr(key, section.title, section.content)}
+                      className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded transition-colors ${
+                        isInserted
+                          ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                          : 'text-slate-400 hover:text-emerald-700 hover:bg-emerald-50'
+                      }`}
+                      title={`Insert ${section.title} into active EMR field`}
+                    >
+                      {isInserted ? (
+                        <Check className="w-3 h-3 text-emerald-600" />
+                      ) : (
+                        <MousePointerClick className="w-3 h-3" />
+                      )}
+                      <span>{isInserted ? 'OK' : 'EMR'}</span>
+                    </button>
+                    {/* Copy button */}
+                    <button
+                      type="button"
+                      onClick={() => handleCopySection(key, section.title, section.content)}
+                      className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+                      title={`Copy ${section.title} section`}
+                    >
+                      {isCopied ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                    {/* Section collapse/expand toggle */}
+                    <button
+                      type="button"
+                      onClick={() => toggleSection(key)}
+                      className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+                      title={
+                        isSectionCollapsed
+                          ? `Buka seksi ${section.title}`
+                          : `Ciutkan seksi ${section.title}`
+                      }
+                      aria-label={
+                        isSectionCollapsed
+                          ? `Buka seksi ${section.title}`
+                          : `Ciutkan seksi ${section.title}`
+                      }
+                    >
+                      {isSectionCollapsed ? (
+                        <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                      ) : (
+                        <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+                      )}
+                    </button>
+                  </div>
+                </div>
 
-                    const isSubheader =
-                      trimmed.startsWith('---') ||
-                      (trimmed.startsWith('[') && trimmed.endsWith(']')) ||
-                      (trimmed.endsWith(':') && trimmed.length < 60 && !trimmed.startsWith('-') && !trimmed.startsWith('•'));
+                {!isSectionCollapsed && (
+                  <div className="text-xs text-slate-700 space-y-1.5 leading-relaxed font-sans">
+                    {hasContent ? (
+                      section.content.map((line, idx) => {
+                        const trimmed = line.trim();
+                        if (!trimmed) {
+                          return <div key={`${key}-${idx}-empty`} className="h-1" />;
+                        }
 
-                    if (isSubheader) {
-                      return (
-                        <div
-                          key={`${key}-${idx}-${trimmed.slice(0, 15)}`}
-                          className="pt-1.5 pb-0.5 font-bold text-slate-900 text-[11px] tracking-wide"
-                        >
-                          {trimmed.replace(/^---\s*|\s*---$/g, '')}
-                        </div>
-                      );
-                    }
+                        const isSubheader =
+                          trimmed.startsWith('---') ||
+                          (trimmed.startsWith('[') && trimmed.endsWith(']')) ||
+                          (trimmed.endsWith(':') && trimmed.length < 60 && !trimmed.startsWith('-') && !trimmed.startsWith('•'));
 
-                    const isBullet = trimmed.startsWith('-') || trimmed.startsWith('•') || /^\d+\.\s/.test(trimmed);
+                        if (isSubheader) {
+                          return (
+                            <div
+                              key={`${key}-${idx}-${trimmed.slice(0, 15)}`}
+                              className="pt-1.5 pb-0.5 font-bold text-slate-900 text-[11px] tracking-wide"
+                            >
+                              {trimmed.replace(/^---\s*|\s*---$/g, '')}
+                            </div>
+                          );
+                        }
 
-                    return (
-                      <div
-                        key={`${key}-${idx}-${trimmed.slice(0, 15)}`}
-                        className={`flex items-start gap-1.5 ${isBullet ? 'pl-1' : ''}`}
-                      >
-                        {!isBullet && <span className="text-slate-400 select-none mt-0.5">&bull;</span>}
-                        <div className="flex-1 break-words">
-                          <span>{trimmed}</span>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="text-slate-400 italic text-[11px]">None reported.</p>
+                        const isBullet = trimmed.startsWith('-') || trimmed.startsWith('•') || /^\d+\.\s/.test(trimmed);
+
+                        return (
+                          <div
+                            key={`${key}-${idx}-${trimmed.slice(0, 15)}`}
+                            className={`flex items-start gap-1.5 ${isBullet ? 'pl-1' : ''}`}
+                          >
+                            {!isBullet && <span className="text-slate-400 select-none mt-0.5">&bull;</span>}
+                            <div className="flex-1 break-words">
+                              <span>{trimmed}</span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-slate-400 italic text-[11px]">None reported.</p>
+                    )}
+                  </div>
                 )}
               </div>
-            </div>
-          );
-        })}
-      </CardContent>
+            );
+          })}
+        </CardContent>
+      )}
     </Card>
   );
 };

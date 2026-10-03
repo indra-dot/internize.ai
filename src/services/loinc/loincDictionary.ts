@@ -68,10 +68,10 @@ export const LOINC_DICTIONARY: LoincEntry[] = [
     loincCode: '2345-7',
     testName: 'Glucose',
     longCommonName: 'Glucose [Mass/volume] in Serum or Plasma',
-    synonyms: ['glucose', 'blood glucose', 'fasting glucose', 'GLU', 'BG'],
+    synonyms: ['glucose', 'blood glucose', 'fasting glucose', 'GLU', 'BG', 'GDS', 'GDP', 'GD2PP', 'GDA', 'BS', 'BSS', 'BST', 'BSP', 'gula darah'],
     ucumUnit: 'mg/dL',
     valuePattern:
-      /\b(?:(?:fasting\s+)?blood\s+)?glucose\s*[:=]?\s*(\d+(?:\.\d+)?)\s*(?:mg\/dL|mmol\/L)?\b/gi,
+      /\b(?:(?:fasting\s+)?blood\s+glucose|glucose|glukosa|gds|gdp|gd2pp|gda|bss|bst|bsp|blood\s*sugar|bs(?!\s*(?:mg|amp|tab\b|bedah\s*saraf))|gula\s*darah)(?:\s*(?:sewaktu|acak|puasa|2\s*jam\s*(?:pp|post\s*prandial)|terjadwal|saat\s*ini|kontrol|evaluasi|pre-?meal|post-?meal|pagi|siang|sore|malam|bedtime|subuh))*(?:\s*(?:pk\.?|pukul|jam|\()\s*\d{1,2}[.:]\d{2}(?:\s*(?:wib|wita|wit))?\s*\)?)?[^\S\r\n]*[:=]?[^\S\r\n]*(\d+(?:[.,]\d+)*)(?!\s*[\/\-]\s*\d)\s*(?:mg\/dL|mmol\/L)?\b/gi,
     referenceRange: '70–99 mg/dL (fasting)',
     low: 70,
     high: 99,

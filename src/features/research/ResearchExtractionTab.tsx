@@ -1,4 +1,4 @@
-import { ArrowRight, Download, ShieldCheck, TestTube, Trash2, UploadCloud } from 'lucide-react';
+import { ArrowRight, Download, FileText, ShieldCheck, TestTube, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Ca
 import { assembleFhirBundle, downloadBundleAsJson } from '../../services/fhir/assembler';
 import { extractLabBiomarkers } from '../../services/loinc/extractor';
 import { loadResearchDraft, saveResearchDraft } from '../../services/storage/chromeStorage';
-import { loadSupabaseConfig, pushBundleToSupabase } from '../../services/supabase/client';
 import type { FhirBundle } from '../../types/fhir';
 import type { DeidEntity, HipaaComplianceResult, LoincLabRecord } from '../../types/research';
 
@@ -37,7 +36,6 @@ export const ResearchExtractionTab: React.FC<ResearchExtractionTabProps> = ({
 }) => {
   const [rawText, setRawText] = useState<string>(initialText);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [isPushingSupabase, setIsPushingSupabase] = useState<boolean>(false);
   const [deidentifiedText, setDeidentifiedText] = useState<string | null>(null);
   const [entities, setEntities] = useState<DeidEntity[]>([]);
   const [hipaaResult, setHipaaResult] = useState<HipaaComplianceResult | null>(null);
@@ -118,32 +116,77 @@ export const ResearchExtractionTab: React.FC<ResearchExtractionTabProps> = ({
     onShowToast?.('Downloaded FHIR R4 Transaction Bundle JSON', 'success');
   };
 
-  const handlePushSupabase = async () => {
-    if (!assembledBundle) return;
-    setIsPushingSupabase(true);
-    try {
-      const config = await loadSupabaseConfig();
-      if (!config) {
-        onShowToast?.('No Supabase credentials found. Configure in the Settings tab.', 'warning');
-        return;
-      }
-      const result = await pushBundleToSupabase(assembledBundle, config);
-      if (result.success) {
-        onShowToast?.(
-          `Bundle pushed to Supabase${result.rowId ? ` (row: ${result.rowId.slice(0, 8)}…)` : ''}.`,
-          'success',
+  const handleDownloadTxt = () => {
+    if (!deidentifiedText && labRecords.length === 0) return;
+
+    const divider = '='.repeat(64);
+    const subDivider = '-'.repeat(64);
+
+    const reportLines = [
+      divider,
+      'INTERNIZE.AI — RESEARCH CLINICAL EXTRACTION REPORT',
+      `Tanggal Ekstraksi: ${new Date().toLocaleString('id-ID')}`,
+      `Status Kepatuhan HIPAA: ${hipaaResult?.compliant ? 'COMPLIANT (Safe Harbor 18 Categories)' : 'NON-COMPLIANT'}`,
+      `Entitas Ter-Sanitasi: ${entities.length} identitas diganti token`,
+      divider,
+      '',
+      '1. AUDIT TRAIL ENTITAS TER-SANITASI (TOKEN REPLACEMENT):',
+      subDivider,
+    ];
+
+    if (entities.length === 0) {
+      reportLines.push('Tidak ada entitas PHI terdeteksi.');
+    } else {
+      entities.forEach((ent, idx) => {
+        reportLines.push(
+          `[${idx + 1}] Kategori: ${ent.category.padEnd(16)} | Token: ${ent.replacement}`,
         );
-      } else {
-        onShowToast?.(`Supabase error: ${result.error}`, 'error');
-      }
-    } catch (err) {
-      onShowToast?.(
-        `Supabase push failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
-        'error',
-      );
-    } finally {
-      setIsPushingSupabase(false);
+      });
     }
+
+    reportLines.push('', '2. EKSTRAKSI BIOMARKER LABORATORIUM & KODE LOINC:', subDivider);
+
+    if (labRecords.length === 0) {
+      reportLines.push('Tidak ada nilai biomarker laboratorium terdeteksi.');
+    } else {
+      labRecords.forEach((lab, idx) => {
+        reportLines.push(
+          `[${idx + 1}] ${lab.testName.toUpperCase()}`,
+          `    Nilai: ${lab.value} ${lab.unit} (Flag: ${(lab.flag ?? 'NORMAL').toUpperCase()})`,
+          `    Kode LOINC: ${lab.loincCode}`,
+          `    Rentang Rujukan: ${lab.referenceRange || 'N/A'}`,
+          '',
+        );
+      });
+    }
+
+    reportLines.push(
+      '3. RINGKASAN FHIR R4 TRANSACTION BUNDLE:',
+      subDivider,
+      `Bundle ID: ${assembledBundle?.id || 'N/A'}`,
+      `Total Sumber Daya (Entries): ${assembledBundle?.entry?.length || 0}`,
+      `Jenis Sumber Daya: Patient (Tokenized), Observation (Labs)`,
+      '',
+      '4. TEKS KLINIS TER-DEIDENTIFIKASI (REDACTED NARRATIVE):',
+      subDivider,
+      deidentifiedText || '(Kosong)',
+      '',
+      divider,
+      'Dihasilkan secara lokal oleh internize.ai Engine (Zero Egress Invariant)',
+      divider,
+    );
+
+    const blob = new Blob([reportLines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `research_extraction_${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    onShowToast?.('Laporan riset terstruktur (.txt) berhasil diunduh', 'success');
   };
 
   const flagVariant = (flag: string | undefined): 'danger' | 'success' | 'warning' | 'primary' => {
@@ -326,18 +369,17 @@ export const ResearchExtractionTab: React.FC<ResearchExtractionTabProps> = ({
             className="flex-1 gap-1.5 text-xs font-semibold"
           >
             <Download className="w-3.5 h-3.5 text-sky-600" />
-            <span>Download FHIR Bundle</span>
+            <span>Download FHIR (.json)</span>
           </Button>
           <Button
             type="button"
             variant="secondary"
             size="sm"
-            isLoading={isPushingSupabase}
-            onClick={handlePushSupabase}
-            className="flex-1 gap-1.5 text-xs font-semibold"
+            onClick={handleDownloadTxt}
+            className="flex-1 gap-1.5 text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300"
           >
-            <UploadCloud className="w-3.5 h-3.5 text-purple-600" />
-            <span>Push to Supabase</span>
+            <FileText className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Download Laporan (.txt)</span>
           </Button>
         </div>
       )}
