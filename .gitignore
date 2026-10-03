@@ -51,5 +51,10 @@ coverage/
 *.tmp
 *.temp
 
+# Archives & bundles
+*.zip
+*.tar.gz
+*.rar
+
 # Supabase local
 .supabase/

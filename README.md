@@ -1,88 +1,124 @@
 # internize.ai
 
 <div align="center">
-  <img src="src/assets/logo.png" alt="internize.ai logo" width="100" />
+  <img src="src/assets/logo.png" alt="internize.ai logo" width="110" />
   <h3>Asisten AI Klinis Spesialis Penyakit Dalam (Sp.PD) & Penelitian Medis</h3>
   <p><strong>100% On-Device Privacy • Zero Egress • Clinical Shorthand Parser • FHIR R4 • HIPAA Safe Harbor</strong></p>
+
+  <p>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-amber.svg?style=flat-square" alt="License MIT" /></a>
+    <img src="https://img.shields.io/badge/Chrome_Extension-Manifest_V3-maroon.svg?style=flat-square&color=581C24" alt="Manifest V3" />
+    <img src="https://img.shields.io/badge/Privacy-100%25_On--Device_Zero_Egress-gold.svg?style=flat-square&color=CDA258" alt="Zero Egress" />
+    <img src="https://img.shields.io/badge/TypeScript-5.6-blue.svg?style=flat-square" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/React-18.3-61dafb.svg?style=flat-square" alt="React 18" />
+    <img src="https://img.shields.io/badge/Vite-5.4-646cff.svg?style=flat-square" alt="Vite" />
+    <img src="https://img.shields.io/badge/Tests-223_E2E_%2B_Unit_Passing-brightgreen.svg?style=flat-square" alt="Tests 100% Passing" />
+  </p>
 </div>
 
 ---
 
 ## 🩺 Mengenai internize.ai
 
-**internize.ai** adalah Chrome Extension (Manifest V3) yang dirancang khusus untuk memfasilitasi alur kerja klinisi dan dokter spesialis penyakit dalam (Sp.PD) di Indonesia serta penelitian kedokteran. 
+**internize.ai** adalah ekstensi peramban Google Chrome (Manifest V3) yang dirancang khusus untuk memfasilitasi alur kerja klinis dokter spesialis penyakit dalam (Sp.PD), residen/PPDS penyakit dalam, dokter umum, dan peneliti kesehatan di Indonesia.
 
-Sistem ini beroperasi dengan prinsip **Clinician-in-the-Loop** dan **Zero Data Egress Invariant**:
-- 🔒 **100% On-Device**: Seluruh ekstraksi entitas, parsing teks klinis, deteksi laboratorium, dan de-identifikasi diproses secara lokal di browser via WebGPU / WASM (Transformers.js v3) atau aturan CROGE/deterministic. 
-- 🚫 **Tanpa API LLM Eksternal**: Data pasien (Protected Health Information / PHI) tidak pernah dikirim ke server AI publik pihak ketiga mana pun.
+Dibangun dengan filosofi **Clinician-in-the-Loop** dan **Zero Data Egress Invariant**:
+- 🔒 **100% Pemrosesan On-Device**: Seluruh ekstraksi entitas klinis, interpretasi singkatan lab, kalkulasi skor risiko, dan de-identifikasi diproses secara lokal di browser via Transformers.js (WebGPU/WASM) atau deterministic clinical rule engine (CROGE).
+- 🚫 **Tanpa Kebocoran Data (Zero Egress)**: Data sensitif pasien (*Protected Health Information* / PHI) tidak pernah dikirim ke server AI publik pihak ketiga mana pun.
+- 👨‍⚕️ **Clinical Scaffolding Assistant**: Sistem ini adalah alat bantu kognitif dan percepatan administrasi medis; keputusan diagnosis dan terapi akhir tetap sepenuhnya di tangan Dokter Penanggung Jawab Pelayanan (DPJP).
 
 ---
 
 ## ✨ Fitur Unggulan
 
-### 1. 📋 Layanan Klinis & Alur Kerja Sp.PD (3 Core Modes)
-- **Jawab Konsul TS**: Preset asesmen cepat untuk:
-  - *Pre-Operative Clearance* (Skor Risiko Kardiak RCRI Lee, advis gula darah, tensi, antikoagulan, status kelaikan operasi).
-  - *Rawat Bersama*.
-  - *Evaluasi Akut CITO*.
-- **Periksa Pasien (POMR)**: Standarisasi Problem Oriented Medical Record berbasis 11 sub-spesialisasi organ PAPDI dengan rincian Pdx (Diagnostik), Ptx (Terapi), Pmx (Monitoring), dan Pex (Edukasi).
-- **Ringkas Kasus**: Rangkuman kronologis problem aktif, riwayat penyakit terdahulu (RPD), riwayat pengobatan (RPO), dan sorotan abnormalitas lab.
+### 1. 📋 3 Mode Klinis Utama Sp.PD (Unified Switcher)
+1. **Jawab Konsul TS**:
+   - Preset asesmen terstruktur untuk *Pre-Operative Clearance*, *Rawat Bersama*, dan *Evaluasi Akut CITO*.
+   - **Kalkulator Risiko Perioperatif Otomatis**:
+     - Skor Kardiak **RCRI (Revised Cardiac Risk Index - Lee)** dengan risiko kejadian 30 hari.
+     - Risiko Komplikasi Paru Pasca-Bedah **ARISCAT**.
+     - Risiko Perdarahan **IMPROVE Bleeding Risk Score**.
+     - Risiko Tromboemboli Vena (VTE) **Caprini Risk Score** / **Padua Score**.
+   - **Target Kelaikan Tindakan Operasi Otomatis**: Tensi target (< 160/90 mmHg), Gula Darah (< 200 mg/dL), Status Ginjal, Hemoglobin (> 10 g/dL), Elektrolit Kalium (3.5 - 5.5 mmol/L), dan Status Fungsi Tiroid.
+   - Tombol **1-Click Salin Draf Konsul 1-Kolom** siap tempel ke form EMR rumah sakit.
+2. **Periksa Pasien (POMR)**:
+   - Standarisasi *Problem Oriented Medical Record* (POMR) yang diklasifikasikan ke dalam **11 Divisi Subspesialisasi Organ PAPDI**:
+     - *Endokrin-Metabolik, Ginjal-Hipertensi, Tropik-Infeksi, Kardiologi, Pulmonologi, Gastroenterohepatologi, Hematologi-Onkologi, Reumatologi, Alergi-Imunologi, Geriatri, dan Psikosomatik*.
+   - Rincian rencana kerja berbasis pedoman nasional: **Pdx** (Diagnostik), **Ptx** (Terapi), **Pmx** (Monitoring), dan **Pex** (Edukasi).
+   - Generator catatan perkembangan pasien terintegrasi (**SOAP CPPT**) komprehensif dalam bahasa medis Indonesia tanpa placeholder bahasa asing.
+3. **Ringkas Kasus**:
+   - Rangkuman kronologis problem aktif, riwayat penyakit terdahulu (RPD), riwayat pengobatan (RPO), dan sorotan lab kritis serial.
 
-### 2. 🇮🇩 Engine Parsing Singkatan Klinis Indonesia
-- **Vital Signs Disambiguation**: Mengenali format shorthand lokal seperti `T:` / `TD:` (Tensi/Tekanan Darah, bukan temperatur), `N:` (Nadi), `R:` / `RR:` (Respirasi), `S:` / `Suhu:` (Suhu tubuh).
-- **Collision Prevention**:
+### 2. 🎗️ Engine Staging & Konversi Onkologi Medis (AJCC Ed. 8)
+- **TNM Staging Parser**: Ekstraksi otomatis staging kanker (TNM klinis/patologis, misal `cT4bN3bM0` → **Stadium III C**; deteksi universal metastasis jauh `M1` → **Stadium IV**).
+- **ECOG Performance Status**: Konversi otomatis skor status fungsional (misal `ECOG 2` / `PS 1`, atau *placeholder reminder* bila belum dievaluasi).
+- **Riwayat Kemoterapi & Bedah**: Deteksi riwayat operasi (kolostomi, hemikolektomi, mastektomi) dan regimen kemoterapi (FOLFIRI, FOLFOX, AC-T, dsb.).
+- **Pemisahan Komorbid**: Memisahkan komorbid medis umum (misal DM Tipe 2, Hipertensi) dari diagnosa utama kanker dan menautkan widget onkologi secara dinamis ke kartu masalah yang tepat.
+
+### 3. 🇮🇩 Engine Parsing Singkatan Klinis Indonesia & Safety Guardrails
+- **Disambiguasi Tanda Vital Shorthand**:
+  - `T:` atau `TD:` → Tensi / Tekanan Darah (BUKAN temperatur).
+  - `N:` atau `HR:` → Nadi / Frekuensi Jantung.
+  - `R:` atau `RR:` → Laju Respirasi.
+  - `S:` atau `Suhu:` → Suhu Tubuh (validasi rentang biologis 30°C - 45°C).
+- **Anti-Collision Guard**:
   - `Vitamin K 10 mg` vs `Kalium` (mencegah alarm palsu hiperkalemia).
-  - `CR: 2 detik` (Capillary Refill Time) vs `Kreatinin`.
-  - Format angka ribuan Indonesia (contoh: `1.050.000 /uL` atau `250.000 /uL`).
-- **Target Marker Kritis Sp.PD**: Deteksi dan ambang batas otomatis untuk `HbA1c`, `Laktat`, `Trombosit`, `Kalium`, `Natrium`, `Ureum`, `Kreatinin`, dan `Troponin`.
+  - `CR: 2 detik` (*Capillary Refill Time*) vs `Kreatinin`.
+- **Anti-Date Guard**: Mencegah tanggal pada header monitoring (contoh: `Monitoring BS:\n3/10/26`) tertangkap keliru sebagai nilai gula darah rendah (`GDS = 3`).
+- **Multi-dot Thousand Formatting**: Mendukung pemisah ribuan titik khas Indonesia (contoh: `1.050.000 /uL` trombosit).
+- **Anti-Hallucination Vital Guardrail**: Membersihkan klaim hipotensi/vital yang tidak didukung data pada teks rekam medis sumber.
 
-### 3. 🔬 Riset & De-Identifikasi HIPAA Safe Harbor
-- **18 Kategori HIPAA Safe Harbor**: Redaksi otomatis nama pasien, NIK/MRN, nomor telepon Indonesia, tanggal lahir, alamat, dsb.
-- **Standar Interoperabilitas**:
-  - Pemetaan diagnostik ke **SNOMED CT** (dengan deteksi negasi NegEx).
+### 4. 🔬 Riset & Standar Interoperabilitas Medis
+- **18 Pengidentifikasi HIPAA Safe Harbor**: Redaksi otomatis nama pasien, NIK/nomor RM, nomor telepon Indonesia, tanggal lahir, dan alamat.
+- **Standar Ontologi Internasional**:
+  - Pemetaan diagnostik ke **SNOMED CT** (didukung deteksi negasi NegEx Indonesia).
   - Rekonsiliasi medikasi ke **RxNorm** (RxCUI, dosis, rute, frekuensi).
-  - Ekstraksi biomarker laboratorium ke **LOINC** dengan unit UCUM.
-  - Export data ke dalam format **FHIR R4 Bundle** (`transaction`) siap pakai.
-- **Sinkronisasi Opsional**: Ekspor bundle hasil de-identifikasi ke Supabase database penelitian pribadi (opsional).
+  - Ekstraksi biomarker laboratorium ke **LOINC** dengan unit standar UCUM.
+  - Perakitan dan ekspor **FHIR R4 Bundle** (`transaction`) siap integrasi EMR/SatuSehat.
 
 ---
 
 ## 🚀 Panduan Instalasi (Untuk Rekan Sejawat / Tester)
 
-Bagi rekan dokter yang ingin mencoba extension ini di Google Chrome komputer/laptop:
+Bagi rekan dokter atau penguji yang ingin mencoba extension ini langsung di Google Chrome:
 
-### Langkah 1: Siapkan File Extension
-1. Download file ZIP release yang diberikan oleh tim pengembang, lalu **Extract** file tersebut di komputer Anda (misalnya di folder `internize-ai-dist`).
-2. Pastikan di dalam folder tersebut terdapat file `manifest.json` dan folder `assets/`.
+### Langkah 1: Siapkan Folder Ekstensi
+1. Clone repositori ini atau download source code.
+2. Jalankan build satu kali:
+   ```bash
+   npm install
+   npm run build
+   ```
+   Folder `dist/` yang siap digunakan akan otomatis terbentuk.
 
-### Langkah 2: Pasang di Google Chrome
-1. Buka browser **Google Chrome**.
-2. Masukkan alamat berikut di address bar:
+### Langkah 2: Muat ke Google Chrome
+1. Buka peramban **Google Chrome**.
+2. Ketik alamat berikut di address bar:
    ```text
    chrome://extensions
    ```
-3. Di pojok kanan atas, aktifkan tombol **"Developer mode"** (Mode Pengembang).
+3. Di pojok kanan atas, aktifkan sakelar **"Developer mode"** (Mode Pengembang).
 4. Klik tombol **"Load unpacked"** (Muat yang belum dibongkar) di pojok kiri atas.
-5. Pilih folder hasil ekstrak tadi (`dist` atau folder rilis).
-6. Selesai! Ikon **internize.ai** akan muncul di toolbar Chrome Anda.
+5. Arahkan dan pilih folder `dist/` dari proyek internize.ai.
+6. Selesai! Ekstensi **internize.ai** langsung aktif di Google Chrome Anda.
 
-### Langkah 3: Menggunakan Extension
-1. Klik ikon pin pada extension internize.ai di toolbar Chrome agar selalu terlihat.
+### Langkah 3: Menggunakan Ekstensi
+1. Sematkan (pin) ikon internize.ai di toolbar Chrome.
 2. Klik ikon internize.ai untuk membuka **Side Panel** di sisi kanan browser.
-3. Anda dapat langsung mengetik, menempel resume medik, atau menyorot teks pada rekam medis elektronik (EMR) web untuk dianalisis otomatis secara lokal.
+3. Anda dapat menempel teks resume medik, atau menyorot teks pada tab website EMR rumah sakit untuk dianalisis otomatis.
 
 ---
 
-## 💻 Panduan Developer & Kontribusi
+## 💻 Panduan Pengembang (Developer Guide)
 
 ### Prasyarat
-- **Node.js** >= 18.x
-- **npm** atau **pnpm**
-- **Google Chrome** >= 116 (mendukung Manifest V3 Side Panel & WebGPU)
+- **Node.js** `>= 18.0.0` (LTS v20.x direkomendasikan)
+- **npm** `>= 9.0.0`
+- **Google Chrome** `>= 116` (Manifest V3 Side Panel & WebGPU support)
 
-### Setup & Build Lokal
+### Setup & Menjalankan Mode Pengembangan
 
-```powershell
+```bash
 # 1. Clone repositori
 git clone https://github.com/indra-dot/internize.ai.git
 cd internize.ai
@@ -90,20 +126,47 @@ cd internize.ai
 # 2. Install dependensi
 npm install
 
-# 3. Jalankan type-check TypeScript
+# 3. Jalankan development server (HMR aktif)
+npm run dev
+
+# 4. Melakukan verifikasi tipe TypeScript
 npx tsc --noEmit
 
-# 4. Jalankan linter
+# 5. Menjalankan linter Biome
 npm run lint
 
-# 5. Jalankan unit test & test E2E klinis
+# 6. Menjalankan test suite lengkap (223 E2E tests + unit tests)
 npm test
 
-# 6. Build production output (menghasilkan folder dist/)
+# 7. Membangun output produksi
 npm run build
 ```
 
-Setelah `npm run build` selesai, Anda dapat memuat folder `dist/` ke `chrome://extensions` via **Load unpacked**.
+---
+
+## 🤝 Panduan Kontribusi (Contributing)
+
+Kami sangat menyambut kontribusi dari rekan-rekan sejawat dokter, residen, software engineer, dan peneliti informatika medis!
+
+Silakan baca panduan lengkap kontribusi di:
+👉 **[CONTRIBUTING.md](CONTRIBUTING.md)**
+
+### Ringkasan Alur Berkontribusi:
+1. **Fork** repositori ini di GitHub.
+2. Buat branch baru untuk fitur Anda:
+   ```bash
+   git checkout -b feat/nama-fitur-baru
+   ```
+3. Lakukan perubahan kode, protokol, atau kamus singkatan baru.
+4. Pastikan semua pengujian lulus:
+   ```bash
+   npm test && npm run build
+   ```
+5. Commit perubahan Anda:
+   ```bash
+   git commit -m "feat: tambahkan protokol krisis hipertensi emergensi"
+   ```
+6. Push ke branch Anda dan buka **Pull Request** ke branch `master`!
 
 ---
 
@@ -111,38 +174,50 @@ Setelah `npm run build` selesai, Anda dapat memuat folder `dist/` ke `chrome://e
 
 ```text
 internize.ai/
-├── manifest.json              # Chrome Manifest V3 configuration
-├── sidepanel.html             # Entry point tampilan side panel
+├── .github/
+│   └── workflows/ci.yml       # GitHub Actions CI automated testing & build
+├── manifest.json              # Chrome Manifest V3 extension configuration
+├── sidepanel.html             # Entry point HTML tampilan side panel
+├── package.json               # Dependensi & NPM scripts
+├── vite.config.ts             # Konfigurasi Vite & CRX plugin
+├── CONTRIBUTING.md            # Panduan kontribusi komunitas & klinisi
+├── LICENSE                    # Lisensi Open-Source MIT
+├── README.md                  # Dokumentasi utama proyek
 ├── src/
-│   ├── background/            # Service worker (lifecycle & IPC routing)
-│   ├── content/               # Content script penangkap highlight seleksi teks
-│   ├── sidepanel/             # Antarmuka React 18 & navigation shell
-│   ├── components/            # UI components (Header, Card, Modal, Button, Badge)
+│   ├── background/            # Chrome Service Worker (lifecycle & IPC)
+│   ├── content/               # Content script penangkap seleksi teks EMR
+│   ├── sidepanel/             # Entry point React 18, styling, navigation
+│   ├── components/            # Komponen UI modular (Header, Card, Modal, Button)
 │   ├── features/
-│   │   ├── clinical/          # Workflow Sp.PD, POMR, SOAP viewer, SNOMED, RxNorm
-│   │   ├── research/          # HIPAA De-identification, LOINC extraction, FHIR Bundle
-│   │   └── settings/          # Konfigurasi sync Supabase lokal
+│   │   ├── clinical/          # Tab Layanan Klinis, POMR, Pre-Op, Onkologi, SOAP
+│   │   ├── research/          # HIPAA De-identification, LOINC, FHIR Bundle
+│   │   └── settings/          # Konfigurasi lokal & sinkronisasi opsional
 │   ├── services/
-│   │   ├── clinical/          # Engine CROGE, protokol PAPDI, scoring & kalkulator
-│   │   ├── deid/              # De-identifier HIPAA Safe Harbor & validasi
-│   │   ├── loinc/             # Ekstraksi biomarker LOINC & kamus lab
-│   │   ├── fhir/              # FHIR R4 Bundle assembler & exporter
-│   │   └── storage/           # Wrapper chrome.storage lokal & sinkronisasi
+│   │   ├── clinical/          # Internal Medicine Engine, Staging Onkologi, CROGE
+│   │   │   └── protocols/     # Protokol krisis PAPDI, kalkulator risiko (RCRI, ARISCAT)
+│   │   ├── deid/              # De-identifier HIPAA Safe Harbor (18 pengidentifikasi)
+│   │   ├── loinc/             # Kamus biomarker LOINC & ekstraksi lab
+│   │   ├── fhir/              # Perakitan resource & bundle FHIR R4
+│   │   └── storage/           # Wrapper chrome.storage lokal & cache
 │   └── types/                 # Definisi tipe data TypeScript
 └── tests/
-    ├── unit/                  # Unit testing klinis & kalkulator Sp.PD
-    └── e2e/                   # E2E acceptance test suite
+    ├── unit/                  # Unit tests (Anti-hallucination, Onkologi, Guardrail, Shorthand)
+    └── e2e/                   # E2E acceptance suite (Tier 1-4, 223 skenario klinis)
 ```
 
 ---
 
-## 🛡️ Kebijakan Privasi & Kepatuhan Etika Medis
+## 🛡️ Kebijakan Privasi & Batasan Tanggung Jawab Medis
 
-- **Zero Egress**: Tidak ada pengiriman data teks rekam medis ke server pihak ketiga manapun. Komputasi AI berjalan di memori lokal peramban.
-- **Bantuan Pendamping (Scaffolding Assistant)**: Sistem ini adalah alat bantu kognitif dan struktur administratif klinis. Keputusan diagnosis akhir dan terapi medis tetap sepenuhnya berada di tangan dokter penanggung jawab pelayanan (DPJP).
+- **Zero Egress Invariant**: Seluruh teks medis dan data pasien diproses secara lokal di browser komputer pengguna tanpa pernah dikirim ke cloud AI pihak ketiga.
+- **Bantuan Pendamping (Clinical Decision Support)**: Sistem ini ditujukan sebagai pendamping kognitif dan asisten administratif klinis. Rekomendasi yang dihasilkan tidak menggantikan anamnesis, pemeriksaan fisik langsung, atau pertimbangan klinis independen dari dokter yang merawat.
 
 ---
 
 ## 📄 Lisensi
 
-Proyek ini dilisensikan di bawah [MIT License](LICENSE).
+Proyek ini dirilis secara open-source di bawah ketentuan [MIT License](LICENSE).
+
+<div align="center">
+  <sub>Dibangun dengan dedikasi untuk kemajuan pelayanan medis dan penelitian penyakit dalam di Indonesia 🇮🇩</sub>
+</div>
