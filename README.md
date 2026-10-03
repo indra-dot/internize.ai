@@ -78,34 +78,57 @@ Dibangun dengan filosofi **Clinician-in-the-Loop** dan **Zero Data Egress Invari
 
 ---
 
-## 🚀 Panduan Instalasi (Untuk Rekan Sejawat / Tester)
+## 🚀 Cara Pasang Ekstensi (Tidak Perlu Keahlian Teknis!)
 
-Bagi rekan dokter atau penguji yang ingin mencoba extension ini langsung di Google Chrome:
+> Panduan ini dibuat sesederhana mungkin. Ikuti satu per satu, tidak akan salah! 😊
 
-### Langkah 1: Siapkan Folder Ekstensi
-1. Clone repositori ini atau download source code.
-2. Jalankan build satu kali:
-   ```bash
-   npm install
-   npm run build
+---
+
+### 📥 Langkah 1 — Download File ZIP
+
+1. Scroll ke atas halaman GitHub ini, klik file **[`internize.ai_fix_20261003_2037.zip`](internize.ai_fix_20261003_2037.zip)**.
+2. Klik tombol **"Download raw file"** (ikon ⬇️ di kanan atas).
+3. File ZIP akan tersimpan di folder **Downloads** komputer kamu.
+
+---
+
+### 📂 Langkah 2 — Ekstrak File ZIP
+
+1. Buka folder **Downloads** di komputer kamu.
+2. **Klik kanan** file `internize.ai_fix_20261003_2037.zip`.
+3. Pilih **"Extract All..."** → klik **Extract**.
+4. Akan muncul folder baru hasil ekstrak. Buka folder tersebut.
+5. Di dalamnya ada folder bernama **`dist`** — **ingat lokasi folder `dist` ini**, kamu akan butuhkan di langkah berikutnya.
+
+---
+
+### 🌐 Langkah 3 — Pasang ke Google Chrome
+
+1. Buka **Google Chrome** (pastikan sudah terinstall).
+2. Di bagian **address bar** (kolom alamat website paling atas), ketik persis:
    ```
-   Folder `dist/` yang siap digunakan akan otomatis terbentuk.
-
-### Langkah 2: Muat ke Google Chrome
-1. Buka peramban **Google Chrome**.
-2. Ketik alamat berikut di address bar:
-   ```text
    chrome://extensions
    ```
-3. Di pojok kanan atas, aktifkan sakelar **"Developer mode"** (Mode Pengembang).
-4. Klik tombol **"Load unpacked"** (Muat yang belum dibongkar) di pojok kiri atas.
-5. Arahkan dan pilih folder `dist/` dari proyek internize.ai.
-6. Selesai! Ekstensi **internize.ai** langsung aktif di Google Chrome Anda.
+   lalu tekan **Enter**.
+3. Di **pojok kanan atas** halaman tersebut, nyalakan tombol **"Developer mode"** hingga berubah warna biru. *(Jangan khawatir, ini aman dan hanya untuk memasang ekstensi lokal.)*
+4. Klik tombol **"Load unpacked"** yang muncul di **pojok kiri atas**.
+5. Sebuah jendela pemilih folder akan terbuka — cari dan **pilih folder `dist`** yang tadi kamu ingat lokasinya.
+6. Klik **"Select Folder"**.
 
-### Langkah 3: Menggunakan Ekstensi
-1. Sematkan (pin) ikon internize.ai di toolbar Chrome.
-2. Klik ikon internize.ai untuk membuka **Side Panel** di sisi kanan browser.
-3. Anda dapat menempel teks resume medik, atau menyorot teks pada tab website EMR rumah sakit untuk dianalisis otomatis.
+✅ **Selesai!** Ikon **internize.ai** akan langsung muncul di Chrome kamu.
+
+---
+
+### 📌 Langkah 4 — Sematkan & Gunakan
+
+1. Di pojok kanan atas Chrome, klik ikon **puzzle 🧩** (Extensions).
+2. Cari **internize.ai**, lalu klik ikon **📌 pin** di sampingnya agar muncul permanen di toolbar.
+3. Klik ikon **internize.ai** di toolbar → **Side Panel** akan terbuka di sisi kanan browser.
+4. Tempel teks rekam medik pasien ke kotak input, atau sorot teks di halaman EMR rumah sakit untuk dianalisis otomatis.
+
+---
+
+> ⚠️ **Catatan:** Ekstensi ini berjalan **100% di komputer lokal kamu** — tidak ada data pasien yang dikirim ke internet. Aman dan sesuai privasi klinis.
 
 ---
 
