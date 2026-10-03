@@ -78,9 +78,7 @@ Dibangun dengan filosofi **Clinician-in-the-Loop** dan **Zero Data Egress Invari
 
 ---
 
-## 🚀 Cara Pasang Ekstensi (Tidak Perlu Keahlian Teknis!)
-
-> Panduan ini dibuat sesederhana mungkin. Ikuti satu per satu, tidak akan salah! 😊
+## 🚀 Cara Pasang Ekstensi ke Google Chrome
 
 ---
 
