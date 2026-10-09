@@ -88,7 +88,7 @@ Tidak perlu install program apa pun selain **Google Chrome**. Ikuti 4 langkah be
 
 Klik tautan ini:
 
-### ⬇️ [Download internize.ai (ZIP)](https://github.com/indra-dot/internize.ai/raw/master/internize-ai-chrome-extension.zip)
+### ⬇️ [Download internize.ai (ZIP)](https://github.com/indra-dot/internize.ai/raw/master/internize-ai-extension.zip)
 
 File akan otomatis tersimpan di folder **Downloads / Unduhan**.
 
