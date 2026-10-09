@@ -2,7 +2,7 @@
 
 Terima kasih telah tertarik untuk berkontribusi pada **internize.ai**! 🩺✨
 
-Proyek ini dibangun secara open-source untuk memajukan digitalisasi klinis dokter spesialis penyakit dalam (Sp.PD), residen, dokter umum, dan peneliti medis di Indonesia dengan mengutamakan privasi 100% lokal (*zero egress*).
+Proyek ini dibangun secara open-source untuk memajukan digitalisasi klinis dokter spesialis penyakit dalam (Sp.PD), residen, dokter umum, dan peneliti medis di Indonesia dengan mengutamakan pemrosesan lokal sebagai default (*on-device by default*).
 
 Baik Anda seorang **dokter/klinisi**, **software engineer**, **data scientist**, atau **mahasiswa kedokteran & informatika**, kontribusi Anda sangat berharga bagi kemajuan pelayanan kesehatan di Indonesia.
 
@@ -63,9 +63,9 @@ Anda dapat berkontribusi pada salah satu atau beberapa area berikut:
 
 Setiap kontribusi wajib mematuhi 3 aturan mutlak berikut:
 
-1. **Zero Data Egress / 100% On-Device Execution**:
-   - Seluruh parsing, inferensi, kalkulasi skor, ekstraksi entitas, dan de-identifikasi HARUS berjalan secara lokal di perangkat peramban pengguna (via WASM, WebGPU, regex, atau deterministic engine).
-   - DILARANG mengintegrasikan API cloud eksternal yang mengirimkan teks pasien tanpa enkripsi atau de-identifikasi penuh dan izin eksplisit dari pengguna.
+1. **On-Device by Default**:
+   - Parsing, kalkulasi skor, ekstraksi entitas, dan de-identifikasi HARUS tetap berjalan secara lokal di perangkat peramban pengguna (via regex atau deterministic engine). Fitur inti tidak boleh bergantung pada layanan cloud.
+   - Integrasi API cloud eksternal hanya boleh menerima teks yang sudah di-de-identifikasi, dan hanya setelah pengguna sendiri mengaktifkannya (BYOK). Jangan pernah mengirim teks pasien mentah.
 2. **Clinician-in-the-Loop Philosophy**:
    - internize.ai bertindak sebagai *clinical highlighter* dan *scaffolding assistant*.
    - Output sistem harus selalu dapat diedit oleh DPJP dan tidak pernah mengklaim menggantikan pertimbangan klinis dokter.

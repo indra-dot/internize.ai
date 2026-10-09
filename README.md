@@ -3,12 +3,12 @@
 <div align="center">
   <img src="src/assets/logo.png" alt="internize.ai logo" width="110" />
   <h3>Asisten AI Klinis Spesialis Penyakit Dalam (Sp.PD) & Penelitian Medis</h3>
-  <p><strong>100% On-Device Privacy • Zero Egress • Clinical Shorthand Parser • FHIR R4 • HIPAA Safe Harbor</strong></p>
+  <p><strong>On-Device by Default • Cloud Opsional (BYOK) • Clinical Shorthand Parser • FHIR R4 • HIPAA Safe Harbor</strong></p>
 
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-amber.svg?style=flat-square" alt="License MIT" /></a>
     <img src="https://img.shields.io/badge/Chrome_Extension-Manifest_V3-maroon.svg?style=flat-square&color=581C24" alt="Manifest V3" />
-    <img src="https://img.shields.io/badge/Privacy-100%25_On--Device_Zero_Egress-gold.svg?style=flat-square&color=CDA258" alt="Zero Egress" />
+    <img src="https://img.shields.io/badge/Privacy-On--Device_by_Default-gold.svg?style=flat-square&color=CDA258" alt="On-Device by Default" />
     <img src="https://img.shields.io/badge/TypeScript-5.6-blue.svg?style=flat-square" alt="TypeScript" />
     <img src="https://img.shields.io/badge/React-18.3-61dafb.svg?style=flat-square" alt="React 18" />
     <img src="https://img.shields.io/badge/Vite-5.4-646cff.svg?style=flat-square" alt="Vite" />
@@ -23,8 +23,8 @@
 **internize.ai** adalah ekstensi peramban Google Chrome (Manifest V3) yang dirancang khusus untuk memfasilitasi alur kerja klinis dokter spesialis penyakit dalam (Sp.PD), residen/PPDS penyakit dalam, dokter umum, dan peneliti kesehatan di Indonesia.
 
 Dibangun dengan filosofi **Clinician-in-the-Loop** dan **Zero Data Egress Invariant**:
-- 🔒 **100% Pemrosesan On-Device**: Seluruh ekstraksi entitas klinis, interpretasi singkatan lab, kalkulasi skor risiko, dan de-identifikasi diproses secara lokal di browser via Transformers.js (WebGPU/WASM) atau deterministic clinical rule engine (CROGE).
-- 🚫 **Tanpa Kebocoran Data (Zero Egress)**: Data sensitif pasien (*Protected Health Information* / PHI) tidak pernah dikirim ke server AI publik pihak ketiga mana pun.
+- 🔒 **On-Device secara Default**: Ekstraksi entitas klinis, interpretasi singkatan lab, kalkulasi skor risiko, dan de-identifikasi diproses secara lokal di browser via deterministic clinical rule engine (CROGE). Fitur inti ini tetap berjalan tanpa mode cloud.
+- ☁️ **Mode Cloud Opsional (BYOK)**: Hanya aktif jika Anda memasukkan API key Gemini sendiri di tab Settings. Sebelum dikirim, teks di-de-identifikasi secara lokal (identifier diganti token seperti `[PATIENT_1]`) dan dikirim dengan `store: false`. De-identifikasi berbasis aturan tidak menjamin 100% identifier terhapus, jadi tinjau teks sebelum digunakan pada mode cloud.
 - 👨‍⚕️ **Clinical Scaffolding Assistant**: Sistem ini adalah alat bantu kognitif dan percepatan administrasi medis; keputusan diagnosis dan terapi akhir tetap sepenuhnya di tangan Dokter Penanggung Jawab Pelayanan (DPJP).
 
 ---
@@ -136,7 +136,7 @@ Pindahkan folder itu ke tempat yang mudah dicari (misalnya **Desktop** atau **Do
 
 ---
 
-> ⚠️ **Catatan:** Ekstensi ini berjalan **100% di komputer lokal kamu**. Tidak ada data pasien yang dikirim ke internet.
+> ⚠️ **Catatan:** Secara default ekstensi ini berjalan di **komputer lokal kamu** dan tidak mengirim data pasien ke internet. Hanya jika kamu memasukkan API key Gemini sendiri dan mengaktifkan mode cloud, teks yang sudah di-de-identifikasi dikirim ke Google Gemini.
 
 ---
 
@@ -240,7 +240,7 @@ internize.ai/
 
 ## 🛡️ Kebijakan Privasi & Batasan Tanggung Jawab Medis
 
-- **Zero Egress Invariant**: Seluruh teks medis dan data pasien diproses secara lokal di browser komputer pengguna tanpa pernah dikirim ke cloud AI pihak ketiga.
+- **On-Device by Default**: Pemrosesan klinis inti berjalan lokal di browser pengguna. Mode cloud bersifat opsional (BYOK), dan hanya mengirim teks yang sudah di-de-identifikasi ke Google Gemini.
 - **Bantuan Pendamping (Clinical Decision Support)**: Sistem ini ditujukan sebagai pendamping kognitif dan asisten administratif klinis. Rekomendasi yang dihasilkan tidak menggantikan anamnesis, pemeriksaan fisik langsung, atau pertimbangan klinis independen dari dokter yang merawat.
 
 ---

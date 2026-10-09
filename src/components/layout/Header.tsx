@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({ onDeviceMode = 'ready' }) => {
         <div className="flex items-center gap-1.5">
           <Badge variant="success" size="sm" className="hidden xs:inline-flex gap-1 py-0.5 bg-emerald-50 text-emerald-800 border-emerald-200">
             <ShieldCheck className="w-3 h-3 text-emerald-600" />
-            <span>100% Local</span>
+            <span>On-Device</span>
           </Badge>
           <Badge variant="primary" size="sm" className="gap-1 py-0.5 bg-maroon-50 text-maroon-900 border-maroon-200">
             <Cpu className="w-3 h-3 text-maroon-700" />
