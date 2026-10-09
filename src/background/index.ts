@@ -12,64 +12,10 @@ export function configureSidePanel(): void {
   }
 }
 
-/**
- * Injects selection listeners into existing tabs so highlighting works immediately
- * without requiring the user to reload open tabs.
- */
-export async function injectIntoExistingTabs(): Promise<void> {
-  if (typeof chrome === 'undefined' || !chrome.tabs?.query || !chrome.scripting?.executeScript) return;
-  try {
-    const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] }).catch(() => []);
-    for (const tab of tabs) {
-      if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
-        chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => {
-            const win = window as unknown as { __internizeLiveAttached?: boolean };
-            if (win.__internizeLiveAttached) return;
-            win.__internizeLiveAttached = true;
-            let prevText = '';
-            const emit = () => {
-              const sel = window.getSelection()?.toString().trim() || '';
-              if (!sel) {
-                prevText = '';
-                return;
-              }
-              if (sel === prevText) return;
-              prevText = sel;
-              try {
-                chrome.runtime?.sendMessage?.({
-                  type: 'TEXT_SELECTED',
-                  text: sel,
-                  sourceUrl: window.location.href,
-                  title: document.title,
-                  timestamp: Date.now(),
-                }, () => {
-                  void chrome.runtime?.lastError;
-                });
-              } catch {}
-            };
-            document.addEventListener('mouseup', emit, { passive: true });
-            document.addEventListener('keyup', emit, { passive: true });
-            document.addEventListener('selectionchange', () => {
-              setTimeout(emit, 100);
-            }, { passive: true });
-          },
-        }).catch(() => {
-          // Consume error silently without logging to Chrome error console
-        });
-      }
-    }
-  } catch (err) {
-    console.debug('[internize.ai] Auto-injection on install skipped:', err);
-  }
-}
-
 // Register install lifecycle handler
 if (typeof chrome !== 'undefined' && chrome.runtime?.onInstalled) {
   chrome.runtime.onInstalled.addListener(() => {
     configureSidePanel();
-    injectIntoExistingTabs();
     console.info('[internize.ai] Service worker registered and configured.');
   });
 }
@@ -103,7 +49,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
 
       if (message.type === 'TEXT_SELECTED') {
         // Acknowledge receipt so Chrome runtime doesn't log "Receiving end does not exist"
-        // when content scripts broadcast highlighted text while side panel is closed
+        // when the page listener broadcasts highlighted text while side panel is closed
         sendResponse({ received: true });
         return true;
       }

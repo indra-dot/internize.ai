@@ -95,7 +95,8 @@ export async function testGeminiConnection(
   }
 
   const targetModel = model.trim() || DEFAULT_GEMINI_MODEL;
-  const interactionsEndpoint = `https://generativelanguage.googleapis.com/v1beta/interactions?key=${key}`;
+  // API key goes in the x-goog-api-key header, never in the URL
+  const interactionsEndpoint = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 
   try {
     // 1. Try modern Interactions API first
@@ -104,6 +105,7 @@ export async function testGeminiConnection(
       headers: {
         'Content-Type': 'application/json',
         'Api-Revision': INTERACTIONS_API_REVISION,
+        'x-goog-api-key': key,
       },
       body: JSON.stringify({
         model: targetModel,
@@ -118,10 +120,13 @@ export async function testGeminiConnection(
 
     // 2. If endpoint not found / not allowed, fallback to generateContent
     if (response.status === 404 || response.status === 405) {
-      const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${key}`;
+      const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent`;
       const fallbackRes = await fetch(fallbackEndpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': key,
+        },
         body: JSON.stringify({
           contents: [{ parts: [{ text: 'Ping test. Reply with OK.' }] }],
           generationConfig: { maxOutputTokens: 5 },

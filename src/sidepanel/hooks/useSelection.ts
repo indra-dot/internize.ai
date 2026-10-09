@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { attachSelectionListener, runInActiveTab } from '../../services/page/pageBridge';
 import type { ExtensionMessage } from '../../types/messages';
 
 export interface SelectionState {
@@ -13,9 +14,9 @@ export function useSelection() {
   const [isPulling, setIsPulling] = useState<boolean>(false);
 
   /**
-   * Proactively pulls currently selected text from the active tab.
-   * Stage 1: chrome.tabs.sendMessage (fast IPC).
-   * Stage 2: chrome.scripting.executeScript fallback.
+   * Pulls the currently selected text from the active tab on demand.
+   * Injects the selection listener into the page (see pageBridge.ts), so it
+   * only works on pages the user has granted access to (activeTab).
    */
   const pullActiveTabSelection = useCallback(async () => {
     if (typeof chrome === 'undefined' || !chrome.tabs?.query) {
@@ -24,92 +25,18 @@ export function useSelection() {
 
     setIsPulling(true);
     try {
-      let [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-      if (!tab?.id) {
-        [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      }
-      if (!tab?.id) {
-        setIsPulling(false);
-        return;
-      }
+      const res = await runInActiveTab(attachSelectionListener, []);
 
-      // Stage 1: Direct IPC messaging to content script
-      try {
-        const response = (await chrome.tabs.sendMessage(tab.id, {
-          type: 'GET_SELECTED_TEXT',
-        } satisfies ExtensionMessage)) as { text?: string; sourceUrl?: string; title?: string };
-
-        if (response?.text) {
-          setSelection({
-            text: response.text,
-            sourceUrl: response.sourceUrl || tab.url,
-            title: response.title || tab.title,
-            timestamp: Date.now(),
-          });
-          setIsPulling(false);
-          return;
-        }
-      } catch {
-        // Tab might have been loaded before extension install or scripting not initialized yet
-      }
-
-      // Stage 2: Fallback to chrome.scripting.executeScript
-      if (chrome.scripting?.executeScript) {
-        const results = await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => {
-            // Ensure live selection listener is bound even on tabs opened before extension install
-            const win = window as unknown as { __internizeLiveAttached?: boolean };
-            if (!win.__internizeLiveAttached) {
-              win.__internizeLiveAttached = true;
-              let prevText = '';
-              const emit = () => {
-                const sel = window.getSelection()?.toString().trim() || '';
-                if (!sel) {
-                  prevText = '';
-                  return;
-                }
-                if (sel === prevText) return;
-                prevText = sel;
-                try {
-                  chrome.runtime?.sendMessage?.({
-                    type: 'TEXT_SELECTED',
-                    text: sel,
-                    sourceUrl: window.location.href,
-                    title: document.title,
-                    timestamp: Date.now(),
-                  }).catch(() => {});
-                } catch {
-                  // silent
-                }
-              };
-              document.addEventListener('mouseup', emit, { passive: true });
-              document.addEventListener('keyup', emit, { passive: true });
-              document.addEventListener('selectionchange', () => {
-                setTimeout(emit, 100);
-              }, { passive: true });
-            }
-
-            return {
-              text: window.getSelection()?.toString().trim() || '',
-              sourceUrl: window.location.href,
-              title: document.title,
-            };
-          },
+      if (res?.text) {
+        setSelection({
+          text: res.text,
+          sourceUrl: res.sourceUrl,
+          title: res.title,
+          timestamp: Date.now(),
         });
-
-        const res = results?.[0]?.result;
-        if (res?.text) {
-          setSelection({
-            text: res.text,
-            sourceUrl: res.sourceUrl || tab.url,
-            title: res.title || tab.title,
-            timestamp: Date.now(),
-          });
-        }
       }
     } catch (error) {
-      // Ignored for restricted pages (chrome://, webstore, etc.)
+      // Expected on restricted pages (chrome://, Web Store) or before activeTab is granted
       console.debug('[internize.ai] Selection pull unavailable on active tab:', error);
     } finally {
       setIsPulling(false);
@@ -136,7 +63,7 @@ export function useSelection() {
       chrome.tabs.onActivated.addListener(tabActivatedListener);
     }
 
-    // Listen for live push notifications from content scripts
+    // Listen for live push notifications from the injected page listener
     if (typeof chrome === 'undefined' || !chrome.runtime?.onMessage) {
       return () => {
         window.removeEventListener('focus', handleFocus);
