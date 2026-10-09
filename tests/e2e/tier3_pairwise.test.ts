@@ -174,16 +174,16 @@ describe('Pairwise Cross-Feature Interactions', () => {
   });
 
   // 12. F1 -> F2 -> F3
-  test('P12: MV3 Manifest -> Background Service Worker -> Content Script Message Routing', () => {
+  test('P12: MV3 Manifest -> Background Service Worker -> On-Demand Page Access', () => {
     const manifest = readProjectJson('manifest.json');
     expect(manifest.manifest_version).toBe(3);
     expect(manifest.background.service_worker).toBeDefined();
 
-    // Verify content script pattern configuration
-    const contentScript = manifest.content_scripts?.[0];
-    expect(contentScript).toBeDefined();
-    expect(contentScript.matches).toContain('http://*/*');
-    expect(contentScript.matches).toContain('https://*/*');
+    // No static content script: pages are reached only on demand via activeTab + scripting
+    expect(manifest.content_scripts).toBeUndefined();
+    expect(manifest.permissions).toContain('activeTab');
+    expect(manifest.permissions).toContain('scripting');
+    expect(JSON.stringify(manifest)).not.toContain('<all_urls>');
   });
 
   // 13. F6 -> F7/F8/F9
