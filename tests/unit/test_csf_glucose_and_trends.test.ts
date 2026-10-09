@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert';
 import {
   InternalMedicineEngine,
@@ -12,6 +12,9 @@ import {
   generateCaseSummary,
 } from '../../src/services/clinical/internalMedicineEngine';
 import { generateDirectedClinicalAnalysis } from '../../src/services/clinical/slmEngine';
+
+describe('test_csf_glucose_and_trends', () => {
+  it('runs the full legacy suite', async () => {
 
 const USER_CASE_TEXT = `
 Ass :
@@ -196,3 +199,6 @@ assert.ok(
 console.log('\n======================================================================');
 console.log('ALL VERIFICATION SUITES PASSED CLEANLY (Zero Egress & Specimen-Safe)');
 console.log('======================================================================\n');
+
+  });
+});

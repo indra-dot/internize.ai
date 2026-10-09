@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 /**
  * Unit Test Suite for User Feedback v2 Improvements
  * 
@@ -232,11 +233,12 @@ TD: 160/90, HR: 60 x/m, RR: 16 x/m.`;
   console.log('======================================================================\n');
 
   if (failedTests > 0) {
-    process.exit(1);
+    throw new Error('Legacy test failures: see output above');
   }
 }
 
-runFeedbackV2Tests().catch((err) => {
-  console.error('Test execution error:', err);
-  process.exit(1);
+describe('user_feedback_v2', () => {
+  it('runs the full legacy suite', async () => {
+    await runFeedbackV2Tests();
+  });
 });

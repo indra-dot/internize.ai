@@ -3,7 +3,7 @@
 ## Test Philosophy
 - Opaque-box, requirement-driven. Derived from `ORIGINAL_REQUEST.md` and user-facing acceptance criteria, independent of implementation design.
 - Methodology: 4-Tier Test Pyramid (Category-Partition, Boundary Value Analysis, Pairwise Combinatorial Testing, Real-World Workloads).
-- Execution: Runnable test suite via Node/TypeScript test runner (`npm test` / `tsx tests/e2e/runner.ts`) verifying builds, manifests, outputs, and schemas.
+- Execution: Runnable test suite via Vitest (`npm test`, `npm run test:unit`, `npm run test:e2e`) verifying builds, manifests, outputs, and schemas.
 
 ## Feature Inventory Coverage Matrix
 | # | Feature | Requirement | Tier 1 (Count) | Tier 2 (Count) | Tier 3 (Pairwise) | Tier 4 (Scenario) |
@@ -28,7 +28,7 @@
 | 18 | Production Build & Documentation | R4, AC: Build Quality | 5 | 5 | ✓ | ✓ |
 
 ## Test Architecture
-- Test Runner: `tests/e2e/runner.ts` executable via `npm test` or `npx tsx tests/e2e/runner.ts`.
+- Test Runner: Vitest, configured in `vitest.config.ts`. Run via `npm test`; all `tests/**/*.test.ts` files are picked up automatically.
 - Format: Structured test suites reporting pass/fail counts, assertion details, and JSON exit codes.
 - Test files:
   - `tests/e2e/tier1_features.test.ts`: Equivalence class happy-path tests for each inventoried feature.

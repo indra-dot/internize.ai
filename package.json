@@ -7,10 +7,11 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "lint": "biome check src",
-    "test": "tsx tests/e2e/runner.ts && tsx tests/unit/anti_hallucination.test.ts && tsx tests/unit/internal_medicine.test.ts && tsx tests/unit/clinical.test.ts && tsx tests/unit/protocols.test.ts && tsx tests/unit/test_csf_glucose_and_trends.test.ts && tsx tests/unit/test_patch_acceptance.test.ts && tsx tests/unit/test_cloud_guardrail.test.ts && tsx tests/unit/user_feedback_v2.test.ts && tsx tests/unit/oncology_conversion.test.ts && tsx tests/unit/test_oncology_placement_and_vital_guard.test.ts",
-    "test:unit": "tsx tests/unit/anti_hallucination.test.ts && tsx tests/unit/internal_medicine.test.ts && tsx tests/unit/clinical.test.ts && tsx tests/unit/protocols.test.ts && tsx tests/unit/test_csf_glucose_and_trends.test.ts && tsx tests/unit/test_patch_acceptance.test.ts && tsx tests/unit/test_cloud_guardrail.test.ts && tsx tests/unit/user_feedback_v2.test.ts && tsx tests/unit/oncology_conversion.test.ts && tsx tests/unit/test_oncology_placement_and_vital_guard.test.ts",
-    "test:cloud": "tsx tests/unit/test_cloud_guardrail.test.ts",
-    "test:e2e": "tsx tests/e2e/runner.ts"
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:cloud": "vitest run tests/unit/test_cloud_guardrail.test.ts",
+    "test:e2e": "vitest run tests/e2e",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.3.3",

@@ -2,13 +2,12 @@ import {
   describe,
   test,
   expect,
-  setTestTier,
+  readProjectFile,
   readProjectJson,
   ReferenceClinicalEngine,
   ReferenceResearchEngine,
 } from './harness';
 
-setTestTier('Tier 3: Pairwise Combinations');
 
 describe('Pairwise Cross-Feature Interactions', () => {
   // 1. F3 -> F5/F10 -> F7
@@ -259,7 +258,9 @@ describe('Pairwise Cross-Feature Interactions', () => {
     const pkg = readProjectJson('package.json');
 
     expect(manifest.manifest_version).toBe(3);
-    expect(pkg.scripts.test).toContain('runner.ts');
+    expect(pkg.scripts.test).toContain('vitest');
+    // Vitest must discover the e2e and unit suites
+    expect(readProjectFile('vitest.config.ts')).toContain('tests/**/*.test.ts');
   });
 
   // 19. F13 -> F14 -> F17 Error Cascade

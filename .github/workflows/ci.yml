@@ -2,9 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [ master, main, dev ]
+    branches: [ "**" ]
   pull_request:
-    branches: [ master, main, dev ]
 
 jobs:
   test-and-build:
@@ -27,8 +26,9 @@ jobs:
       - name: Typecheck TypeScript
         run: npx tsc --noEmit
 
+      # Build first: the build-artifact test reads dist/manifest.json
       - name: Build Extension (Vite + CRX)
         run: npm run build
 
-      - name: Run Test Suite
+      - name: Run Test Suite (Vitest)
         run: npm test

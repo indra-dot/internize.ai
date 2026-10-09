@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 /**
  * Test Suite: Oncology Dynamic Placement & Anti-Hallucination Vital Guardrail
  * Validates:
@@ -212,11 +213,12 @@ Ass :
   console.log('======================================================================\n');
 
   if (failedTests > 0) {
-    process.exit(1);
+    throw new Error('Legacy test failures: see output above');
   }
 }
 
-runTests().catch((e) => {
-  console.error(e);
-  process.exit(1);
+describe('test_oncology_placement_and_vital_guard', () => {
+  it('runs the full legacy suite', async () => {
+    await runTests();
+  });
 });

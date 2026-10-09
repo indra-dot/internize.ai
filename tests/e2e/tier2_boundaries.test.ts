@@ -2,7 +2,6 @@ import {
   describe,
   test,
   expect,
-  setTestTier,
   readProjectJson,
   readProjectFile,
   fileExists,
@@ -10,7 +9,6 @@ import {
   ReferenceResearchEngine,
 } from './harness';
 
-setTestTier('Tier 2: Boundary & Corner Cases');
 
 // ============================================================================
 // Feature 1: MV3 Extension Manifest Boundaries

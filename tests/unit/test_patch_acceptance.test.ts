@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 /**
  * internize.ai — Patch Specification Acceptance Verification Suite
  *
@@ -22,6 +23,9 @@ import {
 } from '../../src/services/clinical/internalMedicineEngine';
 import { ClinicalEngineCoordinator } from '../../src/services/clinical/engine';
 import { getSlmStatus } from '../../src/services/clinical/slmEngine';
+
+describe('test_patch_acceptance', () => {
+  it('runs the full legacy suite', async () => {
 
 console.log('======================================================================');
 console.log('   internize.ai — Acceptance Criteria Verification Suite              ');
@@ -169,3 +173,6 @@ assert.ok(safetyReport.labTrends.length >= 2, 'Must extract serial lab trends fo
 console.log('\n======================================================================');
 console.log('ALL 5 ACCEPTANCE CRITERIA RIGOROUSLY VERIFIED AND PASSED CLEANLY!');
 console.log('======================================================================\n');
+
+  });
+});
