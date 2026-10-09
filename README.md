@@ -78,55 +78,65 @@ Dibangun dengan filosofi **Clinician-in-the-Loop** dan **Zero Data Egress Invari
 
 ---
 
-## 🚀 Cara Pasang Ekstensi ke Google Chrome
+## 🚀 Cara Pasang Ekstensi ke Google Chrome (Untuk Pengguna Awam)
+
+Tidak perlu install program apa pun selain **Google Chrome**. Ikuti 4 langkah berikut (± 5 menit).
 
 ---
 
-### 📥 Langkah 1 — Download File ZIP
+### 📥 Langkah 1 — Download
 
-1. Scroll ke atas halaman GitHub ini, klik file **[`internize.ai_fix_20261003_2037.zip`](internize.ai_fix_20261003_2037.zip)**.
-2. Klik tombol **"Download raw file"** (ikon ⬇️ di kanan atas).
-3. File ZIP akan tersimpan di folder **Downloads** komputer kamu.
+Klik tautan ini:
+
+### ⬇️ [Download internize.ai (ZIP)](https://github.com/indra-dot/internize.ai/raw/master/internize-ai-chrome-extension.zip)
+
+File akan otomatis tersimpan di folder **Downloads / Unduhan**.
 
 ---
 
-### 📂 Langkah 2 — Ekstrak File ZIP
+### 📂 Langkah 2 — Buka (Ekstrak) ZIP
 
-1. Buka folder **Downloads** di komputer kamu.
-2. **Klik kanan** file `internize.ai_fix_20261003_2037.zip`.
-3. Pilih **"Extract All..."** → klik **Extract**.
-4. Akan muncul folder baru hasil ekstrak. Buka folder tersebut.
-5. Di dalamnya ada folder bernama **`dist`** — **ingat lokasi folder `dist` ini**, kamu akan butuhkan di langkah berikutnya.
+- **Windows:** klik kanan file ZIP → pilih **Extract All** → klik **Extract**.
+- **Mac:** klik dua kali file ZIP. Akan muncul folder baru bernama **`internize-ai-chrome-extension`**.
+
+Pindahkan folder itu ke tempat yang mudah dicari (misalnya **Desktop** atau **Documents**), lalu **jangan dihapus**. Chrome membaca ekstensi langsung dari folder ini.
 
 ---
 
 ### 🌐 Langkah 3 — Pasang ke Google Chrome
 
-1. Buka **Google Chrome** (pastikan sudah terinstall).
-2. Di bagian **address bar** (kolom alamat website paling atas), ketik persis:
-   ```
-   chrome://extensions
-   ```
-   lalu tekan **Enter**.
-3. Di **pojok kanan atas** halaman tersebut, nyalakan tombol **"Developer mode"** hingga berubah warna biru. *(Jangan khawatir, ini aman dan hanya untuk memasang ekstensi lokal.)*
-4. Klik tombol **"Load unpacked"** yang muncul di **pojok kiri atas**.
-5. Sebuah jendela pemilih folder akan terbuka — cari dan **pilih folder `dist`** yang tadi kamu ingat lokasinya.
-6. Klik **"Select Folder"**.
+1. Buka **Google Chrome**, ketik `chrome://extensions` di kolom alamat paling atas, lalu tekan **Enter**.
+2. Nyalakan tombol **Developer mode** (atau *Mode developer*) di pojok kanan atas.
+3. Klik **Load unpacked** (atau *Muat yang belum dibongkar*) di pojok kiri atas.
+4. Pilih folder **`internize-ai-chrome-extension`** hasil langkah 2, lalu klik **Select Folder** (Mac: **Open**).
 
-✅ **Selesai!** Ikon **internize.ai** akan langsung muncul di Chrome kamu.
+> ⚠️ **Penting:** pilih folder yang **di dalamnya langsung ada file `manifest.json`**. Jangan memilih file ZIP, dan jangan memilih folder lain di dalamnya.
+
+✅ **Selesai!** Ikon **internize.ai** akan muncul di Chrome.
 
 ---
 
 ### 📌 Langkah 4 — Sematkan & Gunakan
 
-1. Di pojok kanan atas Chrome, klik ikon **puzzle 🧩** (Extensions).
-2. Cari **internize.ai**, lalu klik ikon **📌 pin** di sampingnya agar muncul permanen di toolbar.
-3. Klik ikon **internize.ai** di toolbar → **Side Panel** akan terbuka di sisi kanan browser.
-4. Tempel teks rekam medik pasien ke kotak input, atau sorot teks di halaman EMR rumah sakit untuk dianalisis otomatis.
+1. Klik ikon **puzzle 🧩** (Extensions) di pojok kanan atas Chrome.
+2. Cari **internize.ai**, lalu klik ikon **📌 pin** agar tetap tampil di toolbar.
+3. Klik ikon **internize.ai** → **Side Panel** akan terbuka di sisi kanan browser.
+4. Tempel teks rekam medis ke kotak input, atau sorot teks di halaman EMR untuk dianalisis.
 
 ---
 
-> ⚠️ **Catatan:** Ekstensi ini berjalan **100% di komputer lokal kamu** — tidak ada data pasien yang dikirim ke internet. Aman dan sesuai privasi klinis.
+### ❓ Kalau Muncul Error
+
+| Pesan di halaman `chrome://extensions` | Penyebab | Solusi |
+|---|---|---|
+| `Invalid script mime type` / `Could not load file 'src/...'` | Folder yang dipilih salah (folder source/repo, bukan hasil ZIP). | Klik **Remove** pada internize.ai, lalu ulangi Langkah 3 dengan folder yang benar. |
+| `Service worker registration failed` | Folder yang dipilih belum benar, atau ZIP belum diekstrak. | Ekstrak ZIP dulu (Langkah 2), lalu ulangi Langkah 3. |
+| Ekstensi hilang atau tidak jalan setelah folder dipindah | Chrome kehilangan lokasi folder. | Kembalikan folder ke tempatnya, atau ulangi Langkah 3. |
+| Ikon tidak terlihat di toolbar | Belum dipin. | Ikuti Langkah 4 nomor 2. |
+
+---
+
+> ⚠️ **Catatan:** Ekstensi ini berjalan **100% di komputer lokal kamu**. Tidak ada data pasien yang dikirim ke internet.
 
 ---
 
