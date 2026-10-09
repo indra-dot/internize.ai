@@ -13,6 +13,7 @@ import type React from 'react';
 import { useState } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
+import { getProtocolSources } from '../../services/clinical/guidelineSources';
 import type { ClinicalProtocolTemplate } from '../../services/clinical/protocolRegistry';
 import { formatProtocolDraft } from '../../services/clinical/protocolRegistry';
 import { insertTextToActiveField } from '../../services/emr/fieldInjector';
@@ -225,6 +226,26 @@ export const ProtocolCard: React.FC<ProtocolCardProps> = ({
                 </>
               )}
             </Button>
+          </div>
+
+          <div className="pt-2 border-t border-slate-200 text-[10.5px] text-slate-500 space-y-1">
+            <p className="font-semibold text-slate-600">Sumber rujukan:</p>
+            {getProtocolSources(protocol).map((src) => (
+              <p key={src.id} className="leading-relaxed">
+                {src.citation}
+                {src.url && (
+                  <>
+                    {' '}
+                    <a href={src.url} target="_blank" rel="noreferrer" className="text-maroon-800 underline">
+                      tautan
+                    </a>
+                  </>
+                )}
+                {src.status === 'partial' && src.note && (
+                  <span className="italic text-amber-700"> ({src.note})</span>
+                )}
+              </p>
+            ))}
           </div>
         </CardContent>
       )}
