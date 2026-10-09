@@ -78,7 +78,7 @@ Dibangun dengan filosofi **Clinician-in-the-Loop** dan **Zero Data Egress Invari
 
 ---
 
-## 🚀 Cara Pasang Ekstensi ke Google Chrome (Untuk Pengguna Awam)
+## 🚀 Cara Pasang Ekstensi ke Google Chrome
 
 Tidak perlu install program apa pun selain **Google Chrome**. Ikuti 4 langkah berikut (± 5 menit).
 
