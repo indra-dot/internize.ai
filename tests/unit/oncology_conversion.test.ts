@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 import assert from 'node:assert';
 import {
   convertOncologyDiagnosis,
@@ -6,6 +7,9 @@ import {
 import {
   InternalMedicineEngine,
 } from '../../src/services/clinical/internalMedicineEngine';
+
+describe('oncology_conversion', () => {
+  it('runs the full legacy suite', () => {
 
 console.log('🧪 Starting Oncology Staging & Conversion Engine Unit Tests...\n');
 
@@ -173,3 +177,6 @@ console.log('Test 5: Integration in InternalMedicineEngine.identifySpPdProblems'
 }
 
 console.log('🎉 All 5 Oncology Conversion Engine unit tests passed successfully!');
+
+  });
+});

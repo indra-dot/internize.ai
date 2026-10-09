@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 /**
  * Unit Test Suite for Clinical Service Engine & Rules
  * Verifies SNOMED CT Lexicon, RxNorm Dictionary, CROGE Engine, SOAP Synthesizer, and Local Coordinator.
@@ -490,11 +491,12 @@ async function runClinicalUnitTests() {
   console.log('======================================================================\n');
 
   if (failedTests > 0) {
-    process.exit(1);
+    throw new Error('Legacy test failures: see output above');
   }
 }
 
-runClinicalUnitTests().catch((err) => {
-  console.error('Fatal test error:', err);
-  process.exit(1);
+describe('clinical', () => {
+  it('runs the full legacy suite', async () => {
+    await runClinicalUnitTests();
+  });
 });

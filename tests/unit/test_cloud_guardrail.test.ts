@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 /**
  * test_cloud_guardrail.test.ts
  * ============================
@@ -19,6 +20,9 @@ import {
   runMarkdownGuardrail,
   reidentifyMarkdown,
 } from '../../src/services/clinical/cloudGuardrail';
+
+describe('test_cloud_guardrail', () => {
+  it('runs the full legacy suite', () => {
 
 // ─── Test helpers ────────────────────────────────────────────────────────────
 
@@ -425,8 +429,11 @@ console.log('═'.repeat(60));
 
 if (failed > 0) {
   console.error(`\n❌ ${failed} test(s) FAILED`);
-  process.exit(1);
+  throw new Error('Legacy test failures: see output above');
 } else {
   console.log('\n✅ ALL GUARDRAIL TESTS PASSED');
-  process.exit(0);
+  
 }
+
+  });
+});

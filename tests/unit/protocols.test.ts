@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 /**
  * internize.ai — Clinical Protocols & Scoring Calculators Unit Test Suite
  *
@@ -23,6 +24,9 @@ import {
   calculateACREularSLE,
 } from '../../src/services/clinical/protocols';
 import { extractVitals, extractAbnormalLabs } from '../../src/services/clinical/internalMedicineEngine';
+
+describe('protocols', () => {
+  it('runs the full legacy suite', () => {
 
 let passed = 0;
 let failed = 0;
@@ -133,5 +137,8 @@ console.log(`TOTAL: ${passed} Passed, ${failed} Failed across ${passed + failed}
 console.log('======================================================================\n');
 
 if (failed > 0) {
-  process.exit(1);
+  throw new Error('Legacy test failures: see output above');
 }
+
+  });
+});

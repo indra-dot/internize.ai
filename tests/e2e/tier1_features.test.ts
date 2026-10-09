@@ -2,7 +2,6 @@ import {
   describe,
   test,
   expect,
-  setTestTier,
   readProjectJson,
   readProjectFile,
   fileExists,
@@ -10,7 +9,6 @@ import {
   ReferenceResearchEngine,
 } from './harness';
 
-setTestTier('Tier 1: Feature Coverage');
 
 // ============================================================================
 // Feature 1: MV3 Extension Manifest
@@ -150,7 +148,7 @@ describe('Feature 4: Build & Lint Pipeline', () => {
     expect(typeof pkg.scripts.build).toBe('string');
     expect(typeof pkg.scripts.lint).toBe('string');
     expect(typeof pkg.scripts.test).toBe('string');
-    expect(pkg.scripts.test).toContain('runner.ts');
+    expect(pkg.scripts.test).toContain('vitest');
   });
 
   test('F4.2: tsconfig.json enforces strict mode and no implicit any', () => {
@@ -749,7 +747,7 @@ describe('Feature 19: E2E Acceptance Test Pass', () => {
   test('F19.2: assertions provide clear failure explanations', () => {
     expect(() => {
       expect(1).toBe(2);
-    }).toThrow('Expected 2, but got 1');
+    }).toThrow('expected 1 to be 2');
   });
 
   test('F19.3: expect truthy and falsy assertions operate reliably', () => {

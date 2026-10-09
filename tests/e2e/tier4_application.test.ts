@@ -3,14 +3,12 @@ import {
   describe,
   test,
   expect,
-  setTestTier,
   readProjectJson,
   fileExists,
   ReferenceClinicalEngine,
   ReferenceResearchEngine,
 } from './harness';
 
-setTestTier('Tier 4: Real-World Acceptance Benchmarks');
 
 describe('Scenario 1: Clinical Discharge Summary Benchmark', () => {
   const dischargeInput = 'Patient presents with hypertension and is on lisinopril 10mg daily.';

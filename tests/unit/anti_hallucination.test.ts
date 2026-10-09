@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 /**
  * Anti-Hallucination & Clinical Negation Verification Test Suite
  * Validates:
@@ -230,11 +231,12 @@ Laboratorium: Hb 14.2 g/dL, Leukosit 6.800 /uL, Trombosit 245.000 /uL, GDS 98 mg
   console.log('======================================================================\n');
 
   if (failedTests > 0) {
-    process.exit(1);
+    throw new Error('Legacy test failures: see output above');
   }
 }
 
-runAntiHallucinationTests().catch((err) => {
-  console.error('Test runner encountered error:', err);
-  process.exit(1);
+describe('anti_hallucination', () => {
+  it('runs the full legacy suite', async () => {
+    await runAntiHallucinationTests();
+  });
 });

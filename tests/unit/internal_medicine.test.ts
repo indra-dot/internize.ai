@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 /**
  * Comprehensive Unit Test Suite for Sp.PD Internal Medicine Knowledge Engine
  * Validates:
@@ -294,11 +295,12 @@ Hasil Laboratorium:
   console.log(`======================================================================\n`);
 
   if (failedTests > 0) {
-    process.exit(1);
+    throw new Error('Legacy test failures: see output above');
   }
 }
 
-runInternalMedicineTests().catch((err) => {
-  console.error('Test execution fatal error:', err);
-  process.exit(1);
+describe('internal_medicine', () => {
+  it('runs the full legacy suite', async () => {
+    await runInternalMedicineTests();
+  });
 });
