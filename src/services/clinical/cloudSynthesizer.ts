@@ -874,7 +874,8 @@ export async function runCloudSynthesizer(
   const model = geminiConfig.model || DEFAULT_GEMINI_MODEL;
   onStatus?.('sending', `Menghubungi Google Gemini Interactions API (${model})...`);
 
-  const interactionsEndpoint = `https://generativelanguage.googleapis.com/v1beta/interactions?key=${geminiConfig.apiKey}`;
+  // API key is sent in the x-goog-api-key header, never in the URL (URLs end up in logs and history)
+  const interactionsEndpoint = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 
   let rawTextOutput = '';
 
@@ -896,6 +897,7 @@ export async function runCloudSynthesizer(
       headers: {
         'Content-Type': 'application/json',
         'Api-Revision': INTERACTIONS_API_REVISION,
+        'x-goog-api-key': geminiConfig.apiKey,
       },
       body: JSON.stringify({
         model,
@@ -912,10 +914,13 @@ export async function runCloudSynthesizer(
 
     // Attempt 2: Fallback to generateContent if interactions endpoint is 404/405
     if (response.status === 404 || response.status === 405) {
-      const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiConfig.apiKey}`;
+      const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       response = await fetch(fallbackEndpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': geminiConfig.apiKey,
+        },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
           contents: [{ role: 'user', parts: [{ text: userPrompt }] }],

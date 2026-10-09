@@ -575,10 +575,10 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              100% On-Device
+              On-Device
             </span>
             <span className="text-[10px] font-semibold text-maroon-900 bg-maroon-50 px-2 py-0.5 rounded-full border border-maroon-200">
-              Zero Egress
+              Cloud Opsional
             </span>
           </div>
         </div>
@@ -588,12 +588,12 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
             <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-slate-900">
-                Komitmen Privasi Medis: Zero Data Egress (Nol Kebocoran Data)
+                Komitmen Privasi Medis: On-Device secara Default
               </p>
               <p className="text-[10.5px] text-slate-600 leading-relaxed mt-0.5">
-                100% pemrosesan klinis berjalan lokal di peramban tanpa pernah mengirimkan data
-                pasien (PHI) ke server eksternal atau cloud. Data catatan medis tetap aman di
-                perangkat Anda.
+                Pemrosesan klinis inti berjalan lokal di peramban. Mode cloud bersifat opsional
+                (BYOK) dan hanya mengirim teks yang sudah di-de-identifikasi ke Google Gemini.
+                Data catatan medis tetap di perangkat Anda kecuali mode cloud diaktifkan.
               </p>
             </div>
           </div>

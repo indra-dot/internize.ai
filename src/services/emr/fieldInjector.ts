@@ -1,14 +1,19 @@
 /**
  * fieldInjector.ts — EMR Form Field Injection Service
- * Sends a 'insert text' command from the side panel to the active tab's content script.
+ * Injects text into the focused field of the active tab on demand (see pageBridge.ts).
  * Compatible with both native inputs and React/Vue/Angular-controlled form elements.
  */
+
+import { insertTextIntoFocusedField, runInActiveTab } from '../page/pageBridge';
 
 export interface InsertResult {
   success: boolean;
   method?: 'execCommand' | 'reactSetter' | 'clipboard';
   error?: string;
 }
+
+const PAGE_ACCESS_HINT =
+  'Halaman ini belum bisa diakses. Klik ikon internize.ai di halaman ini, lalu coba lagi.';
 
 /**
  * Injects text into the currently focused input field in the active browser tab.
@@ -20,22 +25,12 @@ export async function insertTextToActiveField(text: string): Promise<InsertResul
   }
 
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) {
+    const result = await runInActiveTab(insertTextIntoFocusedField, [text]);
+    if (!result) {
       return { success: false, error: 'No active tab found' };
     }
-
-    // Send injection message to content script
-    const response = await chrome.tabs.sendMessage(tab.id, {
-      type: 'INSERT_TEXT_TO_FIELD',
-      text,
-    });
-
-    return (response as InsertResult) ?? { success: false, error: 'No response from content script' };
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Failed to communicate with page',
-    };
+    return result;
+  } catch {
+    return { success: false, error: PAGE_ACCESS_HINT };
   }
 }

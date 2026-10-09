@@ -172,7 +172,7 @@ export const ResearchExtractionTab: React.FC<ResearchExtractionTabProps> = ({
       deidentifiedText || '(Kosong)',
       '',
       divider,
-      'Dihasilkan secara lokal oleh internize.ai Engine (Zero Egress Invariant)',
+      'Dihasilkan secara lokal oleh internize.ai Engine (tanpa panggilan jaringan saat ekspor)',
       divider,
     );
 

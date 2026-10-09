@@ -325,7 +325,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
       {/* Privacy Notice */}
       <div className="text-[11px] text-slate-500 bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-2">
         <p className="font-bold text-slate-700 flex items-center gap-1.5">
-          <span>🔒 Arsitektur Privasi & Kepatuhan Zero Egress PHI</span>
+          <span>🔒 Arsitektur Privasi & Kepatuhan PHI</span>
         </p>
         <p className="leading-relaxed">
           <strong className="text-slate-700">Tier 1 & 2 (100% On-Device / Default):</strong> Semua
@@ -341,7 +341,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
           </span>{' '}
           sebelum dikirim ke endpoint Gemini Interactions API dengan parameter{' '}
           <span className="font-mono text-slate-700 bg-slate-200 px-1 py-0.5 rounded">store: false</span>{' '}
-          (memastikan Google tidak menyimpan riwayat teks di cloud). Pemulihan nama asli (re-identifikasi) dilakukan
+          (meminta Google tidak menyimpan riwayat teks di cloud). Pemulihan nama asli (re-identifikasi) dilakukan
           kembali secara lokal di memori browser Anda.
         </p>
       </div>
