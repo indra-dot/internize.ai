@@ -1,0 +1,1965 @@
+{
+  "ampicillin": {
+    "name": "Ampicillin (IV)",
+    "class": "Aminopenicillin",
+    "isMultiStrategy": true,
+    "loadingDose": "No loading dose reduction in renal impairment. For severe sepsis/meningitis, administer standard initial full dose.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "High sodium content (~3 mEq/g). Neurotoxic (seizures, encephalopathy) at high doses in severe renal failure. Meningitis requires aggressive dosing.",
+    "strategies": {
+      "Mild / Uncomplicated": {
+        "standard_dose": "1 - 2 g IV q6h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "1 - 2 g IV q6h"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 49 mL/min",
+            "recommendation": "1 - 2 g IV q6-12h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "1 - 2 g IV q12-24h"
+          }
+        ],
+        "rrt": {
+          "ihd": "1 - 2 g IV q12-24h; give dose immediately post-HD on dialysis days (moderately dialyzed ~40%).",
+          "crrt": "1 - 2 g IV q12h (CVVH / CVVHD / CVVHDF)."
+        }
+      },
+      "Meningitis / Endovascular": {
+        "standard_dose": "2 g IV q4h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "2 g IV q4h"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 49 mL/min",
+            "recommendation": "2 g IV q6h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "2 g IV q12h"
+          }
+        ],
+        "rrt": {
+          "ihd": "2 g IV q12h post-HD; redose immediately after dialysis session.",
+          "crrt": "2 g IV q6-8h (high ultrafiltration rates remove drug efficiently)."
+        }
+      }
+    }
+  },
+  "ampicillin-sulbactam": {
+    "name": "Ampicillin-Sulbactam (IV)",
+    "class": "Penicillin + Beta-Lactamase Inhibitor",
+    "isMultiStrategy": false,
+    "standard_dose": "1.5 - 3 g IV q6h",
+    "loadingDose": "In severe sepsis/Acinetobacter infection, administer initial unadjusted loading dose of 3 g IV.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Dose ratio 2:1 ampicillin:sulbactam. In severe Acinetobacter baumannii infections, high-dose sulbactam component (up to 6-9 g/day sulbactam) is required under ID supervision.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "1.5 - 3 g IV q6h"
+      },
+      {
+        "minCrCl": 15,
+        "label": "CrCl 15 - 49 mL/min",
+        "recommendation": "1.5 - 3 g IV q8-12h"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 15 mL/min",
+        "recommendation": "1.5 - 3 g IV q12-24h"
+      }
+    ],
+    "rrt": {
+      "ihd": "1.5 - 3 g IV q24h; administer dose post-HD on dialysis days (ampicillin & sulbactam both cleared ~35-45% by HD).",
+      "crrt": "1.5 - 3 g IV q8-12h (or 3 g q8h for high-effluent CVVHDF/Acinetobacter)."
+    }
+  },
+  "penicillin-g": {
+    "name": "Penicillin G (IV)",
+    "class": "Natural Penicillin",
+    "isMultiStrategy": true,
+    "loadingDose": "Administer full unadjusted initial dose (e.g. 4 million units IV) in acute bacteremia/meningitis.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Significant neurotoxicity risk (hyperreflexia, myoclonus, seizures) when high doses accumulate in renal failure. Contains 1.7 mEq potassium per million units of potassium penicillin G.",
+    "strategies": {
+      "General Bacteremia / Streptococcal": {
+        "standard_dose": "2 - 4 million units IV q4h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "2 - 4 million units IV q4h"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 49 mL/min",
+            "recommendation": "1.5 - 2 million units IV q4-6h (75% dose)"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "1 - 2 million units IV q8-12h (20-50% dose)"
+          }
+        ],
+        "rrt": {
+          "ihd": "1 - 2 million units IV q8-12h; give dose immediately post-HD (dialyzable ~20-50%).",
+          "crrt": "2 million units IV q6h (CVVH / CVVHD / CVVHDF)."
+        }
+      },
+      "Neurosyphilis / Meningitis": {
+        "standard_dose": "3 - 4 million units IV q4h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "3 - 4 million units IV q4h (18-24 MU/day)"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 49 mL/min",
+            "recommendation": "2 - 3 million units IV q4-6h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "2 million units IV q8h (close neuro monitoring)"
+          }
+        ],
+        "rrt": {
+          "ihd": "2 million units IV q8-12h post-HD on dialysis days.",
+          "crrt": "2 - 3 million units IV q4-6h."
+        }
+      }
+    }
+  },
+  "piperacillin-tazobactam": {
+    "name": "Piperacillin-Tazobactam (IV)",
+    "class": "Antipseudomonal Penicillin + Inhibitor",
+    "isMultiStrategy": false,
+    "standard_dose": "4.5 g IV q6h (or 3.375 g q6h)",
+    "loadingDose": "In severe sepsis/Pseudomonas, give full initial unadjusted loading dose of 4.5 g IV over 30 min before extending infusion.",
+    "isNephrotoxic": true,
+    "isNeurotoxic": true,
+    "note": "Synergistic acute kidney injury risk when combined with Vancomycin. Extended infusion (over 3-4 hours) improves pharmacodynamic target attainment in Pseudomonas sepsis.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "4.5 g IV q6h (standard) or 3.375 g IV q6h"
+      },
+      {
+        "minCrCl": 20,
+        "label": "CrCl 20 - 49 mL/min",
+        "recommendation": "3.375 g IV q6h (extended infusion over 3-4h)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 20 mL/min",
+        "recommendation": "2.25 g IV q6h or 3.375 g IV q8h"
+      }
+    ],
+    "rrt": {
+      "ihd": "2.25 g IV q8h; give supplemental 0.75 g post-HD on dialysis days (or 2.25 g IV q12h with full dose post-HD; cleared ~30-40%).",
+      "crrt": "3.375 g IV q6-8h (or 4.5 g IV q8h extended infusion over 4h for CVVHDF)."
+    }
+  },
+  "cefazolin": {
+    "name": "Cefazolin (IV)",
+    "class": "1st Generation Cephalosporin",
+    "isMultiStrategy": false,
+    "standard_dose": "1 - 2 g IV q8h",
+    "loadingDose": "Give full loading dose of 2 g IV regardless of renal function in acute MSSA sepsis/surgical prophylaxis.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Workhorse for MSSA bacteremia, endocarditis, and surgical prophylaxis. In endocarditis, use 2 g IV standard.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "1 - 2 g IV q8h"
+      },
+      {
+        "minCrCl": 35,
+        "label": "CrCl 35 - 49 mL/min",
+        "recommendation": "1 - 2 g IV q12h"
+      },
+      {
+        "minCrCl": 10,
+        "label": "CrCl 10 - 34 mL/min",
+        "recommendation": "1 g IV q12h"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 10 mL/min",
+        "recommendation": "500 mg - 1 g IV q24h"
+      }
+    ],
+    "rrt": {
+      "ihd": "1 - 2 g IV post-HD on dialysis days (dosed 3x/week post-dialysis, e.g. 2 g after session or 1 g q48h).",
+      "crrt": "1 - 2 g IV q12h."
+    }
+  },
+  "ceftriaxone": {
+    "name": "Ceftriaxone (IV)",
+    "class": "3rd Generation Cephalosporin",
+    "isMultiStrategy": false,
+    "standard_dose": "1 - 2 g IV q24h (2 g q12h in meningitis)",
+    "loadingDose": "Standard dosing. No loading adjustment necessary.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Dual elimination (biliary ~40%, renal ~60%). NO renal dosage adjustment required regardless of CrCl or dialysis, except maximum 2 g/day in combined severe hepatic and renal failure.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "1 - 2 g IV q24h (2 g q12h for meningitis)"
+      },
+      {
+        "minCrCl": 10,
+        "label": "CrCl 10 - 49 mL/min",
+        "recommendation": "1 - 2 g IV q24h (no adjustment needed)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 10 mL/min",
+        "recommendation": "1 - 2 g IV q24h (max 2 g/day; no adjustment)"
+      }
+    ],
+    "rrt": {
+      "ihd": "1 - 2 g IV q24h (not significantly dialyzed, clearance < 10%; no supplemental dose post-HD needed).",
+      "crrt": "1 - 2 g IV q24h (2 g q12h for severe CNS infections)."
+    }
+  },
+  "ceftazidime": {
+    "name": "Ceftazidime (IV)",
+    "class": "3rd Generation Cephalosporin (Antipseudomonal)",
+    "isMultiStrategy": false,
+    "standard_dose": "2 g IV q8h",
+    "loadingDose": "Administer 2 g IV loading dose in Pseudomonas sepsis before renal interval adjustment.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Neurotoxic risk in severe renal insufficiency. Rapidly removed by hemodialysis.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "2 g IV q8h"
+      },
+      {
+        "minCrCl": 30,
+        "label": "CrCl 30 - 49 mL/min",
+        "recommendation": "1 g IV q8-12h"
+      },
+      {
+        "minCrCl": 15,
+        "label": "CrCl 15 - 29 mL/min",
+        "recommendation": "1 g IV q12-24h"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 15 mL/min",
+        "recommendation": "500 mg - 1 g IV q24-48h"
+      }
+    ],
+    "rrt": {
+      "ihd": "1 g IV loading dose, then 1 g IV post-HD on dialysis days (dialyzed ~50%).",
+      "crrt": "1 - 2 g IV q8-12h."
+    }
+  },
+  "cefepime": {
+    "name": "Cefepime (IV)",
+    "class": "4th Generation Cephalosporin",
+    "isMultiStrategy": true,
+    "loadingDose": "Give full loading dose of 2 g IV in severe sepsis before transitioning to renal interval.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "HIGH NEUROTOXICITY RISK: Non-convulsive status epilepticus, encephalopathy, and myoclonus occur frequently if unadjusted in renal failure. Strict dose reduction mandatory.",
+    "strategies": {
+      "Standard / Non-Severe": {
+        "standard_dose": "1 - 2 g IV q8-12h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "1 - 2 g IV q8-12h"
+          },
+          {
+            "minCrCl": 30,
+            "label": "CrCl 30 - 49 mL/min",
+            "recommendation": "1 - 2 g IV q12-24h"
+          },
+          {
+            "minCrCl": 11,
+            "label": "CrCl 11 - 29 mL/min",
+            "recommendation": "500 mg - 1 g IV q24h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl &le; 10 mL/min",
+            "recommendation": "250 - 500 mg IV q24h"
+          }
+        ],
+        "rrt": {
+          "ihd": "1 g IV on day 1, then 500 mg IV q24h with full dose administered immediately post-HD on dialysis days (dialyzable ~65%).",
+          "crrt": "1 - 2 g IV q12h."
+        }
+      },
+      "Severe Sepsis / Febrile Neutropenia": {
+        "standard_dose": "2 g IV q8h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "2 g IV q8h"
+          },
+          {
+            "minCrCl": 30,
+            "label": "CrCl 30 - 49 mL/min",
+            "recommendation": "2 g IV q12h"
+          },
+          {
+            "minCrCl": 11,
+            "label": "CrCl 11 - 29 mL/min",
+            "recommendation": "2 g IV q24h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl &le; 10 mL/min",
+            "recommendation": "1 g IV q24h (monitor EEG/mental status)"
+          }
+        ],
+        "rrt": {
+          "ihd": "1 g IV post-HD on dialysis days (or 1 g q24h post-dialysis).",
+          "crrt": "2 g IV q12h (or 2 g q8h for high-effluent CVVHDF)."
+        }
+      }
+    }
+  },
+  "cefoperazone-sulbactam": {
+    "name": "Cefoperazone-Sulbactam (IV)",
+    "class": "3rd Gen Cephalosporin + Inhibitor",
+    "isMultiStrategy": false,
+    "standard_dose": "1.5 - 3 g IV q12h",
+    "loadingDose": "Standard initial dose 3 g IV.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Cefoperazone eliminated predominantly via biliary excretion (75%); sulbactam is renally eliminated (75%). Adjust for the sulbactam component in renal failure. May prolong prothrombin time (PT/INR); consider vitamin K supplementation.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "1.5 - 3 g IV q12h (no adjustment)"
+      },
+      {
+        "minCrCl": 30,
+        "label": "CrCl 30 - 49 mL/min",
+        "recommendation": "1.5 - 3 g IV q12h (max 4 g/day cefoperazone component)"
+      },
+      {
+        "minCrCl": 15,
+        "label": "CrCl 15 - 29 mL/min",
+        "recommendation": "1.5 g IV q12h (max 2 g/day sulbactam)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 15 mL/min",
+        "recommendation": "1.5 g IV q24h (max 1 g/day sulbactam)"
+      }
+    ],
+    "rrt": {
+      "ihd": "1.5 g IV q24h post-HD on dialysis days (sulbactam cleared by HD; give dose after session).",
+      "crrt": "1.5 - 3 g IV q12h."
+    }
+  },
+  "meropenem": {
+    "name": "Meropenem (IV)",
+    "class": "Carbapenem",
+    "isMultiStrategy": true,
+    "loadingDose": "Administer full initial loading dose (1 - 2 g IV over 30 min) in severe septic shock before interval titration.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Workhorse carbapenem in ESBL and polymicrobial ICU sepsis. Extended infusion (over 3 hours) optimizes time above MIC (fT > MIC). Dialyzed efficiently by hemodialysis.",
+    "strategies": {
+      "Standard Dose (General Sepsis/Intra-abdominal)": {
+        "standard_dose": "1 g IV q8h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "1 g IV q8h (standard or 3h extended infusion)"
+          },
+          {
+            "minCrCl": 26,
+            "label": "CrCl 26 - 49 mL/min",
+            "recommendation": "1 g IV q12h"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 25 mL/min",
+            "recommendation": "500 mg IV q12h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "500 mg IV q24h"
+          }
+        ],
+        "rrt": {
+          "ihd": "500 mg IV q24h; give dose immediately post-HD on dialysis days (dialyzable ~50%).",
+          "crrt": "500 mg - 1 g IV q12h (or 1 g q8h extended infusion for high-effluent CVVHDF)."
+        }
+      },
+      "High Dose (Meningitis/CF/Pseudomonas)": {
+        "standard_dose": "2 g IV q8h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "2 g IV q8h (3h extended infusion)"
+          },
+          {
+            "minCrCl": 26,
+            "label": "CrCl 26 - 49 mL/min",
+            "recommendation": "2 g IV q12h (or 1 g q8h)"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 25 mL/min",
+            "recommendation": "1 g IV q12h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "1 g IV q24h"
+          }
+        ],
+        "rrt": {
+          "ihd": "1 g IV q24h post-HD on dialysis days.",
+          "crrt": "1 g IV q8h (extended 3h infusion) for CVVHDF; 1 g q12h for standard CVVH."
+        }
+      }
+    }
+  },
+  "imipenem-cilastatin": {
+    "name": "Imipenem-Cilastatin (IV)",
+    "class": "Carbapenem",
+    "isMultiStrategy": true,
+    "loadingDose": "Administer full unadjusted initial dose of 500 mg - 1 g IV in acute infection.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "HIGHEST SEIZURE RISK among carbapenems if unadjusted in renal failure or pre-existing CNS lesions. Meropenem is preferred if seizure risk exists.",
+    "strategies": {
+      "General Infection": {
+        "standard_dose": "500 mg IV q6h",
+        "adjustments": [
+          {
+            "minCrCl": 60,
+            "label": "CrCl &ge; 60 mL/min",
+            "recommendation": "500 mg IV q6h (or 1 g q8h)"
+          },
+          {
+            "minCrCl": 30,
+            "label": "CrCl 30 - 59 mL/min",
+            "recommendation": "500 mg IV q8h"
+          },
+          {
+            "minCrCl": 15,
+            "label": "CrCl 15 - 29 mL/min",
+            "recommendation": "250 - 500 mg IV q12h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 15 mL/min",
+            "recommendation": "250 mg IV q12h"
+          }
+        ],
+        "rrt": {
+          "ihd": "250 - 500 mg IV q12h; administer immediately post-HD on dialysis days (cleared ~50%).",
+          "crrt": "500 mg IV q6-8h."
+        }
+      },
+      "NTM (High Dose)": {
+        "standard_dose": "1 g IV q6-8h",
+        "adjustments": [
+          {
+            "minCrCl": 60,
+            "label": "CrCl &ge; 60 mL/min",
+            "recommendation": "1 g IV q6-8h"
+          },
+          {
+            "minCrCl": 30,
+            "label": "CrCl 30 - 59 mL/min",
+            "recommendation": "500 mg IV q6-8h"
+          },
+          {
+            "minCrCl": 15,
+            "label": "CrCl 15 - 29 mL/min",
+            "recommendation": "500 mg IV q12h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 15 mL/min",
+            "recommendation": "250 - 500 mg IV q12h"
+          }
+        ],
+        "rrt": {
+          "ihd": "500 mg IV q12h post-HD on dialysis days.",
+          "crrt": "500 mg IV q6-8h."
+        }
+      }
+    }
+  },
+  "ertapenem": {
+    "name": "Ertapenem (IV)",
+    "class": "Carbapenem (Once Daily)",
+    "isMultiStrategy": false,
+    "standard_dose": "1 g IV/IM q24h",
+    "loadingDose": "1 g IV initial dose.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Convenient once-daily dosing. Lacks activity against Pseudomonas aeruginosa and Acinetobacter. High protein binding (~95%). Neurotoxicity/hallucinations reported in ESRD.",
+    "adjustments": [
+      {
+        "minCrCl": 30,
+        "label": "CrCl &ge; 30 mL/min",
+        "recommendation": "1 g IV q24h"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 30 mL/min",
+        "recommendation": "500 mg IV q24h"
+      }
+    ],
+    "rrt": {
+      "ihd": "500 mg IV q24h; if dose is given within 6h prior to HD, administer a 150 mg supplemental dose post-HD. Preferably give dose immediately after HD.",
+      "crrt": "1 g IV q24h."
+    }
+  },
+  "levofloxacin": {
+    "name": "Levofloxacin (IV/PO)",
+    "class": "Fluoroquinolone",
+    "isMultiStrategy": false,
+    "standard_dose": "500 - 750 mg PO/IV q24h",
+    "loadingDose": "Administer standard initial dose (500 - 750 mg) on Day 1; subsequent doses adjusted by renal function.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Renally eliminated (~80% unchanged). High risk of QTc prolongation, tendon rupture, and CNS toxicity. In severe renal failure, initial 500-750 mg load is essential.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "500 - 750 mg PO/IV q24h"
+      },
+      {
+        "minCrCl": 20,
+        "label": "CrCl 20 - 49 mL/min",
+        "recommendation": "500 mg initial, then 250 mg q24h (or 750 mg q48h)"
+      },
+      {
+        "minCrCl": 10,
+        "label": "CrCl 10 - 19 mL/min",
+        "recommendation": "500 mg initial, then 250 mg q48h (or 750 mg initial then 500 mg q48h)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 10 mL/min",
+        "recommendation": "500 mg initial, then 250 mg q48h"
+      }
+    ],
+    "rrt": {
+      "ihd": "500 mg initial load, then 250 mg PO/IV q48h post-HD on dialysis days (minimally dialyzed < 10%).",
+      "crrt": "500 mg initial load, then 250 - 500 mg IV q24h."
+    }
+  },
+  "ciprofloxacin": {
+    "name": "Ciprofloxacin (IV/PO)",
+    "class": "Fluoroquinolone",
+    "isMultiStrategy": false,
+    "standard_dose": "400 mg IV q8-12h or 500 - 750 mg PO q12h",
+    "loadingDose": "Standard initial dose.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Both hepatic and renal elimination (~50% renal). Oral bioavailability 70%. QTc prolongation and tendonitis warnings apply.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "400 mg IV q8-12h or 500 - 750 mg PO q12h"
+      },
+      {
+        "minCrCl": 30,
+        "label": "CrCl 30 - 49 mL/min",
+        "recommendation": "400 mg IV q12h or 500 mg PO q12h"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 30 mL/min",
+        "recommendation": "200 - 400 mg IV q18-24h or 250 - 500 mg PO q24h"
+      }
+    ],
+    "rrt": {
+      "ihd": "250 - 500 mg PO q24h or 200 - 400 mg IV q24h; give dose post-HD on dialysis days (dialyzable ~10%).",
+      "crrt": "400 mg IV q12h."
+    }
+  },
+  "moxifloxacin": {
+    "name": "Moxifloxacin (IV/PO)",
+    "class": "Respiratory Fluoroquinolone",
+    "isMultiStrategy": false,
+    "standard_dose": "400 mg PO/IV q24h",
+    "loadingDose": "Standard dose.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Predominantly hepatic metabolism and biliary excretion (~80%). NO renal dosage adjustment required for any degree of renal impairment or dialysis. Lacks urinary concentration (do NOT use for UTI).",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "400 mg PO/IV q24h (no adjustment)"
+      },
+      {
+        "minCrCl": 10,
+        "label": "CrCl 10 - 49 mL/min",
+        "recommendation": "400 mg PO/IV q24h (no adjustment)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 10 mL/min",
+        "recommendation": "400 mg PO/IV q24h (no adjustment)"
+      }
+    ],
+    "rrt": {
+      "ihd": "400 mg PO/IV q24h (not removed by HD; no supplemental dose needed).",
+      "crrt": "400 mg PO/IV q24h."
+    }
+  },
+  "gentamicin": {
+    "name": "Gentamicin (IV)",
+    "class": "Aminoglycoside",
+    "isMultiStrategy": true,
+    "dose_factor": 5,
+    "loadingDose": "MANDATORY FULL LOADING DOSE: 5 - 7 mg/kg (extended interval) or 2 mg/kg (traditional) based on Dosing Weight (ABW in obesity). NEVER reduce loading dose for renal failure.",
+    "isNephrotoxic": true,
+    "isNeurotoxic": false,
+    "note": "SEVERE NEPHROTOXICITY & OTOTOXICITY RISK. Therapeutic Drug Monitoring (TDM) mandatory. Avoid concurrent nephrotoxins. Measure random level at 6-14h post-dose (Hartford nomogram) or trough before redosing.",
+    "strategies": {
+      "Extended Interval (Preferred)": {
+        "standard_dose": "5 - 7 mg/kg IV q24h",
+        "dose_factor": 5,
+        "adjustments": [
+          {
+            "minCrCl": 60,
+            "label": "CrCl &ge; 60 mL/min",
+            "recommendation": "5 - 7 mg/kg IV q24h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 40,
+            "label": "CrCl 40 - 59 mL/min",
+            "recommendation": "5 - 7 mg/kg IV q36h (or per Hartford nomogram)",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 20,
+            "label": "CrCl 20 - 39 mL/min",
+            "recommendation": "5 - 7 mg/kg IV q48h (monitor serum level)",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 20 mL/min",
+            "recommendation": "Load 2 - 3 mg/kg, then redose strictly per random drug levels (target trough < 1 mcg/mL)",
+            "dose_factor": 2.5
+          }
+        ],
+        "rrt": {
+          "ihd": "Load 2 mg/kg IV; maintenance 1 - 1.5 mg/kg IV post-HD on dialysis days; redose strictly guided by pre-HD serum concentrations (dialyzable ~50%).",
+          "crrt": "2 - 2.5 mg/kg IV q24-48h guided by continuous TDM."
+        }
+      },
+      "Traditional / Synergy": {
+        "standard_dose": "1 - 1.7 mg/kg IV q8h (synergy: 1 mg/kg q8-12h)",
+        "dose_factor": 1.5,
+        "adjustments": [
+          {
+            "minCrCl": 60,
+            "label": "CrCl &ge; 60 mL/min",
+            "recommendation": "1 - 1.7 mg/kg IV q8h (synergy 1 mg/kg q8h)",
+            "dose_factor": 1.5
+          },
+          {
+            "minCrCl": 40,
+            "label": "CrCl 40 - 59 mL/min",
+            "recommendation": "1 - 1.7 mg/kg IV q12h",
+            "dose_factor": 1.5
+          },
+          {
+            "minCrCl": 20,
+            "label": "CrCl 20 - 39 mL/min",
+            "recommendation": "1 - 1.7 mg/kg IV q24h",
+            "dose_factor": 1.5
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 20 mL/min",
+            "recommendation": "Load 1.5 mg/kg, then redose only when level < 1 mcg/mL",
+            "dose_factor": 1.5
+          }
+        ],
+        "rrt": {
+          "ihd": "1 mg/kg IV post-HD on dialysis days; monitor trough levels before next dose.",
+          "crrt": "1 - 1.5 mg/kg IV q24-48h guided by TDM."
+        }
+      }
+    }
+  },
+  "amikacin": {
+    "name": "Amikacin (IV)",
+    "class": "Aminoglycoside",
+    "isMultiStrategy": false,
+    "standard_dose": "15 mg/kg IV q24h",
+    "dose_factor": 15,
+    "loadingDose": "FULL LOADING DOSE MANDATORY: 15 mg/kg based on Dosing Weight (ABW in obesity) in acute sepsis. Never reduce loading dose.",
+    "isNephrotoxic": true,
+    "isNeurotoxic": false,
+    "note": "POTENT NEPHROTOXIC & OTOTOXIC AGENT. Therapeutic Drug Monitoring mandatory (target peak 20-30 mcg/mL, trough < 5 mcg/mL). Dosed on ABW if BMI >= 30.",
+    "adjustments": [
+      {
+        "minCrCl": 60,
+        "label": "CrCl &ge; 60 mL/min",
+        "recommendation": "15 mg/kg IV q24h",
+        "dose_factor": 15
+      },
+      {
+        "minCrCl": 40,
+        "label": "CrCl 40 - 59 mL/min",
+        "recommendation": "15 mg/kg IV q36h (or 7.5 mg/kg q24h)",
+        "dose_factor": 7.5
+      },
+      {
+        "minCrCl": 20,
+        "label": "CrCl 20 - 39 mL/min",
+        "recommendation": "15 mg/kg IV q48h (or 7.5 mg/kg q48h)",
+        "dose_factor": 7.5
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 20 mL/min",
+        "recommendation": "Load 7.5 - 10 mg/kg, then redose strictly per serum levels (target trough < 5 mcg/mL)",
+        "dose_factor": 7.5
+      }
+    ],
+    "rrt": {
+      "ihd": "5 - 7.5 mg/kg IV post-HD on dialysis days; redose strictly based on pre-HD serum concentrations (dialyzed ~50%).",
+      "crrt": "7.5 - 10 mg/kg IV q24-48h guided by TDM."
+    }
+  },
+  "vancomycin": {
+    "name": "Vancomycin (IV)",
+    "class": "Glycopeptide",
+    "isMultiStrategy": false,
+    "standard_dose": "15 - 20 mg/kg IV q8-12h (AUC-guided)",
+    "dose_factor": 15,
+    "loadingDose": "MANDATORY LOADING DOSE: 20 - 25 mg/kg (up to 30 mg/kg in critically ill, max 2 g initial infusion) based on ACTUAL BODY WEIGHT (TBW) regardless of renal clearance.",
+    "isNephrotoxic": true,
+    "isNeurotoxic": false,
+    "note": "NEPHROTOXIC: Synergistic nephrotoxicity with piperacillin-tazobactam, aminoglycosides, and NSAIDs. AUC24/MIC target 400-600 mg*h/L (or trough 15-20 mcg/mL in severe sepsis). Dosed using ACTUAL weight for loading.",
+    "adjustments": [
+      {
+        "minCrCl": 90,
+        "label": "CrCl &ge; 90 mL/min",
+        "recommendation": "15 - 20 mg/kg IV q8-12h (target AUC 400-600)",
+        "dose_factor": 15
+      },
+      {
+        "minCrCl": 50,
+        "label": "CrCl 50 - 89 mL/min",
+        "recommendation": "15 mg/kg IV q12h (or 15-20 mg/kg q12-24h)",
+        "dose_factor": 15
+      },
+      {
+        "minCrCl": 15,
+        "label": "CrCl 15 - 49 mL/min",
+        "recommendation": "15 mg/kg IV q24-48h (check trough prior to next dose)",
+        "dose_factor": 15
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 15 mL/min",
+        "recommendation": "Load 20 - 25 mg/kg, then redose when serum level < 15 mcg/mL",
+        "dose_factor": 20
+      }
+    ],
+    "rrt": {
+      "ihd": "Load 20 - 25 mg/kg, then 500 - 1000 mg (or 7.5 - 10 mg/kg) post-HD guided by pre-HD trough level (target 15-20 mcg/mL; dialyzed ~30% with high-flux filters).",
+      "crrt": "20 - 25 mg/kg loading dose, then 10 - 15 mg/kg IV q24-48h guided by continuous TDM."
+    }
+  },
+  "daptomycin": {
+    "name": "Daptomycin (IV)",
+    "class": "Lipopeptide",
+    "isMultiStrategy": true,
+    "loadingDose": "Standard loading with prescribed dose (6 - 10 mg/kg).",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Inactivated by pulmonary surfactant (DO NOT USE FOR PNEUMONIA). Monitor Creatine Phosphokinase (CPK) weekly (risk of rhabdomyolysis / myopathy). Dosed on Actual Body Weight.",
+    "strategies": {
+      "SSTI (Skin/Soft Tissue)": {
+        "standard_dose": "4 - 6 mg/kg IV q24h",
+        "dose_factor": 4,
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "4 - 6 mg/kg IV q24h",
+            "dose_factor": 4
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 30 mL/min",
+            "recommendation": "4 - 6 mg/kg IV q48h",
+            "dose_factor": 4
+          }
+        ],
+        "rrt": {
+          "ihd": "4 - 6 mg/kg IV q48h; administer dose post-HD on dialysis days (dialyzable ~15-20%).",
+          "crrt": "4 - 6 mg/kg IV q24-48h (monitor CPK closely)."
+        }
+      },
+      "Bacteremia / Endovascular": {
+        "standard_dose": "6 - 8 mg/kg IV q24h",
+        "dose_factor": 6,
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "6 - 8 mg/kg IV q24h",
+            "dose_factor": 6
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 30 mL/min",
+            "recommendation": "6 - 8 mg/kg IV q48h",
+            "dose_factor": 6
+          }
+        ],
+        "rrt": {
+          "ihd": "6 - 8 mg/kg IV q48h post-HD on dialysis days.",
+          "crrt": "6 - 8 mg/kg IV q24h."
+        }
+      },
+      "E. Faecium / High Inoculum": {
+        "standard_dose": "8 - 10 mg/kg IV q24h",
+        "dose_factor": 8,
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "8 - 10 mg/kg IV q24h",
+            "dose_factor": 8
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 30 mL/min",
+            "recommendation": "8 - 10 mg/kg IV q48h",
+            "dose_factor": 8
+          }
+        ],
+        "rrt": {
+          "ihd": "8 - 10 mg/kg IV q48h post-HD on dialysis days.",
+          "crrt": "8 - 10 mg/kg IV q24h."
+        }
+      }
+    }
+  },
+  "linezolid": {
+    "name": "Linezolid (IV/PO)",
+    "class": "Oxazolidinone",
+    "isMultiStrategy": false,
+    "standard_dose": "600 mg PO/IV q12h",
+    "loadingDose": "No loading dose required.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "100% oral bioavailability. Primarily non-renal metabolism (~65% hepatic/tissue). NO dosage adjustment required for renal impairment. Dialyzable ~30% during 3h HD session. Monitor complete blood count (CBC) weekly for myelosuppression/thrombocytopenia if used > 14 days.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "600 mg PO/IV q12h (no adjustment)"
+      },
+      {
+        "minCrCl": 10,
+        "label": "CrCl 10 - 49 mL/min",
+        "recommendation": "600 mg PO/IV q12h (no adjustment)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 10 mL/min",
+        "recommendation": "600 mg PO/IV q12h (no adjustment; two metabolites accumulate but clinical significance unclear)"
+      }
+    ],
+    "rrt": {
+      "ihd": "600 mg PO/IV q12h; administer dose post-HD on dialysis days (cleared ~30% by hemodialysis).",
+      "crrt": "600 mg PO/IV q12h."
+    }
+  },
+  "metronidazole": {
+    "name": "Metronidazole (IV/PO)",
+    "class": "Nitroimidazole",
+    "isMultiStrategy": true,
+    "loadingDose": "Administer standard loading dose (1 g or 15 mg/kg) in severe anaerobic sepsis/amebic liver abscess.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "High oral bioavailability (> 90%). Primarily hepatic metabolism (60-80%). In severe renal failure, metabolites accumulate; neurotoxicity (peripheral neuropathy, encephalopathy) may occur with prolonged courses.",
+    "strategies": {
+      "Standard Anaerobic Infection": {
+        "standard_dose": "500 mg PO/IV q8h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "500 mg PO/IV q8h (no adjustment)"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 49 mL/min",
+            "recommendation": "500 mg PO/IV q8h (no adjustment)"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "250 - 500 mg PO/IV q8-12h (or 50% dose)"
+          }
+        ],
+        "rrt": {
+          "ihd": "250 - 500 mg PO/IV q8-12h; give supplemental dose immediately post-HD on dialysis days (dialyzable ~45%).",
+          "crrt": "500 mg PO/IV q8h."
+        }
+      },
+      "CNS / C.diff / Necrotizing": {
+        "standard_dose": "500 mg IV q6-8h",
+        "adjustments": [
+          {
+            "minCrCl": 10,
+            "label": "CrCl &ge; 10 mL/min",
+            "recommendation": "500 mg IV q6-8h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "500 mg IV q12h"
+          }
+        ],
+        "rrt": {
+          "ihd": "500 mg IV q12h post-HD on dialysis days.",
+          "crrt": "500 mg IV q8h."
+        }
+      }
+    }
+  },
+  "cotrimoxazole": {
+    "name": "Cotrimoxazole / TMP-SMX (IV/PO)",
+    "class": "Sulfonamide + Dihydrofolate Reductase Inhibitor",
+    "isMultiStrategy": true,
+    "loadingDose": "Standard initial dose.",
+    "isNephrotoxic": true,
+    "isNeurotoxic": false,
+    "note": "Dosed on Trimethoprim (TMP) component. High risk of severe hyperkalemia and pseudo-elevation of creatinine (TMP inhibits tubular secretion of creatinine without altering true GFR). Maintain vigorous hydration to prevent crystalluria.",
+    "strategies": {
+      "Uncomplicated Cystitis": {
+        "standard_dose": "1 DS tablet (160 mg TMP) PO q12h x 3 days",
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "1 DS tablet (160 mg TMP) PO q12h"
+          },
+          {
+            "minCrCl": 15,
+            "label": "CrCl 15 - 29 mL/min",
+            "recommendation": "1 SS tablet (80 mg TMP) PO q12h or 1 DS q24h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 15 mL/min",
+            "recommendation": "Avoid / Not recommended; if essential: 1 SS tablet PO q24h"
+          }
+        ],
+        "rrt": {
+          "ihd": "1 SS tablet PO post-HD on dialysis days (TMP cleared ~40-50% by HD).",
+          "crrt": "1 SS tablet PO q12h or 1 DS tablet q24h."
+        }
+      },
+      "SSTI (Skin/Soft Tissue)": {
+        "standard_dose": "1 - 2 DS tablets (160-320 mg TMP) PO q12h",
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "1 - 2 DS tablets PO q12h"
+          },
+          {
+            "minCrCl": 15,
+            "label": "CrCl 15 - 29 mL/min",
+            "recommendation": "1 DS tablet (160 mg TMP) PO q12-24h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 15 mL/min",
+            "recommendation": "1/2 DS tablet (80 mg TMP) PO q24h with close potassium monitoring"
+          }
+        ],
+        "rrt": {
+          "ihd": "1 DS tablet PO post-HD on dialysis days.",
+          "crrt": "1 DS tablet PO q12-24h."
+        }
+      },
+      "S. Aureus (Bone/Joint)": {
+        "standard_dose": "4 mg/kg (TMP) IV/PO q12h",
+        "dose_factor": 4,
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "4 mg/kg (TMP) IV/PO q12h",
+            "dose_factor": 4
+          },
+          {
+            "minCrCl": 15,
+            "label": "CrCl 15 - 29 mL/min",
+            "recommendation": "2 mg/kg (TMP) IV/PO q12h (or 4 mg/kg q24h)",
+            "dose_factor": 2
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 15 mL/min",
+            "recommendation": "2 mg/kg (TMP) IV/PO q24h (check potassium & CBC)",
+            "dose_factor": 2
+          }
+        ],
+        "rrt": {
+          "ihd": "2 - 4 mg/kg (TMP) post-HD on dialysis days.",
+          "crrt": "2.5 - 5 mg/kg (TMP) IV q12-24h."
+        }
+      },
+      "GNB Bacteremia": {
+        "standard_dose": "5 mg/kg (TMP) IV/PO q12h",
+        "dose_factor": 5,
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "5 mg/kg (TMP) IV/PO q12h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 15,
+            "label": "CrCl 15 - 29 mL/min",
+            "recommendation": "2.5 mg/kg (TMP) IV/PO q12h (or 5 mg/kg q24h)",
+            "dose_factor": 2.5
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 15 mL/min",
+            "recommendation": "2.5 mg/kg (TMP) IV/PO q24h (monitor potassium closely)",
+            "dose_factor": 2.5
+          }
+        ],
+        "rrt": {
+          "ihd": "2.5 mg/kg (TMP) IV/PO post-HD on dialysis days.",
+          "crrt": "2.5 - 5 mg/kg (TMP) IV q12h."
+        }
+      },
+      "Stenotrophomonas": {
+        "standard_dose": "5 mg/kg (TMP) IV q8h",
+        "dose_factor": 5,
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "5 mg/kg (TMP) IV q8h (15 mg/kg/day)",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 15,
+            "label": "CrCl 15 - 29 mL/min",
+            "recommendation": "2.5 - 5 mg/kg (TMP) IV q12h",
+            "dose_factor": 2.5
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 15 mL/min",
+            "recommendation": "2.5 mg/kg (TMP) IV q12-24h",
+            "dose_factor": 2.5
+          }
+        ],
+        "rrt": {
+          "ihd": "2.5 - 5 mg/kg (TMP) IV post-HD on dialysis days.",
+          "crrt": "5 mg/kg (TMP) IV q12h."
+        }
+      },
+      "PJP Treatment": {
+        "standard_dose": "15 - 20 mg/kg/day (TMP) divided q6-8h IV",
+        "dose_factor": 15,
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "15 - 20 mg/kg/day (TMP) divided q6-8h IV",
+            "dose_factor": 15
+          },
+          {
+            "minCrCl": 15,
+            "label": "CrCl 15 - 29 mL/min",
+            "recommendation": "7.5 - 10 mg/kg/day (TMP) divided q12h IV",
+            "dose_factor": 7.5
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 15 mL/min",
+            "recommendation": "5 - 7.5 mg/kg/day (TMP) divided q12-24h IV (monitor potassium)",
+            "dose_factor": 5
+          }
+        ],
+        "rrt": {
+          "ihd": "5 - 7.5 mg/kg (TMP) IV post-HD on dialysis days; check serum levels if available.",
+          "crrt": "7.5 - 10 mg/kg/day (TMP) divided q12h."
+        }
+      }
+    }
+  },
+  "clindamycin": {
+    "name": "Clindamycin (IV/PO)",
+    "class": "Lincosamide",
+    "isMultiStrategy": false,
+    "standard_dose": "600 - 900 mg IV q8h or 300 - 450 mg PO q6-8h",
+    "loadingDose": "Standard dosing.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Hepatic metabolism (> 90%). NO renal dosage adjustment required for any degree of renal failure or dialysis. Not removed by hemodialysis. High risk of Clostridioides difficile colitis.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "600 - 900 mg IV q8h or 300 - 450 mg PO q6-8h (no adjustment)"
+      },
+      {
+        "minCrCl": 10,
+        "label": "CrCl 10 - 49 mL/min",
+        "recommendation": "600 - 900 mg IV q8h or 300 - 450 mg PO q6-8h (no adjustment)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 10 mL/min",
+        "recommendation": "600 - 900 mg IV q8h or 300 - 450 mg PO q6-8h (no adjustment)"
+      }
+    ],
+    "rrt": {
+      "ihd": "600 - 900 mg IV q8h (not removed by HD; no supplemental dose needed).",
+      "crrt": "600 - 900 mg IV q8h."
+    }
+  },
+  "nitrofurantoin": {
+    "name": "Nitrofurantoin (PO)",
+    "class": "Nitrofuran",
+    "isMultiStrategy": false,
+    "standard_dose": "100 mg PO q12h (Macrocrystal/Monohydrate) x 5 days",
+    "loadingDose": "Not applicable.",
+    "isNephrotoxic": true,
+    "isNeurotoxic": true,
+    "contraindication": "CONTRAINDICATED in CrCl < 30 mL/min (and cautioned in CrCl 30-60 mL/min). Inadequate urinary drug concentrations result in therapeutic failure; toxic systemic accumulation causes peripheral polyneuropathy, pulmonary fibrosis, and hepatotoxicity.",
+    "note": "ABSOLUTE CONTRAINDICATION in CrCl < 30 mL/min. Indicated ONLY for uncomplicated lower cystitis (lacks tissue penetration; ineffective for pyelonephritis).",
+    "adjustments": [
+      {
+        "minCrCl": 60,
+        "label": "CrCl &ge; 60 mL/min",
+        "recommendation": "100 mg PO q12h x 5 days"
+      },
+      {
+        "minCrCl": 30,
+        "label": "CrCl 30 - 59 mL/min",
+        "recommendation": "100 mg PO q12h (use with caution, avoid if CrCl < 45 or long duration)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 30 mL/min",
+        "recommendation": "CONTRAINDICATED: Ineffective urinary concentration & toxic systemic accumulation causing peripheral neuropathy"
+      }
+    ],
+    "rrt": {
+      "ihd": "CONTRAINDICATED in hemodialysis patients.",
+      "crrt": "CONTRAINDICATED in CRRT patients (ineffective urinary concentration)."
+    }
+  },
+  "acyclovir-iv": {
+    "name": "Acyclovir (IV)",
+    "class": "Antiviral (DNA Polymerase Inhibitor)",
+    "isMultiStrategy": true,
+    "dose_factor": 5,
+    "loadingDose": "Administer full initial loading dose in acute viral encephalitis/disseminated infection before adjusting interval.",
+    "isNephrotoxic": true,
+    "isNeurotoxic": true,
+    "note": "HIGH RISK OF CRYSTAL NEPHROPATHY & NEUROTOXICITY (tremors, hallucinations, delirium, coma). Maintain vigorous IV hydration and slow 1-hour infusion. Dosed on Dosing Weight (IBW or ABW in obesity).",
+    "strategies": {
+      "Prophylaxis: BMT": {
+        "standard_dose": "250 mg/m2 IV q8h or 5 mg/kg IV q8h",
+        "dose_factor": 5,
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "5 mg/kg IV q8h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 25,
+            "label": "CrCl 25 - 49 mL/min",
+            "recommendation": "5 mg/kg IV q12h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "5 mg/kg IV q24h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "2.5 mg/kg IV q24h",
+            "dose_factor": 2.5
+          }
+        ],
+        "rrt": {
+          "ihd": "2.5 mg/kg IV q24h; give dose immediately post-HD on dialysis days (dialyzed ~60%).",
+          "crrt": "5 mg/kg IV q12-24h."
+        }
+      },
+      "Prophylaxis: Heme/Onc": {
+        "standard_dose": "250 mg/m2 IV q12h",
+        "dose_factor": 250,
+        "is_bsa": true,
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "250 mg/m2 IV q12h"
+          },
+          {
+            "minCrCl": 25,
+            "label": "CrCl 25 - 49 mL/min",
+            "recommendation": "250 mg/m2 IV q24h"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "125 mg/m2 IV q24h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "125 mg/m2 IV q48h"
+          }
+        ],
+        "rrt": {
+          "ihd": "125 mg/m2 IV post-HD on dialysis days.",
+          "crrt": "250 mg/m2 IV q24h."
+        }
+      },
+      "Treatment: General (Mucocutaneous)": {
+        "standard_dose": "5 mg/kg IV q8h",
+        "dose_factor": 5,
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "5 mg/kg IV q8h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 25,
+            "label": "CrCl 25 - 49 mL/min",
+            "recommendation": "5 mg/kg IV q12h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "5 mg/kg IV q24h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "2.5 mg/kg IV q24h",
+            "dose_factor": 2.5
+          }
+        ],
+        "rrt": {
+          "ihd": "2.5 mg/kg IV q24h post-HD on dialysis days.",
+          "crrt": "5 mg/kg IV q12-24h."
+        }
+      },
+      "Treatment: Severe (CNS/VZV/Dissem)": {
+        "standard_dose": "10 mg/kg IV q8h",
+        "dose_factor": 10,
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "10 mg/kg IV q8h",
+            "dose_factor": 10
+          },
+          {
+            "minCrCl": 25,
+            "label": "CrCl 25 - 49 mL/min",
+            "recommendation": "10 mg/kg IV q12h",
+            "dose_factor": 10
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "10 mg/kg IV q24h",
+            "dose_factor": 10
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "5 mg/kg IV q24h",
+            "dose_factor": 5
+          }
+        ],
+        "rrt": {
+          "ihd": "5 mg/kg IV q24h post-HD on dialysis days (redose after each HD session).",
+          "crrt": "5 - 7.5 mg/kg IV q12-24h."
+        }
+      }
+    }
+  },
+  "acyclovir-po": {
+    "name": "Acyclovir (Oral)",
+    "class": "Antiviral",
+    "isMultiStrategy": true,
+    "loadingDose": "Standard dosing.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Low oral bioavailability (15-30%). Maintain adequate fluid intake to avoid renal crystalluria.",
+    "strategies": {
+      "Zoster (High Dose)": {
+        "standard_dose": "800 mg PO 5x/day (q4h while awake)",
+        "adjustments": [
+          {
+            "minCrCl": 25,
+            "label": "CrCl &ge; 25 mL/min",
+            "recommendation": "800 mg PO 5x/day (q4h while awake)"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "800 mg PO q8h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "800 mg PO q12h"
+          }
+        ],
+        "rrt": {
+          "ihd": "800 mg PO q12h; give supplemental 800 mg dose post-HD on dialysis days.",
+          "crrt": "800 mg PO q8-12h."
+        }
+      },
+      "HSV (Standard)": {
+        "standard_dose": "400 mg PO TID (or 200 mg 5x/day)",
+        "adjustments": [
+          {
+            "minCrCl": 25,
+            "label": "CrCl &ge; 25 mL/min",
+            "recommendation": "400 mg PO TID (q8h) or 200 mg 5x/day"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "200 - 400 mg PO q12h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "200 mg PO q12h"
+          }
+        ],
+        "rrt": {
+          "ihd": "200 - 400 mg PO q12h post-HD on dialysis days.",
+          "crrt": "200 - 400 mg PO q8-12h."
+        }
+      }
+    }
+  },
+  "valacyclovir": {
+    "name": "Valacyclovir (PO)",
+    "class": "Antiviral (Prodrug of Acyclovir)",
+    "isMultiStrategy": true,
+    "loadingDose": "Standard initial dose.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": true,
+    "note": "Prodrug with 55% oral bioavailability (3-5x higher serum levels than oral acyclovir). NEUROTOXICITY (hallucinations, confusion, coma) occurs readily in unadjusted renal impairment.",
+    "strategies": {
+      "VZV (Zoster)": {
+        "standard_dose": "1 g PO q8h x 7 days",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "1 g PO q8h"
+          },
+          {
+            "minCrCl": 30,
+            "label": "CrCl 30 - 49 mL/min",
+            "recommendation": "1 g PO q12h"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 29 mL/min",
+            "recommendation": "1 g PO q24h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "500 mg PO q24h"
+          }
+        ],
+        "rrt": {
+          "ihd": "500 mg PO q24h; give dose immediately post-HD on dialysis days (dialyzable ~33%).",
+          "crrt": "500 mg PO q12h."
+        }
+      },
+      "Genital Herpes": {
+        "standard_dose": "1 g PO q12h (initial) or 500 mg PO q12h (recurrent)",
+        "adjustments": [
+          {
+            "minCrCl": 30,
+            "label": "CrCl &ge; 30 mL/min",
+            "recommendation": "1 g PO q12h or 500 mg PO q12h"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 29 mL/min",
+            "recommendation": "500 mg PO q12-24h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "500 mg PO q24h"
+          }
+        ],
+        "rrt": {
+          "ihd": "500 mg PO q24h post-HD on dialysis days.",
+          "crrt": "500 mg PO q12h."
+        }
+      },
+      "Herpes Labialis": {
+        "standard_dose": "2 g PO q12h x 1 day (2 doses)",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "2 g PO q12h x 1 day (2 doses total)"
+          },
+          {
+            "minCrCl": 30,
+            "label": "CrCl 30 - 49 mL/min",
+            "recommendation": "1 g PO q12h x 1 day (2 doses total)"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 29 mL/min",
+            "recommendation": "500 mg PO q12h x 1 day (2 doses total)"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "500 mg PO single dose"
+          }
+        ],
+        "rrt": {
+          "ihd": "500 mg PO single dose post-HD.",
+          "crrt": "500 mg PO q12h."
+        }
+      }
+    }
+  },
+  "valganciclovir": {
+    "name": "Valganciclovir (PO)",
+    "class": "Antiviral (Prodrug of Ganciclovir)",
+    "isMultiStrategy": true,
+    "loadingDose": "Standard dosing.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Oral prodrug of ganciclovir (60% bioavailability). Severe bone marrow suppression (neutropenia, thrombocytopenia). STRICT RENAL DOSE TITRATION MANDATORY to prevent fatal cytopenias.",
+    "strategies": {
+      "Induction": {
+        "standard_dose": "900 mg PO q12h",
+        "adjustments": [
+          {
+            "minCrCl": 60,
+            "label": "CrCl &ge; 60 mL/min",
+            "recommendation": "900 mg PO q12h"
+          },
+          {
+            "minCrCl": 40,
+            "label": "CrCl 40 - 59 mL/min",
+            "recommendation": "450 mg PO q12h"
+          },
+          {
+            "minCrCl": 25,
+            "label": "CrCl 25 - 39 mL/min",
+            "recommendation": "450 mg PO q24h"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "450 mg PO q48h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "Not recommended; use IV ganciclovir for precision"
+          }
+        ],
+        "rrt": {
+          "ihd": "Not recommended (use IV ganciclovir for accurate dosing post-HD); if unavoidable: 450 mg PO twice weekly post-HD.",
+          "crrt": "450 mg PO q24h (consult infectious disease specialist)."
+        }
+      },
+      "Maintenance": {
+        "standard_dose": "900 mg PO q24h",
+        "adjustments": [
+          {
+            "minCrCl": 60,
+            "label": "CrCl &ge; 60 mL/min",
+            "recommendation": "900 mg PO q24h"
+          },
+          {
+            "minCrCl": 40,
+            "label": "CrCl 40 - 59 mL/min",
+            "recommendation": "450 mg PO q24h"
+          },
+          {
+            "minCrCl": 25,
+            "label": "CrCl 25 - 39 mL/min",
+            "recommendation": "450 mg PO q48h"
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "450 mg PO twice weekly"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "Not recommended; switch to IV ganciclovir"
+          }
+        ],
+        "rrt": {
+          "ihd": "Not recommended; switch to IV ganciclovir post-HD.",
+          "crrt": "450 mg PO q48h or twice weekly."
+        }
+      }
+    }
+  },
+  "ganciclovir": {
+    "name": "Ganciclovir (IV)",
+    "class": "Antiviral",
+    "isMultiStrategy": true,
+    "dose_factor": 5,
+    "loadingDose": "Administer standard initial dose before adjusting interval.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Renally cleared (> 90%). Severe dose-dependent granulocytopenia and thrombocytopenia. Monitor absolute neutrophil count (ANC) and platelets at least twice weekly.",
+    "strategies": {
+      "Induction": {
+        "standard_dose": "5 mg/kg IV q12h",
+        "dose_factor": 5,
+        "adjustments": [
+          {
+            "minCrCl": 70,
+            "label": "CrCl &ge; 70 mL/min",
+            "recommendation": "5 mg/kg IV q12h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 50,
+            "label": "CrCl 50 - 69 mL/min",
+            "recommendation": "2.5 mg/kg IV q12h",
+            "dose_factor": 2.5
+          },
+          {
+            "minCrCl": 25,
+            "label": "CrCl 25 - 49 mL/min",
+            "recommendation": "2.5 mg/kg IV q24h",
+            "dose_factor": 2.5
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "1.25 mg/kg IV q24h",
+            "dose_factor": 1.25
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "1.25 mg/kg IV 3 times per week after HD",
+            "dose_factor": 1.25
+          }
+        ],
+        "rrt": {
+          "ihd": "1.25 mg/kg IV administered post-HD on dialysis days (dialyzed ~50%).",
+          "crrt": "2.5 mg/kg IV q24h."
+        }
+      },
+      "Maintenance": {
+        "standard_dose": "5 mg/kg IV q24h",
+        "dose_factor": 5,
+        "adjustments": [
+          {
+            "minCrCl": 70,
+            "label": "CrCl &ge; 70 mL/min",
+            "recommendation": "5 mg/kg IV q24h",
+            "dose_factor": 5
+          },
+          {
+            "minCrCl": 50,
+            "label": "CrCl 50 - 69 mL/min",
+            "recommendation": "2.5 mg/kg IV q24h",
+            "dose_factor": 2.5
+          },
+          {
+            "minCrCl": 25,
+            "label": "CrCl 25 - 49 mL/min",
+            "recommendation": "1.25 mg/kg IV q24h",
+            "dose_factor": 1.25
+          },
+          {
+            "minCrCl": 10,
+            "label": "CrCl 10 - 24 mL/min",
+            "recommendation": "0.625 mg/kg IV q24h",
+            "dose_factor": 0.625
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 10 mL/min",
+            "recommendation": "0.625 mg/kg IV 3 times per week after HD",
+            "dose_factor": 0.625
+          }
+        ],
+        "rrt": {
+          "ihd": "0.625 mg/kg IV post-HD on dialysis days.",
+          "crrt": "1.25 mg/kg IV q24h."
+        }
+      }
+    }
+  },
+  "oseltamivir": {
+    "name": "Oseltamivir (PO)",
+    "class": "Neuraminidase Inhibitor",
+    "isMultiStrategy": true,
+    "loadingDose": "Administer standard initial 75 mg dose immediately upon presentation of severe influenza.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Prodrug converted to active metabolite oseltamivir carboxylate, which is eliminated entirely by glomerular filtration and tubular secretion (> 99%). Well tolerated.",
+    "strategies": {
+      "Treatment": {
+        "standard_dose": "75 mg PO BID (q12h) x 5 days",
+        "adjustments": [
+          {
+            "minCrCl": 61,
+            "label": "CrCl &ge; 61 mL/min",
+            "recommendation": "75 mg PO BID (q12h) x 5 days"
+          },
+          {
+            "minCrCl": 31,
+            "label": "CrCl 31 - 60 mL/min",
+            "recommendation": "30 mg PO BID (q12h) x 5 days"
+          },
+          {
+            "minCrCl": 11,
+            "label": "CrCl 11 - 30 mL/min",
+            "recommendation": "30 mg PO once daily (q24h) x 5 days"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl &le; 10 mL/min",
+            "recommendation": "30 mg PO single dose (or 30 mg post-HD every other session)"
+          }
+        ],
+        "rrt": {
+          "ihd": "30 mg PO post every other HD session (after session 1 and 3 in a 3x/week HD regimen).",
+          "crrt": "30 mg PO once daily (q24h)."
+        }
+      },
+      "Prophylaxis": {
+        "standard_dose": "75 mg PO once daily (q24h) x 10 days",
+        "adjustments": [
+          {
+            "minCrCl": 61,
+            "label": "CrCl &ge; 61 mL/min",
+            "recommendation": "75 mg PO once daily (q24h)"
+          },
+          {
+            "minCrCl": 31,
+            "label": "CrCl 31 - 60 mL/min",
+            "recommendation": "30 mg PO once daily (q24h)"
+          },
+          {
+            "minCrCl": 11,
+            "label": "CrCl 11 - 30 mL/min",
+            "recommendation": "30 mg PO every other day (q48h)"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl &le; 10 mL/min",
+            "recommendation": "30 mg PO post every other HD session"
+          }
+        ],
+        "rrt": {
+          "ihd": "30 mg PO post every other HD session on dialysis days.",
+          "crrt": "30 mg PO every other day (q48h)."
+        }
+      }
+    }
+  },
+  "fluconazole": {
+    "name": "Fluconazole (IV/PO)",
+    "class": "Triazole Antifungal",
+    "isMultiStrategy": true,
+    "loadingDose": "FULL LOADING DOSE MANDATORY: 800 mg (or 12 mg/kg) on Day 1 in candidemia/severe sepsis. Renal adjustment applies strictly to Day 2 onward.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Renally cleared (~80% unchanged in urine). Oral and IV formulations are therapeutically bioequivalent (1:1 conversion). Always administer a 100% loading dose on Day 1.",
+    "strategies": {
+      "Candidemia / Severe": {
+        "standard_dose": "800 mg load, then 400 mg PO/IV q24h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "800 mg load, then 400 mg PO/IV q24h (100% dose)"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 50 mL/min",
+            "recommendation": "800 mg load, then 200 mg PO/IV q24h (50% dose)"
+          }
+        ],
+        "rrt": {
+          "ihd": "800 mg load, then 200 mg q24h; give 100% supplemental dose (200-400 mg) post-HD on dialysis days (cleared ~50%).",
+          "crrt": "800 mg load, then 400 - 800 mg IV q24h (high clearance on CVVHDF)."
+        }
+      },
+      "Esophageal / UTI": {
+        "standard_dose": "200 - 400 mg load, then 100 - 200 mg q24h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "200 - 400 mg load, then 100 - 200 mg q24h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 50 mL/min",
+            "recommendation": "200 - 400 mg load, then 50 - 100 mg q24h (50% dose)"
+          }
+        ],
+        "rrt": {
+          "ihd": "100 - 200 mg post-HD on dialysis days.",
+          "crrt": "200 mg PO/IV q24h."
+        }
+      },
+      "C. glabrata (SDD)": {
+        "standard_dose": "800 mg load, then 800 mg PO/IV q24h",
+        "adjustments": [
+          {
+            "minCrCl": 50,
+            "label": "CrCl &ge; 50 mL/min",
+            "recommendation": "800 mg load, then 800 mg PO/IV q24h"
+          },
+          {
+            "minCrCl": 0,
+            "label": "CrCl < 50 mL/min",
+            "recommendation": "800 mg load, then 400 mg PO/IV q24h"
+          }
+        ],
+        "rrt": {
+          "ihd": "800 mg load, then 400 mg post-HD on dialysis days.",
+          "crrt": "800 mg IV q24h."
+        }
+      }
+    }
+  },
+  "voriconazole": {
+    "name": "Voriconazole (IV/PO)",
+    "class": "Triazole Antifungal",
+    "isMultiStrategy": false,
+    "standard_dose": "IV: 6 mg/kg q12h x 2 doses load, then 4 mg/kg q12h; PO: 200 mg q12h",
+    "loadingDose": "Day 1 loading dose: IV 6 mg/kg q12h x 2 doses (or PO 400 mg q12h x 2 doses).",
+    "isNephrotoxic": true,
+    "isNeurotoxic": true,
+    "contraindication": "INTRAVENOUS FORMULATION CAUTION: IV vehicle SBECD (sulfobutylether beta-cyclodextrin) accumulates in CrCl < 50 mL/min and may cause acute tubular necrosis. STRONGLY RECOMMEND SWITCHING TO ORAL VORICONAZOLE (100% bioavailable, no SBECD vehicle).",
+    "note": "Extensively metabolized by hepatic CYP2C19. Therapeutic Drug Monitoring (TDM) recommended (target trough 1.5-5.0 mcg/mL). Visual disturbances and hallucinations reported.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "IV: 6 mg/kg q12h load, then 4 mg/kg q12h; PO: 200 mg q12h"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 50 mL/min",
+        "recommendation": "SWITCH TO ORAL VORICONAZOLE: 200 mg PO q12h (avoids toxic SBECD vehicle accumulation)"
+      }
+    ],
+    "rrt": {
+      "ihd": "200 mg PO q12h (oral preferred; neither voriconazole nor SBECD is effectively dialyzed; no post-HD supplement needed).",
+      "crrt": "200 mg PO q12h (or IV with caution if enteral route unavailable)."
+    }
+  },
+  "posaconazole": {
+    "name": "Posaconazole (PO/IV)",
+    "class": "Triazole Antifungal",
+    "isMultiStrategy": false,
+    "standard_dose": "Delayed-Release Tablets: 300 mg PO q12h Day 1, then 300 mg PO q24h",
+    "loadingDose": "Day 1: 300 mg PO/IV q12h x 2 doses.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Delayed-release tablet formulation preferred. Primarily eliminated via hepatic glucuronidation and fecal excretion (~70%). No renal adjustment for oral formulation. IV form contains SBECD vehicle (avoid in CrCl < 50).",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "300 mg PO (delayed-release) q24h (after 300 mg q12h load Day 1)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 50 mL/min",
+        "recommendation": "300 mg PO (delayed-release) q24h (oral preferred; avoid IV form due to SBECD accumulation)"
+      }
+    ],
+    "rrt": {
+      "ihd": "300 mg PO q24h (not removed by hemodialysis; no supplemental dose needed).",
+      "crrt": "300 mg PO/IV q24h."
+    }
+  },
+  "caspofungin": {
+    "name": "Caspofungin (IV)",
+    "class": "Echinocandin",
+    "isMultiStrategy": false,
+    "standard_dose": "70 mg IV Day 1 load, then 50 mg IV q24h (70 mg if > 80 kg or moderate hepatic impairment)",
+    "loadingDose": "70 mg IV loading dose Day 1 mandatory.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Hepatic metabolism and spontaneous degradation. NO renal dosage adjustment required for any degree of renal failure or dialysis. Not dialyzable. Adjust only for moderate hepatic impairment (Child-Pugh B: 35 mg daily).",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "70 mg IV Day 1, then 50 mg IV q24h (no adjustment)"
+      },
+      {
+        "minCrCl": 10,
+        "label": "CrCl 10 - 49 mL/min",
+        "recommendation": "70 mg IV Day 1, then 50 mg IV q24h (no adjustment)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 10 mL/min",
+        "recommendation": "70 mg IV Day 1, then 50 mg IV q24h (no adjustment)"
+      }
+    ],
+    "rrt": {
+      "ihd": "70 mg load, then 50 mg IV q24h (not dialyzed; no post-HD supplement needed).",
+      "crrt": "70 mg load, then 50 - 70 mg IV q24h."
+    }
+  },
+  "micafungin": {
+    "name": "Micafungin (IV)",
+    "class": "Echinocandin",
+    "isMultiStrategy": false,
+    "standard_dose": "100 mg IV q24h (Candidemia) or 150 mg IV q24h (Esophageal Candidiasis)",
+    "loadingDose": "No loading dose required.",
+    "isNephrotoxic": false,
+    "isNeurotoxic": false,
+    "note": "Eliminated via feces and bile through non-CYP hepatic metabolism. NO dosage adjustment required for any degree of renal impairment or dialysis. Highly protein bound (~99%).",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "100 mg IV q24h (150 mg for esophageal) (no adjustment)"
+      },
+      {
+        "minCrCl": 10,
+        "label": "CrCl 10 - 49 mL/min",
+        "recommendation": "100 mg IV q24h (no adjustment)"
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 10 mL/min",
+        "recommendation": "100 mg IV q24h (no adjustment)"
+      }
+    ],
+    "rrt": {
+      "ihd": "100 mg IV q24h (not removed by hemodialysis; no supplemental dose needed).",
+      "crrt": "100 - 150 mg IV q24h."
+    }
+  },
+  "amphotericin-b": {
+    "name": "Amphotericin B - Liposomal (IV)",
+    "class": "Polyene Antifungal",
+    "isMultiStrategy": false,
+    "standard_dose": "3 - 5 mg/kg IV q24h (up to 10 mg/kg in mucormycosis)",
+    "dose_factor": 3,
+    "loadingDose": "Standard dosing from Day 1.",
+    "isNephrotoxic": true,
+    "isNeurotoxic": false,
+    "note": "POTENT NEPHROTOXIC AGENT (vasoconstriction of afferent arterioles & distal tubular damage). Liposomal formulation significantly reduces but does not eliminate nephrotoxicity compared to deoxycholate. Pre-hydrate with 500-1000 mL normal saline prior to infusion. Monitor potassium and magnesium daily.",
+    "adjustments": [
+      {
+        "minCrCl": 50,
+        "label": "CrCl &ge; 50 mL/min",
+        "recommendation": "3 - 5 mg/kg IV q24h (ensure NS pre-hydration)",
+        "dose_factor": 3
+      },
+      {
+        "minCrCl": 20,
+        "label": "CrCl 20 - 49 mL/min",
+        "recommendation": "3 - 5 mg/kg IV q24h (monitor renal labs and electrolytes closely)",
+        "dose_factor": 3
+      },
+      {
+        "minCrCl": 0,
+        "label": "CrCl < 20 mL/min",
+        "recommendation": "3 - 5 mg/kg IV q24h (minimal renal elimination; monitor for progressive AKI)",
+        "dose_factor": 3
+      }
+    ],
+    "rrt": {
+      "ihd": "3 - 5 mg/kg IV q24h post-HD on dialysis days (negligible clearance by HD; no supplement needed).",
+      "crrt": "3 - 5 mg/kg IV q24h."
+    }
+  }
+}
