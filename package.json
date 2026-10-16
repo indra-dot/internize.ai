@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "lint": "biome check src",
     "test": "vitest run",
+    "test:run": "vitest run",
     "test:unit": "vitest run tests/unit",
     "test:cloud": "vitest run tests/unit/test_cloud_guardrail.test.ts",
     "test:e2e": "vitest run tests/e2e",
