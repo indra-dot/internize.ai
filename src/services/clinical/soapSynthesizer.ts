@@ -690,8 +690,18 @@ export function synthesizeSoapNote(
 
     const bestSection = getBestSection(scores);
     if (bestSection) {
-      sectionAccumulators[bestSection].lines.push(s.text);
-      sectionAccumulators[bestSection].citations.push({ start: s.start, end: s.end, sourceText: s.text });
+      if (
+        bestSection === 'plan' &&
+        (/(?:hendak|ingin|berniat|akan)\s+memberikan/i.test(s.text) ||
+          /(?:nifedipin.*?(?:sublingual|sub-lingual)|allopurinol.*?(?:fase\s*akut|serangan\s*akut))/i.test(s.text) ||
+          /(?:apakah|bagaimana|mengapa|\?)/i.test(s.text))
+      ) {
+        sectionAccumulators.subjective.lines.push(s.text);
+        sectionAccumulators.subjective.citations.push({ start: s.start, end: s.end, sourceText: s.text });
+      } else {
+        sectionAccumulators[bestSection].lines.push(s.text);
+        sectionAccumulators[bestSection].citations.push({ start: s.start, end: s.end, sourceText: s.text });
+      }
     }
   }
 

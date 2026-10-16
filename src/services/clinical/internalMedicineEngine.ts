@@ -23,6 +23,8 @@
 
 import {
   type ClinicalProtocolTemplate,
+  type ProtocolSection,
+  type TitrationTable,
   matchProtocols,
   calculateARISCAT,
   calculateCaprini,
@@ -40,6 +42,12 @@ import {
   convertOncologyDiagnosis,
   isOncologyText,
 } from './oncologyStagingEngine';
+import {
+  ppkKnowledgeEngine,
+  type PpkMatchedGuideline,
+  type MultiProblemArbitrationResult,
+  type OutOfScopeEvaluationResult,
+} from './knowledge';
 
 export type PapdiCoreDivision =
   | 'endokrin'
@@ -253,6 +261,8 @@ export interface SpPdProblem {
   ptx: string[];
   pmx: string[];
   pex: string[];
+  matchedPpk?: PpkMatchedGuideline | null;
+  ppkCitations?: string[];
 }
 
 export interface SpPdConsultResult {
@@ -284,6 +294,10 @@ export interface SpPdConsultResult {
   jointCareAdvis: string[];
   fullDraftText: string;
   matchedProtocols?: ClinicalProtocolTemplate[];
+  isOutOfScope?: boolean;
+  outOfScopeRefusal?: string;
+  ppkCitations?: string[];
+  matchedPpkGuidelines?: PpkMatchedGuideline[];
 }
 
 export interface SpPdPomrResult {
@@ -295,6 +309,11 @@ export interface SpPdPomrResult {
   generalSubjective: string[];
   generalObjective: string[];
   fullDraftText: string;
+  isOutOfScope?: boolean;
+  outOfScopeRefusal?: string;
+  ppkCitations?: string[];
+  matchedPpkGuidelines?: PpkMatchedGuideline[];
+  arbitration?: MultiProblemArbitrationResult;
 }
 
 export interface SpPdSummaryResult {
@@ -308,6 +327,72 @@ export interface SpPdSummaryResult {
   ongoingTherapy: string[];
   internistAdvice: string[];
   fullDraftText: string;
+  isOutOfScope?: boolean;
+  outOfScopeRefusal?: string;
+  ppkCitations?: string[];
+  ppkGuidelineHighlights?: string[];
+}
+
+export function convertPpkToProtocolTemplate(
+  guideline: PpkMatchedGuideline,
+): ClinicalProtocolTemplate & { name: string; sourceFile: string } {
+  const sections: ProtocolSection[] = [];
+
+  if (guideline.ptx.lini1.length > 0 || guideline.ptx.nonMedikamentosa.length > 0) {
+    sections.push({
+      heading: 'Terapi Lini 1 (PPK)',
+      items: [
+        ...guideline.ptx.nonMedikamentosa,
+        ...guideline.ptx.lini1.map(
+          (r) =>
+            `${r.drugName} ${r.dose} ${r.route} ${r.frequency}${r.duration ? ` selama ${r.duration}` : ''}${r.notes ? ` (${r.notes})` : ''}`,
+        ),
+      ],
+    });
+  }
+
+  if (guideline.ptx.lini2.length > 0) {
+    sections.push({
+      heading: 'Terapi Lini 2 / Alternatif (PPK)',
+      items: guideline.ptx.lini2.map(
+        (r) => `${r.drugName} ${r.dose} ${r.route} ${r.frequency}${r.notes ? ` (${r.notes})` : ''}`,
+      ),
+    });
+  }
+
+  if (guideline.ptx.kontraindikasiDanRedFlags.length > 0) {
+    sections.push({
+      heading: 'Kontraindikasi & Red Flags (PPK)',
+      items: guideline.ptx.kontraindikasiDanRedFlags,
+    });
+  }
+
+  const titrationTables: TitrationTable[] = [];
+  if (guideline.ptx.titrasiProtocols && guideline.ptx.titrasiProtocols.length > 0) {
+    for (const tp of guideline.ptx.titrasiProtocols) {
+      titrationTables.push({
+        title: `${tp.protocolName} (Target: ${tp.targetEndpoint})`,
+        headers: ['Kondisi / Parameter', 'Penyesuaian Laju Dosis'],
+        rows: tp.steps.map((s) => [s.condition, s.rateAdjustment]),
+      });
+    }
+  }
+
+  const divisionKey = (guideline.division.toLowerCase() as InternalMedicineDivision);
+
+  return {
+    id: guideline.documentId,
+    title: `${guideline.documentTitle} (${guideline.sourceFile})`,
+    name: `${guideline.documentTitle} (${guideline.sourceFile})`,
+    source: guideline.sourceFile,
+    sourceFile: guideline.sourceFile,
+    divisions: [divisionKey],
+    category: 'drip-titration',
+    keywords: new RegExp(guideline.documentTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'),
+    urgency: 'urgent',
+    sections,
+    titrationTables: titrationTables.length > 0 ? titrationTables : undefined,
+  };
 }
 
 export interface FlaggedSafetyDrug {
@@ -1302,7 +1387,13 @@ const DIVISION_RULES: DivisionRule[] = [
       );
       const isHypoGluc =
         (gdsLab && gdsLab.value < 70) || hasAffirmativeMatch(fullText, /\b(hipoglikemi|hipoglikemia)\b/i);
-      const isDk = hasAffirmativeMatch(fullText, /\b(kad|ketoasidosis|hhs|honk)\b/i);
+      const isDk =
+        hasAffirmativeMatch(fullText, /\b(kad|ketoasidosis|hhs|honk|dka)\b/i) ||
+        (Boolean(gdsLab && gdsLab.value >= 250) &&
+          hasAffirmativeMatch(
+            fullText,
+            /\b(keton|asidosis|kussmaul|ph\s*<\s*7|bikarbonat\s*<\s*18|hco3\s*<\s*18)\b/i,
+          ));
       const isThyroid = hasAffirmativeMatch(
         fullText,
         /\b(tiroid|hipertiroid|hipotiroid|graves|struma|tirotoksikosis)\b/i,
@@ -1361,7 +1452,7 @@ const DIVISION_RULES: DivisionRule[] = [
       let criticality: SpPdProblem['criticality'] = 'medium';
 
       if (isDk) {
-        title = 'Krisis Hiperglikemia Akut (KAD / HHS) — Kegawatan Endokrin';
+        title = 'Ketoasidosis Diabetik (KAD) / Status Hiperosmolar Hiperglikemik (HHS)';
         criticality = 'critical';
       } else if (isHighGluc) {
         title = hasDmHistory
@@ -1429,8 +1520,8 @@ const DIVISION_RULES: DivisionRule[] = [
         /\b(hipertensi|ht\b|tekanan darah tinggi|krisis hipertensi)\b/i,
       );
       const isAki =
-        hasAffirmativeMatch(fullText, /\b(aki|acute kidney injury|oliguria|anuria)\b/i) ||
-        (crLab && crLab.flag === 'critical');
+        hasAffirmativeMatch(fullText, /\b(aki|acute kidney injury|oliguria|anuria|penurunan urin)\b/i) ||
+        Boolean(crLab && (crLab.flag === 'critical' || crLab.flag === 'high'));
       const isCkd = hasAffirmativeMatch(fullText, /\b(ckd|pgk|hemodialisis|cuci darah|hd rutin)\b/i);
       const hasOtherRenal = hasAffirmativeMatch(
         fullText,
@@ -1504,7 +1595,7 @@ const DIVISION_RULES: DivisionRule[] = [
             : isHyperK
               ? 'Protokol Hiperkalemia: Ca Glukonas 10% 10 mL IV pelan (stabilisasi membran miokard), D40% 50 mL + Regular Insulin 10 IU drip, Nebulisasi Salbutamol 5 mg, dan evaluasi Hemodialisis Cito bila K > 6.5 mEq/L atau terdapat perubahan EKG.'
               : isHighBp
-                ? 'Kendali tekanan darah segera dengan antihipertensi oral (Amlodipin / Klonidin) atau titrasi IV (Nicardipine drip). Tunda operasi elektif jika TD ≥ 180/110 mmHg.'
+                ? 'Kendali tekanan darah segera dengan antihipertensi oral bertahap (Kaptopril 12.5-25 mg / Amlodipin 5-10 mg / Klonidin 0.15 mg) atau titrasi IV (Nicardipine drip 5-15 mg/jam). Nifedipin sublingual KONTRAINDIKASI MUTLAK karena memicu penurunan tekanan darah tidak terkontrol, iskemia miokard, dan stroke iskemik serebral. Tunda operasi elektif jika TD ≥ 180/110 mmHg.'
                 : 'Lanjutkan antihipertensi pemeliharaan (Calcium Channel Blocker seperti Amlodipin aman dilanjutkan pagi operasi).',
           'Pagi hari operasi: Tunda golongan ACE-inhibitor (Captopril/Ramipril) atau ARB (Candesartan/Valsartan) untuk mencegah risiko hipotensi refrakter saat induksi anestesi.',
           'Hindari pemberian obat-obatan berpotensi nefrotoksik (NSAID seperti Ketorolac/Ketoprofen, Aminoglikosida, dan agen radiokontras tanpa hidrasi).',
@@ -1532,7 +1623,13 @@ const DIVISION_RULES: DivisionRule[] = [
           fullText,
           /\b(meningoensefalitis|ventrikulitis|corynebacterium|mrse|analisa lcs|cairan otak)\b/i,
         ) || Boolean(labs.find((l) => l.specimen === 'lcs' && l.flag === 'critical'));
-      const isSepsis = hasAffirmativeMatch(fullText, /\b(sepsis|septik|shock septic|syok septik|sofa)\b/i);
+      const wbcLab = labs.find((l) => l.name.includes('Leukosit'));
+      const isHighWbc = Boolean(wbcLab && (wbcLab.flag === 'critical' || wbcLab.flag === 'high'));
+      const isSepsis =
+        hasAffirmativeMatch(fullText, /\b(sepsis|septik|shock septic|syok septik|sofa|qsofa)\b/i) ||
+        (Boolean(vitals.temperature && (vitals.temperature >= 38.0 || vitals.temperature < 36.0)) &&
+          Boolean((vitals.heartRate && vitals.heartRate >= 90) || (vitals.respiratoryRate && vitals.respiratoryRate >= 20)) &&
+          Boolean(isHighWbc || (vitals.systolic && vitals.systolic < 90)));
       const isDengue = hasAffirmativeMatch(fullText, /\b(dbd|dhf|dengue|trombositopenia|ns1)\b/i);
       const isFever =
         (vitals.temperature && vitals.temperature >= 38.0) || hasAffirmativeMatch(fullText, /\b(demam|febris)\b/i);
@@ -1540,8 +1637,6 @@ const DIVISION_RULES: DivisionRule[] = [
         fullText,
         /\b(infeksi|tifoid|typhoid|malaria|leptospirosis|isk|infeksi saluran kemih|pneumonia|covid|hiv|aids|prokalsitonin|pct|crp)\b/i,
       );
-      const wbcLab = labs.find((l) => l.name.includes('Leukosit'));
-      const isHighWbc = wbcLab && (wbcLab.flag === 'critical' || wbcLab.flag === 'high');
       const lcsKultur = labs.find((l) => l.name.includes('Kultur Cairan Otak'));
       const bloodKultur = labs.find((l) => l.name.includes('Kultur Darah'));
 
@@ -1833,7 +1928,7 @@ const DIVISION_RULES: DivisionRule[] = [
         ],
         ptx: [
           isBleed
-            ? 'Puasakan, pasang NGT dekompresi, resusitasi cairan kristaloid, PPI dosis tinggi (Omeprazole 80 mg bolus dilanjutkan 8 mg/jam drip), vasokonstriktor splanknik (Octreotide/Somatostatin) bila curiga varises, transfusi PRC target Hb > 7-8 g/dL.'
+            ? 'Puasakan, pasang NGT dekompresi, resusitasi cairan kristaloid, PPI dosis tinggi (Omeprazole 80 mg bolus dilanjutkan 8 mg/jam drip), vasokonstriktor splanknik (Octreotide/Somatostatin) bila curiga varises. Transfusi PRC ketat RESTRIKTIF dengan target Hb 7 - 8 g/dL (Hct 21-24%). DILARANG KERAS transfusi liberal / agresif yang berlebihan karena memicu lonjakan tekanan vena porta, membalikkan vasokonstriksi splanknik, dan meningkatkan risiko fatal perdarahan berulang (rebleeding) serta mortalitas.'
             : isDiarrhea
               ? 'Rehidrasi cairan kristaloid IVFD NaCl 0.9% 1500 cc/24 jam, ganti diet enteral via NGT menjadi formula bebas laktosa (lactose-free diet), dan berikan Attapulgite 2 tablet tiap BAB cair (maksimal 8 tab/hari).'
               : 'Profilaksis stres ulcer perioperatif: Inj. Omeprazole 40 mg IV q12-24h.',
@@ -2025,7 +2120,9 @@ const DIVISION_RULES: DivisionRule[] = [
             ? 'Pertimbangkan koreksi faal hemostasis dengan Fresh Frozen Plasma (FFP) atau Vitamin K bila INR tetap memanjang pre-operatif.'
             : 'Profilaksis hemostasis terkontrol.',
           isSevereAnemia
-            ? 'Koreksi Anemia: Transfusi Packed Red Cell (PRC) target Hb ≥ 10 g/dL untuk bedah mayor.'
+            ? (/\b(varises|scba|sirosis|hematemesis|melena|splanknik)\b/i.test(fullText)
+                ? 'Koreksi Anemia: Transfusi restriktif target Hb 7 - 8 g/dL. DILARANG KERAS transfusi liberal / agresif pada hipertensi porta/perdarahan varises.'
+                : 'Koreksi Anemia: Transfusi Packed Red Cell (PRC) target Hb ≥ 10 g/dL untuk bedah mayor.')
             : 'Suplementasi hematinik sesuai indikasi.',
         ],
         pmx: [
@@ -2045,22 +2142,34 @@ const DIVISION_RULES: DivisionRule[] = [
     keywords:
       /\b(asam urat|gout|artritis|arthritis|osteoarthritis|oa\b|ra\b|rheumatoid|sle\b|lupus|bengkak sendi|kaku sendi|allopurinol|kolkisin|colchicine|metilprednisolon|steroid)\b/i,
     generateProblem: (_matches, _vitals, _labs, fullText) => {
+      const isSeptic = hasAffirmativeMatch(
+        fullText,
+        /\b(septik\s*artritis|artritis\s*septik|septic\s*arthritis|artrosentesis|aspirasi\s*cairan\s*sendi|infeksi\s*sendi)\b/i,
+      );
       const isLupus = hasAffirmativeMatch(fullText, /\b(sle\b|lupus)\b/i);
       const isGout = hasAffirmativeMatch(fullText, /\b(gout|asam urat|tofus|podagra)\b/i);
+      const isRa = hasAffirmativeMatch(
+        fullText,
+        /\b(artritis\s*reumatoid|rheumatoid\s*arthritis|ra\b|das28|dmard|methotrexate)\b/i,
+      );
       const hasReuma = hasAffirmativeMatch(
         fullText,
         /\b(artritis|arthritis|osteoarthritis|oa\b|ra\b|rheumatoid|bengkak sendi|kaku sendi|allopurinol|kolkisin|colchicine)\b/i,
       );
 
-      if (!isLupus && !isGout && !hasReuma) {
+      if (!isSeptic && !isLupus && !isGout && !isRa && !hasReuma) {
         return null;
       }
 
-      const title = isLupus
-        ? 'Systemic Lupus Erythematosus (SLE) — Evaluasi Keterlibatan Organ Sistemik'
-        : isGout
-          ? 'Artritis Gout Akut / Hiperurisemia'
-          : 'Osteoarthritis (OA) / Gangguan Muskuloskeletal Kronis';
+      const title = isSeptic
+        ? 'Septik Artritis (Artritis Septik Akut)'
+        : isLupus
+          ? 'Systemic Lupus Erythematosus (SLE) — Evaluasi Keterlibatan Organ Sistemik'
+          : isGout
+            ? 'Artritis Gout Akut / Hiperurisemia'
+            : isRa
+              ? 'Artritis Reumatoid (Rheumatoid Arthritis)'
+              : 'Osteoarthritis (OA) / Gangguan Muskuloskeletal Kronis';
 
       return {
         order: 8,
@@ -2081,7 +2190,7 @@ const DIVISION_RULES: DivisionRule[] = [
         ],
         ptx: [
           isGout
-            ? 'Pada serangan gout akut: Berikan Kolkisin 0.5 mg PO bid atau Metilprednisolon dosis rendah. JANGAN menghentikan atau memulai Allopurinol baru pada fase akut; bila sudah rutin, lanjutkan dosis pemeliharaan.'
+            ? 'Pada serangan gout akut: Berikan Kolkisin 0.5 mg PO bid atau Metilprednisolon dosis rendah. TIDAK BOLEH memulai allopurinol baru saat serangan gout akut masih berlangsung. Tunda allopurinol 2-4 minggu pasca resolusi total inflamasi; bila sudah rutin sebelum serangan, lanjutkan dosis pemeliharaan yang sama.'
             : 'Analgetik aman ginjal (Parasetamol). Hindari NSAID dosis tinggi bila ada risiko gagal ginjal / gastritis.',
           /\b(steroid|metilprednisolon|prednison)\b/i.test(fullText)
             ? 'Stress-Dose Steroid Perioperatif: Pada pasien pemakai steroid kronis (> 5 mg prednison > 3 minggu), berikan Hidrokortison 50 - 100 mg IV saat induksi dilanjutkan 50 mg q8h selama 24 jam untuk mencegah Krisis Adrenal pasca-bedah.'
@@ -2438,6 +2547,130 @@ export function identifySpPdProblems(
   return foundProblems;
 }
 
+/**
+ * 7-Dimension High-Fidelity PPK Grounding Formatter
+ * Formats matched PPK documents across all clinical dimensions for note drafts.
+ */
+export function formatPpkGuidelineGrounding(g: PpkMatchedGuideline): string[] {
+  const lines: string[] = [];
+
+  // Header with citation
+  lines.push(`  • [PPK PAPDI 2024 — Divisi ${g.division}: ${g.documentTitle} (Ref: ${g.sourceFile})]`);
+
+  // 1. DEFINISI, KRITERIA DIAGNOSIS & SISTEM SKORING
+  if (g.definisi) {
+    lines.push(`    - Definisi: ${g.definisi.replace(/\r?\n/g, ' ')}`);
+  }
+  if (g.kriteriaDiagnosis && g.kriteriaDiagnosis.length > 0) {
+    lines.push(`    - Kriteria Diagnosis: ${g.kriteriaDiagnosis.join('; ')}`);
+  }
+  if (g.physicalSigns && g.physicalSigns.length > 0) {
+    lines.push(`    - Pemeriksaan Fisik Patognomonis: ${g.physicalSigns.join('; ')}`);
+  }
+  if (g.scoringSystems && g.scoringSystems.length > 0) {
+    lines.push(`    - Sistem Skoring: ${g.scoringSystems.join('; ')}`);
+  }
+
+  // 2. RENCANA DIAGNOSTIK PENUNJANG (PDX)
+  const pdxParts: string[] = [];
+  if (g.pdx?.laboratorium && g.pdx.laboratorium.length > 0) {
+    pdxParts.push(`Laboratorium: ${g.pdx.laboratorium.join(', ')}`);
+  }
+  if (g.pdx?.radiologi && g.pdx.radiologi.length > 0) {
+    pdxParts.push(`Radiologi/Imaging: ${g.pdx.radiologi.join(', ')}`);
+  }
+  if (g.pdx?.prosedurDiagnostik && g.pdx.prosedurDiagnostik.length > 0) {
+    pdxParts.push(`Prosedur Diagnostik: ${g.pdx.prosedurDiagnostik.join(', ')}`);
+  }
+  if (pdxParts.length > 0) {
+    lines.push(`    - Rencana Diagnostik (Pdx): ${pdxParts.join(' | ')}`);
+  }
+
+  // 3. RENCANA TERAPI MEDIKAMENTOSA (PTX)
+  if (g.ptx?.lini1 && g.ptx.lini1.length > 0) {
+    const lini1Str = g.ptx.lini1
+      .map(
+        (r) =>
+          `${r.drugName} ${r.dose} ${r.route} ${r.frequency}${r.duration ? ` selama ${r.duration}` : ''}${r.notes ? ` (${r.notes})` : ''}`,
+      )
+      .join('; ');
+    lines.push(`    - Terapi Lini 1: ${lini1Str}`);
+  }
+  if (g.ptx?.lini2 && g.ptx.lini2.length > 0) {
+    const lini2Str = g.ptx.lini2
+      .map(
+        (r) =>
+          `${r.drugName} ${r.dose} ${r.route} ${r.frequency}${r.duration ? ` selama ${r.duration}` : ''}${r.notes ? ` (${r.notes})` : ''}`,
+      )
+      .join('; ');
+    lines.push(`    - Terapi Lini 2: ${lini2Str}`);
+  }
+  if (g.ptx?.nonMedikamentosa && g.ptx.nonMedikamentosa.length > 0) {
+    lines.push(`    - Tatalaksana Non-Medikamentosa: ${g.ptx.nonMedikamentosa.join('; ')}`);
+  }
+
+  // 4. PENYESUAIAN DOSIS & KONTRAINDIKASI
+  const doseAdjustments: string[] = [];
+  if (g.ptx?.penyesuaianDosis && Array.isArray(g.ptx.penyesuaianDosis)) {
+    for (const adj of g.ptx.penyesuaianDosis) {
+      doseAdjustments.push(
+        `[${adj.organ.toUpperCase()}] ${adj.drugName} (${adj.threshold}): ${adj.recommendation} [Aksi: ${adj.action}]`,
+      );
+    }
+  }
+  if (doseAdjustments.length > 0) {
+    lines.push(`    - Penyesuaian Dosis Khusus: ${doseAdjustments.join(' | ')}`);
+  }
+  if (g.ptx?.kontraindikasiDanRedFlags && g.ptx.kontraindikasiDanRedFlags.length > 0) {
+    lines.push(`    - Kontraindikasi & Red Flags: ${g.ptx.kontraindikasiDanRedFlags.join('; ')}`);
+  }
+
+  // 5. PROTOKOL TITRASI & TARGET MONITORING (PMX)
+  if (g.ptx?.titrasiProtocols && g.ptx.titrasiProtocols.length > 0) {
+    for (const tp of g.ptx.titrasiProtocols) {
+      lines.push(
+        `    - Protokol Titrasi: ${tp.protocolName} (Target: ${tp.targetEndpoint}) [${tp.steps.map((s) => `${s.condition} -> ${s.rateAdjustment}`).join(' | ')}]`,
+      );
+    }
+  }
+  if (g.pmx?.targetKlinis && g.pmx.targetKlinis.length > 0) {
+    lines.push(`    - Target Klinis (Pmx): ${g.pmx.targetKlinis.join('; ')}`);
+  }
+  if (g.pmx?.targetLab && g.pmx.targetLab.length > 0) {
+    lines.push(`    - Target Laboratorium (Pmx): ${g.pmx.targetLab.join('; ')}`);
+  }
+  if (g.pmx?.targetLamaRawatHari) {
+    lines.push(`    - Rerata Lama Rawat Inap (LOS): ${g.pmx.targetLamaRawatHari} hari`);
+  }
+
+  // 6. KEGAWATAN, KRITERIA ICU & RUJUKAN
+  if (g.kegawatanDanRujukan?.kriteriaIcu && g.kegawatanDanRujukan.kriteriaIcu.length > 0) {
+    lines.push(`    - Kriteria Masuk ICU/HCU: ${g.kegawatanDanRujukan.kriteriaIcu.join('; ')}`);
+  }
+  if (g.kegawatanDanRujukan?.kriteriaRujukan && g.kegawatanDanRujukan.kriteriaRujukan.length > 0) {
+    lines.push(`    - Kriteria Rujukan Lanjut: ${g.kegawatanDanRujukan.kriteriaRujukan.join('; ')}`);
+  }
+  if (g.kegawatanDanRujukan?.kriteriaPulang && g.kegawatanDanRujukan.kriteriaPulang.length > 0) {
+    lines.push(`    - Kriteria Pulang: ${g.kegawatanDanRujukan.kriteriaPulang.join('; ')}`);
+  }
+
+  // 7. EDUKASI (PEX) & SITASI RESMI
+  if (g.pex?.konselingPenyakit && g.pex.konselingPenyakit.length > 0) {
+    lines.push(`    - Rencana Edukasi (Pex): ${g.pex.konselingPenyakit.join('; ')}`);
+  }
+  if (g.citations && g.citations.length > 0) {
+    for (const c of g.citations) {
+      lines.push(`    - Sitasi Resmi: ${c}`);
+    }
+  } else {
+    lines.push(
+      `    - Sitasi Resmi: PPK PAPDI 2024 — Divisi ${g.division}: ${g.documentTitle} (Ref: ${g.sourceFile}) § Rekomendasi Terapi`,
+    );
+  }
+
+  return lines;
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // MODE 1: Jawab Konsul TS (Konsul Bedah, Obsgyn, TS Lain)
 // ──────────────────────────────────────────────────────────────────────────────
@@ -2446,9 +2679,93 @@ export function generateConsultationAnswer(
   inputText: string,
   urgencyOrPreset: SurgicalUrgencyType | 'preop' | 'raber' | 'akut' = 'elektif',
 ): SpPdConsultResult {
+  // 0. Deterministic Out-of-Scope (OOS) Gate
+  const oos: OutOfScopeEvaluationResult = ppkKnowledgeEngine.evaluateOutOfScope(inputText);
+  if (oos.isOutOfScope && oos.refusalMessage) {
+    const oosDraft = [
+      '=== JAWABAN KONSUL TS: PERMOHONAN DI LUAR CAKUPAN SP.PD ===',
+      'Kepada Yth. : TS Pemohon Konsul',
+      'Dari        : Tim Medik Penyakit Dalam (Sp.PD)',
+      `Tanggal     : ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+      '',
+      'Terima kasih atas lembar konsultasi yang dikirimkan.',
+      '',
+      'KESIMPULAN EVALUASI:',
+      oos.refusalMessage,
+      '',
+      `Rekomendasi: Kasus/tindakan ini tidak tercakup PPK Penyakit Dalam (Sp.PD). Mohon konsul dialihkan dan rujuk ke TS ${oos.specialtyCode || 'terkait'} (${oos.specialtyName || ''}).`,
+      '',
+      'Salam Sejawat,',
+      'Tim Dokter Spesialis Penyakit Dalam (Sp.PD)',
+    ].join('\n');
+
+    return {
+      urgencyType: 'elektif',
+      consultType: 'preop',
+      presetLabel: 'JAWABAN KONSUL TS: DI LUAR CAKUPAN PPK SP.PD',
+      requestingSpecialty: oos.specialtyName || 'TS Terkait',
+      toleranceStatus: 'TUNDA OPERASI ELEKTIF',
+      toleranceReason: oos.refusalMessage,
+      urgencyLevel: 'Elektif Terjadwal',
+      riskStratification: {
+        rcriLeeScore: 0,
+        rcriLeeClass: 'Evaluasi di luar cakupan Sp.PD',
+        cardiacRiskNotes: 'Di luar cakupan Sp.PD',
+        bleedingRiskNotes: 'Di luar cakupan Sp.PD',
+        glycemicRiskNotes: 'Di luar cakupan Sp.PD',
+        renalRiskNotes: 'Di luar cakupan Sp.PD',
+        pulmonaryRiskNotes: 'Di luar cakupan Sp.PD',
+      },
+      abnormalLabs: [],
+      labTrends: [],
+      problems: [],
+      preOpAdvis: [oos.refusalMessage],
+      intraOpAdvis: [`Sesuai panduan TS ${oos.specialtyCode || 'terkait'}`],
+      postOpAdvis: [`Sesuai panduan TS ${oos.specialtyCode || 'terkait'}`],
+      jointCareAdvis: [`Alih rawat ke TS ${oos.specialtyCode || 'terkait'}`],
+      fullDraftText: oosDraft,
+      matchedProtocols: [],
+      isOutOfScope: true,
+      outOfScopeRefusal: oos.refusalMessage,
+      ppkCitations: [],
+      matchedPpkGuidelines: [],
+    };
+  }
+
   const vitals = extractVitals(inputText);
   const { abnormalLabs: labs, labTrends } = extractLabTrendsAndAbnormal(inputText);
-  const problems = identifySpPdProblems(inputText, vitals, labs);
+  let problems = identifySpPdProblems(inputText, vitals, labs);
+
+  // Match PPK Guidelines
+  const matchedPpkGuidelines: PpkMatchedGuideline[] = [];
+  const seenDocIds = new Set<string>();
+
+  for (const prob of problems) {
+    const mg = ppkKnowledgeEngine.matchKnowledge(prob, vitals, labs);
+    if (mg && (mg.matchScore === undefined || mg.matchScore >= 40)) {
+      prob.matchedPpk = mg;
+      prob.ppkCitations = mg.citations && mg.citations.length > 0 ? mg.citations : [ppkKnowledgeEngine.formatCitation(mg)];
+      if (!seenDocIds.has(mg.documentId)) {
+        seenDocIds.add(mg.documentId);
+        matchedPpkGuidelines.push(mg);
+      }
+    }
+  }
+
+  // Also match top guidelines from overall query text (limit 3, min score 40)
+  const textMatches = ppkKnowledgeEngine.searchGuidelines(inputText, 3);
+  for (const tm of textMatches) {
+    if (!seenDocIds.has(tm.documentId) && (tm.matchScore === undefined || tm.matchScore >= 40)) {
+      seenDocIds.add(tm.documentId);
+      matchedPpkGuidelines.push(tm);
+    }
+  }
+
+  // Multi-problem cross-division priority sequencing and conflict arbitration
+  const arbitration = ppkKnowledgeEngine.arbitrateMultiProblem(problems, vitals, labs);
+  if (arbitration.prioritizedProblems && arbitration.prioritizedProblems.length > 0) {
+    problems = arbitration.prioritizedProblems;
+  }
 
   // Normalize Urgency: binary dichotomy ('elektif' vs 'life_saving')
   const isLifeSaving = urgencyOrPreset === 'life_saving' || urgencyOrPreset === 'akut';
@@ -2566,8 +2883,16 @@ export function generateConsultationAnswer(
     rcriClass = 'Kelas III (Risiko Kardiovaskular Sedang: ~6.6% risiko MACE)';
   else if (rcriScore >= 3) rcriClass = 'Kelas IV (Risiko Kardiovaskular Tinggi: >11% risiko MACE)';
 
-  // 3. Additional Evidence-Based Pre-Op Risk Scores (Sp.PD Training Center Standards)
-  const matchedProtocols = matchProtocols(inputText);
+  // 3. Evidence-Based Pre-Op Risk Scores & Protocols
+  const standardProtocols = matchProtocols(inputText);
+  const ppkProtocols = matchedPpkGuidelines.map(convertPpkToProtocolTemplate);
+  const matchedProtocols: ClinicalProtocolTemplate[] = [...standardProtocols];
+  for (const p of ppkProtocols) {
+    if (!matchedProtocols.some((cp) => cp.id === p.id)) {
+      matchedProtocols.push(p);
+    }
+  }
+
   const ariscatRes = calculateARISCAT(inputText, vitals, labs);
   const capriniRes = calculateCaprini(inputText, vitals, labs);
   const improveRes = calculateImprove(inputText, vitals, labs);
@@ -2580,6 +2905,14 @@ export function generateConsultationAnswer(
   const intraOpAdvis: string[] = [];
   const postOpAdvis: string[] = [];
   const jointCareAdvis: string[] = [];
+
+  // Inject arbitration advis
+  if (arbitration.emergencyFirstHourAdvis.length > 0) {
+    preOpAdvis.push(...arbitration.emergencyFirstHourAdvis);
+  }
+  if (arbitration.contraindicatedActions.length > 0) {
+    preOpAdvis.push(...arbitration.contraindicatedActions.map((c) => `KONTRAINDIKASI: ${c.replace(/memberikan\s+nifedipin/gi, 'pemberian Nifedipin')}`));
+  }
 
   if (isEmergencySurgery) {
     // ── EMERGENCY / LIFE-SAVING ADVIS (PARALLEL RESCUE) ──
@@ -2666,6 +2999,20 @@ export function generateConsultationAnswer(
     }
   }
 
+  // Inject PPK specific items into advis
+  for (const g of matchedPpkGuidelines) {
+    if (g.ptx.titrasiProtocols && g.ptx.titrasiProtocols.length > 0) {
+      for (const tp of g.ptx.titrasiProtocols) {
+        intraOpAdvis.push(
+          `Titrasi ${tp.protocolName} (Target: ${tp.targetEndpoint}): ${tp.steps.map((s) => `${s.condition} -> ${s.rateAdjustment}`).join(', ')}`,
+        );
+      }
+    }
+    if (g.kegawatanDanRujukan?.kriteriaIcu && g.kegawatanDanRujukan.kriteriaIcu.length > 0) {
+      postOpAdvis.push(`Kriteria Masuk ICU (PPK): ${g.kegawatanDanRujukan.kriteriaIcu.join('; ')}`);
+    }
+  }
+
   // Format Full Indonesian Medical Letter for TS
   const presetTitle =
     urgencyType === 'life_saving'
@@ -2718,14 +3065,32 @@ export function generateConsultationAnswer(
     '',
     'Advis & Rekomendasi Sp.PD:',
     'A. Pre-Operatif:',
-    ...preOpAdvis.slice(0, 4).map((a) => `\t• ${a}`),
+    ...preOpAdvis.slice(0, 6).map((a) => `\t• ${a}`),
     '',
     'B. Intra-Operatif:',
-    ...intraOpAdvis.slice(0, 3).map((a) => `\t• ${a}`),
+    ...intraOpAdvis.slice(0, 5).map((a) => `\t• ${a}`),
     '',
     'C. Post-Operatif & Rawat Bersama:',
-    ...postOpAdvis.slice(0, 3).map((a) => `\t• ${a}`),
+    ...postOpAdvis.slice(0, 5).map((a) => `\t• ${a}`),
     '',
+    ...(matchedPpkGuidelines.length > 0
+      ? [
+          'IV. PANDUAN PRAKTIK KLINIS (PPK PAPDI) & PROTOKOL RESMI RUJUKAN:',
+          ...matchedPpkGuidelines.slice(0, 3).flatMap((g) => formatPpkGuidelineGrounding(g)),
+          '',
+        ]
+      : []),
+    ...(arbitration.identifiedConflicts && arbitration.identifiedConflicts.length > 0
+      ? [
+          'IV-B. RESOLUSI KONFLIK ANTAR-DIVISI & DIREKTIF KEGAWATAN (ARBITRASI KLINIS):',
+          ...arbitration.identifiedConflicts.flatMap((conf) => [
+            `  • [${conf.title}] (Divisi: ${conf.divisionsInvolved.join(', ')})`,
+            `    - Rasional: ${conf.rationale}`,
+            ...conf.mandatorySequentialDirectives.map((d) => `    - ${d}`),
+          ]),
+          '',
+        ]
+      : []),
     urgencyType === 'life_saving' || urgencyOrPreset === 'raber' || urgencyOrPreset === 'akut'
       ? 'V. RENCANA RAWAT BERSAMA:\n  Kami bersedia rawat bersama untuk tatalaksana komorbiditas penyakit dalam. Tim Sp.PD akan visitasi rutin.'
       : 'V. TINDAK LANJUT:\n  Bila terjadi perubahan hemodinamik bermakna atau perburukan akut, mohon hubungi kami kembali.',
@@ -2773,6 +3138,10 @@ export function generateConsultationAnswer(
     jointCareAdvis,
     fullDraftText,
     matchedProtocols,
+    isOutOfScope: false,
+    outOfScopeRefusal: undefined,
+    ppkCitations: matchedPpkGuidelines.map((g) => ppkKnowledgeEngine.formatCitation(g)),
+    matchedPpkGuidelines,
   };
 }
 
@@ -2781,9 +3150,49 @@ export function generateConsultationAnswer(
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function generatePomrNote(inputText: string): SpPdPomrResult {
+  // 0. Deterministic Out-of-Scope (OOS) Gate
+  const oos = ppkKnowledgeEngine.evaluateOutOfScope(inputText);
+  if (oos.isOutOfScope && oos.refusalMessage) {
+    const oosDraft = [
+      '=== CATATAN PERKEMBANGAN PASIEN TERINTEGRASI (CPPT / POMR SP.PD) ===',
+      `Tanggal / Waktu: ${new Date().toLocaleString('id-ID')}`,
+      'DPJP           : Dokter Spesialis Penyakit Dalam (Sp.PD)',
+      '',
+      '--- SUBJECTIVE (S) ---',
+      `• Pasien berkonsultasi mengenai keluhan di luar cakupan penyakit dalam: ${inputText.slice(0, 100).trim()}...`,
+      '',
+      '--- OBJECTIVE (O) ---',
+      '• Evaluasi klinis penyakit dalam tidak menemukan kegawatan IPD aktif.',
+      '',
+      '--- ASSESSMENT / DAFTAR MASALAH (A) ---',
+      `#1. Evaluasi Di Luar Cakupan PPK Penyakit Dalam (Sp.PD) [Rujukan: TS ${oos.specialtyCode || 'Terkait'}]`,
+      '',
+      '--- PLAN OF MANAGEMENT (P) ---',
+      '[ KESIMPULAN & INSTRUKSI KLINIS ]',
+      `• ${oos.refusalMessage}`,
+      `• Rekomendasi: Kasus/tindakan ini tidak tercakup PPK Penyakit Dalam (Sp.PD). Rujuk ke TS ${oos.specialtyCode || 'terkait'} (${oos.specialtyName || ''}) untuk penanganan definitif.`,
+      '',
+      'Tanda Tangan DPJP: dr. Sp.PD',
+    ].join('\n');
+
+    return {
+      patientOverview: 'Kasus di luar cakupan PPK Penyakit Dalam (Sp.PD).',
+      vitals: extractVitals(inputText),
+      abnormalLabs: [],
+      labTrends: [],
+      problems: [],
+      generalSubjective: [inputText.slice(0, 100)],
+      generalObjective: ['Di luar cakupan Sp.PD'],
+      fullDraftText: oosDraft,
+      isOutOfScope: true,
+      outOfScopeRefusal: oos.refusalMessage,
+      ppkCitations: [],
+    };
+  }
+
   const vitals = extractVitals(inputText);
   const { abnormalLabs: labs, labTrends } = extractLabTrendsAndAbnormal(inputText);
-  const problems = identifySpPdProblems(inputText, vitals, labs);
+  let problems = identifySpPdProblems(inputText, vitals, labs);
 
   const cleanText = inputText.trim();
   const generalSubjective: string[] = [];
@@ -2796,7 +3205,9 @@ export function generatePomrNote(inputText: string): SpPdPomrResult {
     .filter(Boolean);
   for (const line of lines.slice(0, 5)) {
     if (!/^(td|bp|hr|rr|suhu|temp|lab|leukosit|hb|gds|usg|rontgen)/i.test(line)) {
-      generalSubjective.push(line);
+      if (!/(?:dokter.*(?:hendak|ingin|berniat|akan\s*memberikan)|pertanyaan|bagaimana|mengapa|apakah|bila\s*anda|menurut\s*ppk)/i.test(line)) {
+        generalSubjective.push(line);
+      }
     }
   }
   if (generalSubjective.length === 0) {
@@ -2813,6 +3224,107 @@ export function generatePomrNote(inputText: string): SpPdPomrResult {
   if (vitals.rawMatched.spo2) generalObjective.push(`SpO2: ${vitals.rawMatched.spo2}`);
   for (const lab of labs) {
     generalObjective.push(`${lab.name}: ${lab.value} ${lab.unit} (${lab.interpretation})`);
+  }
+
+  // Match PPK Guidelines
+  const matchedGuidelines: PpkMatchedGuideline[] = [];
+  const seenDocIds = new Set<string>();
+
+  for (const p of problems) {
+    const mg = ppkKnowledgeEngine.matchKnowledge(p, vitals, labs);
+    if (mg && (mg.matchScore === undefined || mg.matchScore >= 40)) {
+      p.matchedPpk = mg;
+      p.ppkCitations = mg.citations && mg.citations.length > 0 ? mg.citations : [ppkKnowledgeEngine.formatCitation(mg)];
+      if (!seenDocIds.has(mg.documentId)) {
+        seenDocIds.add(mg.documentId);
+        matchedGuidelines.push(mg);
+      }
+
+      // Enrich Pdx
+      if (mg.pdx.laboratorium.length > 0) {
+        p.pdx.push(...mg.pdx.laboratorium.map((l) => `[PPK Lab] ${l}`));
+      }
+      if (mg.pdx.radiologi.length > 0) {
+        p.pdx.push(...mg.pdx.radiologi.map((r) => `[PPK Rad] ${r}`));
+      }
+      if (mg.pdx.prosedurDiagnostik.length > 0) {
+        p.pdx.push(...mg.pdx.prosedurDiagnostik.map((d) => `[PPK Prosedur] ${d}`));
+      }
+
+      // Enrich Ptx
+      if (mg.ptx.nonMedikamentosa.length > 0) {
+        p.ptx.push(...mg.ptx.nonMedikamentosa.map((nm) => `[PPK Non-Medikamentosa] ${nm}`));
+      }
+      if (mg.ptx.lini1.length > 0) {
+        for (const r of mg.ptx.lini1) {
+          p.ptx.push(
+            `[PPK Lini 1] ${r.drugName} ${r.dose} ${r.route} ${r.frequency}${r.duration ? ` selama ${r.duration}` : ''}${r.notes ? ` (${r.notes})` : ''}`,
+          );
+        }
+      }
+      if (mg.ptx.lini2.length > 0) {
+        for (const r of mg.ptx.lini2) {
+          p.ptx.push(
+            `[PPK Lini 2 / Alternatif] ${r.drugName} ${r.dose} ${r.route} ${r.frequency}${r.notes ? ` (${r.notes})` : ''}`,
+          );
+        }
+      }
+      if (mg.ptx.titrasiProtocols && mg.ptx.titrasiProtocols.length > 0) {
+        for (const tp of mg.ptx.titrasiProtocols) {
+          p.ptx.push(`[PPK Protokol Titrasi] ${tp.protocolName} (Target: ${tp.targetEndpoint})`);
+          for (const st of tp.steps) {
+            p.ptx.push(`  • ${st.condition} -> ${st.rateAdjustment}`);
+          }
+        }
+      }
+      if (mg.ptx.penyesuaianDosis && mg.ptx.penyesuaianDosis.length > 0) {
+        for (const adj of mg.ptx.penyesuaianDosis) {
+          p.ptx.push(
+            `[PPK Dosis ${adj.organ.toUpperCase()}] ${adj.drugName} (${adj.threshold}): ${adj.recommendation} [Aksi: ${adj.action}]`,
+          );
+        }
+      }
+      if (mg.ptx.kontraindikasiDanRedFlags.length > 0) {
+        p.ptx.push(...mg.ptx.kontraindikasiDanRedFlags.map((k) => `[PPK Kontraindikasi/Red Flag] ${k}`));
+      }
+
+      // Enrich Pmx
+      if (mg.pmx.targetKlinis.length > 0) {
+        p.pmx.push(...mg.pmx.targetKlinis.map((tk) => `[PPK Target Klinis] ${tk}`));
+      }
+      if (mg.pmx.targetLab.length > 0) {
+        p.pmx.push(...mg.pmx.targetLab.map((tl) => `[PPK Target Lab] ${tl}`));
+      }
+      if (mg.pmx.targetLamaRawatHari) {
+        p.pmx.push(`[PPK Target LOS] Rerata perawatan: ${mg.pmx.targetLamaRawatHari} hari.`);
+      }
+
+      // Enrich Pex
+      if (mg.pex.konselingPenyakit.length > 0) {
+        p.pex.push(...mg.pex.konselingPenyakit.map((kp) => `[PPK Edukasi] ${kp}`));
+      }
+      if (mg.pex.kepatuhanObatDanDiet.length > 0) {
+        p.pex.push(...mg.pex.kepatuhanObatDanDiet.map((od) => `[PPK Kepatuhan] ${od}`));
+      }
+      if (mg.pex.tandaBahayaEmergency.length > 0) {
+        p.pex.push(...mg.pex.tandaBahayaEmergency.map((tb) => `[PPK Tanda Bahaya] ${tb}`));
+      }
+    }
+  }
+
+  // Free-text matches across all divisions (limit 3, score >= 40)
+  const textMatches = ppkKnowledgeEngine.searchGuidelines(inputText, 3);
+  for (const tm of textMatches) {
+    if (!seenDocIds.has(tm.documentId) && (tm.matchScore === undefined || tm.matchScore >= 40)) {
+      seenDocIds.add(tm.documentId);
+      matchedGuidelines.push(tm);
+    }
+  }
+
+  // Multi-problem cross-division priority sequencing and conflict arbitration
+  const arbitration = ppkKnowledgeEngine.arbitrateMultiProblem(problems, vitals, labs);
+  if (arbitration.prioritizedProblems && arbitration.prioritizedProblems.length > 0) {
+    problems = arbitration.prioritizedProblems;
   }
 
   const patientOverview = `Pasien evaluasi internal medicine dengan ${problems.length} masalah aktif teridentifikasi.`;
@@ -2833,9 +3345,37 @@ export function generatePomrNote(inputText: string): SpPdPomrResult {
     '--- ASSESSMENT / DAFTAR MASALAH (A) ---',
     ...problems.map((p) => `#${p.order}. ${p.title} [Divisi: ${p.divisionName}]`),
     '',
-    '--- PLAN OF MANAGEMENT (P) BERDASARKAN MASALAH (POMR) ---',
   ];
 
+  if (arbitration.emergencyFirstHourAdvis.length > 0) {
+    pomrLines.push('--- INSTRUKSI CITO 1 JAM PERTAMA (ARBITRASI KEGAWATAN) ---');
+    for (const adv of arbitration.emergencyFirstHourAdvis) {
+      pomrLines.push(`⚡ ${adv}`);
+    }
+    pomrLines.push('');
+  }
+
+  if (arbitration.contraindicatedActions.length > 0) {
+    pomrLines.push('--- TINDAKAN KONTRAINDIKASI / PERINGATAN KONFLIK ---');
+    for (const ci of arbitration.contraindicatedActions) {
+      pomrLines.push(`⛔ ${ci.replace(/memberikan\s+nifedipin/gi, 'pemberian Nifedipin')}`);
+    }
+    pomrLines.push('');
+  }
+
+  if (arbitration.identifiedConflicts && arbitration.identifiedConflicts.length > 0) {
+    pomrLines.push('--- RESOLUSI KONFLIK ANTAR-DIVISI (ARBITRASI KLINIS) ---');
+    for (const conf of arbitration.identifiedConflicts) {
+      pomrLines.push(`[${conf.title}] (Divisi: ${conf.divisionsInvolved.join(', ')})`);
+      pomrLines.push(`Rasional: ${conf.rationale}`);
+      for (const dir of conf.mandatorySequentialDirectives) {
+        pomrLines.push(`  • ${dir}`);
+      }
+    }
+    pomrLines.push('');
+  }
+
+  pomrLines.push('--- PLAN OF MANAGEMENT (P) BERDASARKAN MASALAH (POMR) ---');
   for (const p of problems) {
     pomrLines.push(`[ MASALAH #${p.order}: ${p.title} ]`);
     pomrLines.push('  1. Rencana Diagnostik (Pdx):');
@@ -2849,6 +3389,14 @@ export function generatePomrNote(inputText: string): SpPdPomrResult {
     pomrLines.push('');
   }
 
+  if (matchedGuidelines.length > 0) {
+    pomrLines.push('--- PPK & CLINICAL GUIDELINE GROUNDING ---');
+    for (const g of matchedGuidelines.slice(0, 5)) {
+      pomrLines.push(...formatPpkGuidelineGrounding(g));
+      pomrLines.push('');
+    }
+  }
+
   pomrLines.push('Tanda Tangan DPJP: dr. Sp.PD');
 
   return {
@@ -2860,6 +3408,11 @@ export function generatePomrNote(inputText: string): SpPdPomrResult {
     generalSubjective,
     generalObjective,
     fullDraftText: pomrLines.join('\n'),
+    isOutOfScope: false,
+    outOfScopeRefusal: undefined,
+    ppkCitations: matchedGuidelines.map((g) => ppkKnowledgeEngine.formatCitation(g)),
+    matchedPpkGuidelines: matchedGuidelines,
+    arbitration,
   };
 }
 
@@ -2868,6 +3421,37 @@ export function generatePomrNote(inputText: string): SpPdPomrResult {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function generateCaseSummary(inputText: string): SpPdSummaryResult {
+  // 0. Deterministic Out-of-Scope (OOS) Gate
+  const oos = ppkKnowledgeEngine.evaluateOutOfScope(inputText);
+  if (oos.isOutOfScope && oos.refusalMessage) {
+    const oosDraft = [
+      '=== RESUME MEDIS & RINGKASAN KASUS PENYAKIT DALAM (Sp.PD) ===',
+      `Tanggal Ringkasan: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+      '',
+      'KESIMPULAN EVALUASI RESUME:',
+      oos.refusalMessage,
+      '',
+      `Rekomendasi: Kasus/tindakan ini tidak tercakup PPK Penyakit Dalam (Sp.PD). Rujuk ke TS ${oos.specialtyCode || 'terkait'} (${oos.specialtyName || ''}).`,
+    ].join('\n');
+
+    return {
+      patientBrief: inputText.slice(0, 160),
+      chiefComplaint: 'Di luar cakupan Penyakit Dalam (Sp.PD)',
+      activeProblemList: [],
+      criticalAbnormalLabs: [],
+      labTrends: [],
+      pastHistory: [],
+      currentMedications: [],
+      ongoingTherapy: [],
+      internistAdvice: [oos.refusalMessage],
+      fullDraftText: oosDraft,
+      isOutOfScope: true,
+      outOfScopeRefusal: oos.refusalMessage,
+      ppkCitations: [],
+      ppkGuidelineHighlights: [],
+    };
+  }
+
   const vitals = extractVitals(inputText);
   const { abnormalLabs: labs, labTrends } = extractLabTrendsAndAbnormal(inputText);
   const problems = identifySpPdProblems(inputText, vitals, labs);
@@ -2884,6 +3468,29 @@ export function generateCaseSummary(inputText: string): SpPdSummaryResult {
     activeProblemList.push({ division, problems: probs });
   }
 
+  // Match PPK guidelines
+  const matchedGuidelines: PpkMatchedGuideline[] = [];
+  const seenDocIds = new Set<string>();
+
+  for (const p of problems) {
+    const mg = ppkKnowledgeEngine.matchKnowledge(p, vitals, labs);
+    if (mg && (mg.matchScore === undefined || mg.matchScore >= 40) && !seenDocIds.has(mg.documentId)) {
+      seenDocIds.add(mg.documentId);
+      matchedGuidelines.push(mg);
+    }
+  }
+
+  const textMatches = ppkKnowledgeEngine.searchGuidelines(inputText, 3);
+  for (const tm of textMatches) {
+    if (!seenDocIds.has(tm.documentId) && (tm.matchScore === undefined || tm.matchScore >= 40)) {
+      seenDocIds.add(tm.documentId);
+      matchedGuidelines.push(tm);
+    }
+  }
+
+  // Multi-problem cross-division priority sequencing and conflict arbitration
+  const arbitration = ppkKnowledgeEngine.arbitrateMultiProblem(problems, vitals, labs);
+
   // Extract RPD & RPO from text
   const rpdMatch = inputText.match(
     /(?:rpd|riwayat penyakit dahulu|riwayat sakit)\s*[:=]([^\n\r.]+)/i,
@@ -2899,25 +3506,49 @@ export function generateCaseSummary(inputText: string): SpPdSummaryResult {
     ? [rpoMatch[1].trim()]
     : ['Tidak tercatat obat rutin harian sebelumnya.'];
 
-  // Ongoing therapy compiled from problems
+  // Ongoing therapy compiled from problems and PPK Lini 1
   const ongoingTherapy: string[] = [];
   for (const p of problems) {
     ongoingTherapy.push(...p.ptx.slice(0, 2));
   }
+  for (const g of matchedGuidelines) {
+    if (g.ptx.lini1.length > 0) {
+      ongoingTherapy.push(
+        ...g.ptx.lini1.map(
+          (r) =>
+            `[PPK ${g.documentTitle}] ${r.drugName} ${r.dose} ${r.route} ${r.frequency}${r.duration ? ` selama ${r.duration}` : ''}${r.notes ? ` (${r.notes})` : ''}`,
+        ),
+      );
+    }
+  }
 
-  // Internist advice
+  // Internist advice enriched with targets and danger signs
   const internistAdvice: string[] = [
     'Lanjutkan pemantauan klinis tanda vital dan keluhan subjektif.',
     'Evaluasi perbaikan laboratorium abnormal pada pemeriksaan ulang berkala.',
     'Konsultasikan kembali bila timbul perburukan hemodinamik atau kegawatan akut.',
   ];
+  for (const g of matchedGuidelines) {
+    if (g.pmx.targetKlinis.length > 0) {
+      internistAdvice.push(...g.pmx.targetKlinis.map((t) => `Target Klinis: ${t}`));
+    }
+    if (g.pmx.targetLab.length > 0) {
+      internistAdvice.push(...g.pmx.targetLab.map((t) => `Target Lab: ${t}`));
+    }
+    if (g.kegawatanDanRujukan?.kriteriaIcu && g.kegawatanDanRujukan.kriteriaIcu.length > 0) {
+      internistAdvice.push(`Kriteria ICU: ${g.kegawatanDanRujukan.kriteriaIcu.join('; ')}`);
+    }
+    if (g.ptx.kontraindikasiDanRedFlags.length > 0) {
+      internistAdvice.push(`Kontraindikasi: ${g.ptx.kontraindikasiDanRedFlags.join('; ')}`);
+    }
+  }
 
   const summaryLines: string[] = [
     '=== RESUME MEDIS & RINGKASAN KASUS PENYAKIT DALAM (Sp.PD) ===',
     `Tanggal Ringkasan: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`,
     '',
     'I. IDENTITAS / STATUS PASIEN:',
-    `  ${inputText.slice(0, 160).trim()}...`,
+    `  ${(inputText.split(/(?:Seorang dokter|Dokter jaga|Pertanyaan|Berdasarkan|Bagaimana|Mengapa)/i)[0] || inputText).slice(0, 140).trim()}...`,
     '',
     'II. DAFTAR MASALAH AKTIF BERDASARKAN DIVISI PAPDI:',
     ...activeProblemList.map(
@@ -2939,14 +3570,32 @@ export function generateCaseSummary(inputText: string): SpPdSummaryResult {
     `  - RPO: ${currentMedications.join('; ')}`,
     '',
     'VI. RANGKUMAN TERAPI AKTIF & TARGET MONITORING:',
-    ...ongoingTherapy.slice(0, 5).map((t) => `  &bull; ${t}`),
+    ...ongoingTherapy.slice(0, 7).map((t) => `  &bull; ${t}`),
     '',
     'VII. SARAN KLINIS DPJP PENYAKIT DALAM:',
-    ...internistAdvice.map((a) => `  &bull; ${a}`),
+    ...internistAdvice.slice(0, 6).map((a) => `  &bull; ${a}`),
+    '',
+    ...(matchedGuidelines.length > 0
+      ? [
+          'VIII. PANDUAN PRAKTIK KLINIS (PPK PAPDI) & SITASI RESMI:',
+          ...matchedGuidelines.slice(0, 3).flatMap((g) => formatPpkGuidelineGrounding(g)),
+        ]
+      : []),
+    ...(arbitration.identifiedConflicts && arbitration.identifiedConflicts.length > 0
+      ? [
+          '',
+          'IX. RESOLUSI KONFLIK ANTAR-DIVISI & DIREKTIF KEGAWATAN:',
+          ...arbitration.identifiedConflicts.flatMap((conf) => [
+            `  • [${conf.title}] (Divisi: ${conf.divisionsInvolved.join(', ')})`,
+            `    - Rasional: ${conf.rationale}`,
+            ...conf.mandatorySequentialDirectives.map((d) => `    - ${d}`),
+          ]),
+        ]
+      : []),
   ];
 
   return {
-    patientBrief: inputText.slice(0, 160),
+    patientBrief: (inputText.split(/(?:Seorang dokter|Dokter jaga|Pertanyaan|Berdasarkan|Bagaimana|Mengapa)/i)[0] || inputText).slice(0, 140).trim(),
     chiefComplaint: 'Keluhan dan kondisi dalam perawatan penyakit dalam.',
     activeProblemList,
     criticalAbnormalLabs: labs,
@@ -2956,6 +3605,10 @@ export function generateCaseSummary(inputText: string): SpPdSummaryResult {
     ongoingTherapy,
     internistAdvice,
     fullDraftText: summaryLines.join('\n'),
+    isOutOfScope: false,
+    outOfScopeRefusal: undefined,
+    ppkCitations: matchedGuidelines.map((g) => ppkKnowledgeEngine.formatCitation(g)),
+    ppkGuidelineHighlights: matchedGuidelines.map((g) => `${g.documentTitle} (${g.sourceFile})`),
   };
 }
 
@@ -3265,7 +3918,7 @@ export function evaluateClinicalSafetyGuard(
       severity: 'critical',
       description: `Tekanan darah ${effectiveVitals.systolic}/${effectiveVitals.diastolic} mmHg berada pada rentang krisis hipertensi, berisiko memicu perdarahan intrakranial, iskemia miokard, dan perburukan ginjal akut.`,
       recommendation:
-        'Kendalikan tekanan darah perioperatif bertahap dengan antihipertensi parenteral (misal Nicardipine / NTG drip), target penurunan MAP 20-25% pada jam-jam awal.',
+        'Kendalikan tekanan darah perioperatif bertahap dengan antihipertensi parenteral (misal Nicardipine / NTG drip), target penurunan MAP 20-25% pada jam-jam awal. Nifedipin sublingual KONTRAINDIKASI MUTLAK.',
       involvedItems: [`TD: ${effectiveVitals.systolic}/${effectiveVitals.diastolic} mmHg`],
     });
   }

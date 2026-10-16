@@ -1,249 +1,88 @@
-# Project: internize.ai
+# Project: PPK-Grounded Clinical Intelligence (internize.ai)
 
 ## Architecture
-internize.ai is a production-grade Chrome Extension (Manifest V3) side panel application for clinical and research workflows. It executes 100% on-device local AI inference (Transformers.js with WebGPU and WASM fallback) and deterministic OpenMed clinical rules to guarantee zero PHI egress and instant response times.
-
-### High-Level Components & Data Flow:
-1. **Background Service Worker (`src/background/index.ts`)**:
-   - Manages extension lifecycle and side panel activation (`chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })`).
-   - Routes selection messages between content scripts and the active side panel.
-2. **Content Script (`src/content/index.ts`)**:
-   - Injected on user-active tabs (using `activeTab` / `scripting`, zero `<all_urls>` permission).
-   - Monitors user text highlights (`selectionchange` / `mouseup` with 150ms debounce) and pushes to side panel via `chrome.runtime.sendMessage`.
-   - Answers `GET_SELECTED_TEXT` pull queries on side panel mount.
-3. **Side Panel Shell (`src/sidepanel/index.tsx`)**:
-   - React 18 + Tailwind CSS responsive UI container designed for 380px–480px width.
-   - Houses Tab Navigation (`Clinical Service` vs `Research & Extraction`), System Status strip (WebGPU/WASM badge, Privacy 100% Local indicator), and global Toast notifications.
-4. **Clinical Service Engine (`src/services/clinical/`)**:
-   - Dual-engine architecture:
-     * Tier 1 (CROGE): Synchronous, deterministic Clinical Rules & Ontology Grounding Engine (<5ms response) with curated SNOMED CT and RxNorm index, negation detection, and span citations.
-     * Tier 2 (Transformers.js): Asynchronous WebGPU neural token classifier (`@huggingface/transformers`) offloaded to Web Worker.
-   - Generates structured SOAP notes (Subjective, Objective, Assessment, Plan) with source span citations.
-5. **Research & Extraction Engine (`src/services/research/`)**:
-   - `src/services/deid/`: 18-category HIPAA Safe Harbor de-identification engine and compliance audit reporting (`compliant: boolean`, `safeHarborMet: boolean`, `residualRisk`).
-   - `src/services/loinc/`: Biomarker extraction engine mapping text patterns to LOINC codes (`2571-8` triglycerides, `2345-7` glucose, `2986-8` testosterone) with UCUM units and abnormal flag derivation (`high`, `normal`, `low`).
-   - `src/services/fhir/`: HL7 FHIR R4 Transaction Bundle assembler (`resourceType: "Bundle"`, `type: "transaction"`, `urn:uuid` identifiers, in-bundle reference rewriting).
-   - `src/services/supabase/`: Supabase client integration for cloud sync, persisted in `chrome.storage.sync`.
-   - Client-side JSON file download without requiring `downloads` permission.
-
----
+- **Offline Ingestion & Extraction Layer** (`scripts/ingest_ppk/`):
+  - Ingests all 122 documents across 9 PAPDI divisions (`docs/ppk/`).
+  - Extracts text from 58 digital text PDFs/DOCX and runs local OCR (`tesseract.js`) on 64 scanned image PDFs (305 pages).
+  - Sanitizes and de-identifies all content: strips hospital identities (`RSUP Sanglah`, `RSUP Prof Ngoerah`, `RS Ngoerah`), physician names, director signatures, and administrative metadata.
+  - Compiles structured medical rules, criteria, dosages, contraindications, and citations into `src/services/clinical/knowledge/ppkStore.json` (~350 KB JSON, gzipped ~80 KB).
+  - Generates comprehensive Ingestion Coverage Report (`docs/PPK_INGESTION_REPORT.md`).
+- **On-Device Runtime Engine Layer** (`src/services/clinical/`):
+  - `PpkKnowledgeEngine`: In-memory indexed lookup (<2ms) mapping active problems and clinical keywords to structured PPK guidance.
+  - Multi-problem & Cross-division reasoning: Prioritizes concurrent pathologies (e.g. DKA + Sepsis + AKI).
+  - Patient parameter adaptation: Adjusts drug choices and dosages for renal eGFR, transaminases, geriatric frailty, and pregnancy.
+  - Urgency arbitration: Harmonizes with binary `elektif` vs `life_saving` surgical triage and emergency CITO actions.
+  - Deterministic out-of-scope refusal: Explicitly outputs "tidak tercakup PPK" for non-internal medicine inquiries (≥90% refusal accuracy).
+  - Citation engine: Appends canonical guideline citations (`PPK PAPDI 2024 — Divisi [X]: [Penyakit] § [Bagian]`).
+- **Workflow & UI Integration Layer** (`src/features/clinical/` & `internalMedicineEngine.ts`):
+  - Integrates PPK knowledge seamlessly into all 3 modes: Jawab Konsul TS, Periksa Pasien POMR, and Ringkas Kasus.
+  - Displays matched PPK protocols and titration tables in `SpPdWorkflowPanel.tsx` / `ProtocolCard.tsx` with one-click copy and EMR injection.
+- **Frozen Benchmark & Evaluation Harness** (`tests/benchmark/`):
+  - 156 clinical test items across all 9 divisions, 8 question types, multi-problem scenarios, and out-of-scope inquiries.
+  - Split into Open Set (124 items, ~80%) and Hidden Set (32 items, ~20%).
+  - Multi-agent authoring and independent cross-verification protocol.
+  - SHA-256 frozen manifest recorded in `BENCHMARK_FREEZE.md` BEFORE engine modification.
+  - Single-command test runner (`npm run test:benchmark`) with 4-tier rubric (Benar, Sebagian, Salah, Red Flag).
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | MV3 Extension Manifest | Valid Manifest V3 configuration with minimum permissions (`sidePanel`, `storage`, `activeTab`, `scripting`), zero `<all_urls>`. | M1 | Survey 1 (R1) |
-| 2 | Single-Click Side Panel Activation | Clicking extension action icon opens side panel without popup window. | M1 | Survey 1 (R1) |
-| 3 | Highlight Text Capture & Auto-Populate | Content script captures highlighted text and auto-populates clinical text area in <2s via push/pull. | M1 | Survey 1 (R1) |
-| 4 | Build & Lint Pipeline | Vite 5 + @crxjs/vite-plugin + TypeScript strict mode + Tailwind CSS + Biome/ESLint compiling cleanly to `dist/`. | M1 | Survey 1 (R1, R4) |
-| 5 | Side Panel UI Shell & Navigation | Accessible tabbed side panel layout supporting Clinical Service and Research & Extraction tabs with status bar. | M1 | Survey 1 (R1) |
-| 6 | On-Device AI Engine (WebGPU/WASM) | Transformers.js v3 pipeline running in side panel/worker with WASM fallback and CSP compliance (`wasm-unsafe-eval`). | M2 | Survey 2 (R2) |
-| 7 | Structured SOAP Note Generation | Formats clinical narrative into Subjective, Objective, Assessment, and Plan sections with input span citations. | M2 | Survey 2 (R2) |
-| 8 | SNOMED CT Diagnosis Mapping | Extracts conditions and maps to SNOMED CT SCTIDs (e.g., "hypertension" -> `38341003`). | M2 | Survey 2 (R2) |
-| 9 | RxNorm Medication Reconciliation | Extracts medications and maps to RxNorm RxCUIs (e.g., "lisinopril" -> `29046` / `314076`). | M2 | Survey 2 (R2) |
-| 10 | Clinical Service Tab UI | Input text area, sample loader, interactive SOAP note viewer, SNOMED & RxNorm concept tables, copy actions. | M2 | Survey 2 (R2) |
-| 11 | HIPAA PHI De-identification Engine | Redacts 18 HIPAA Safe Harbor categories (names, DOBs, MRNs, etc.) replacing with semantic tokens. | M3 | Survey 3 (R3) |
-| 12 | HIPAA Compliance Status & Audit | Evaluates residual risk and returns structured compliance status (`compliant: true/false`, safeHarborMet). | M3 | Survey 3 (R3) |
-| 13 | LOINC Lab Biomarker Extraction | Extracts Triglycerides (`2571-8`), Glucose (`2345-7`), Testosterone (`2986-8`) with values, units, and abnormal flags. | M3 | Survey 3 (R3) |
-| 14 | FHIR R4 Transaction Bundle Assembly | Assembles valid transaction Bundle (`resourceType: "Bundle"`, `type: "transaction"`) with Patient & Observations. | M3 | Survey 3 (R3) |
-| 15 | Bundle JSON Local Download | Triggers browser download of the assembled FHIR Bundle JSON file without external permissions. | M3 | Survey 3 (R3) |
-| 16 | Supabase Integration & Settings | Settings panel backed by `chrome.storage.sync` for Supabase URL/key, connection test, and push upsert with feedback. | M3 | Survey 3 (R3) |
-| 17 | Research & Extraction Tab UI | Raw text area, de-identified preview with token badges, HIPAA badge, LOINC table, JSON viewer, export buttons. | M3 | Survey 3 (R3) |
-| 18 | Production Build & Documentation | Clean `npm run build` with zero TS errors, comprehensive README with setup, dev, and feature overview. | M4 | Survey 1, 2, 3 (R4) |
-| 19 | E2E Acceptance Test Pass | 100% pass on all acceptance test tiers (Tiers 1–4) verified by independent test runner. | M4 | Dual Track E2E |
-
----
+| 1 | Benchmark Schema & Runner Harness | TypeScript schema, evaluation runner script, 4-tier scoring rubric, red flag detector | M1 | Survey / R4 |
+| 2 | Benchmark Item Authoring & Independent Verification | Curate 156 items across 9 divisions and 8 question types with dual-agent independent cross-check | M1 | Survey / R4 |
+| 3 | Benchmark Freezing & Baseline Measurement | SHA-256 hash manifest in BENCHMARK_FREEZE.md, baseline evaluation of existing engine | M1 | Survey / R4 |
+| 4 | PPK Document Ingestion & Local OCR | Ingestion of 122 files (119 PDF, 2 DOCX, 1 DOC) with local tesseract.js OCR for 64 scanned PDFs | M2 | Survey / R1 |
+| 5 | Hospital Identity Redaction & Privacy Scrubbing | Strip all hospital names, signatures, NIP, logos, and raw text to guarantee R3 zero-leakage | M2 | Survey / R3 |
+| 6 | Ingestion Coverage Report | Comprehensive audit of all 122 files with parse status and explanation of exclusions | M2 | Survey / R1 |
+| 7 | Structured PPK Knowledge Store (`ppkStore.json`) | Compressed, typed JSON knowledge base of all PPK conditions (criteria, Pdx, Ptx, Pmx, Pex, titrations, scores) | M3 | Survey / R1 |
+| 8 | `PpkKnowledgeEngine` Core & Indexing | Sub-2ms in-memory indexed knowledge search mapping active problems to PPK entries | M3 | Survey / R2 |
+| 9 | Patient Parameter Adaptation & Dose Adjustment | Renal eGFR / hepatic / geriatric dose titration, contraindication alerts, and drug holds | M3 | Survey / R2 |
+| 10 | Multi-Problem Lintas Divisi Reasoning | Prioritized sequential interventions for concurrent pathologies across divisions | M3 | Survey / R2 |
+| 11 | Deterministic Out-of-Scope Refusal | Explicitly declare "tidak tercakup PPK" for non-internal medicine queries | M3 | Survey / R2 |
+| 12 | Canonical PPK Citation Generation | Accurate citations to PPK division, document, and section for all recommendations | M3 | Survey / R2 |
+| 13 | 3-Mode Engine Integration | Deep integration into Jawab Konsul TS, Periksa Pasien POMR, and Ringkas Kasus | M4 | Survey / R2 |
+| 14 | UI Protocol Card & EMR Injection | Surface matched PPK protocols, titration tables, and advis in SpPdWorkflowPanel | M4 | Survey / R2 |
+| 15 | Frozen Benchmark Verification & Acceptance Gating | Achieve total score ≥ 85%, ≥ 40 pp gain, 0 red flags, hidden set ≥ 80%, citation ≥ 90% | M5 | Survey / R4 |
+| 16 | Adversarial Stress Hardening & Privacy Audit | White-box stress testing of edge cases, verify zero network requests, verify zero raw PPK in git | M5 | Survey / R3, R4 |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Chrome Extension Shell MV3 & Tooling | Features 1, 2, 3, 4, 5: Manifest V3, Vite build, Content Script, Background Worker, Side Panel Shell, Tailwind CSS, Biome. | None | DONE |
-| M2 | Clinical Service Tab & Local AI | Features 6, 7, 8, 9, 10: Local inference engine (CROGE + WebGPU), SOAP note generation, SNOMED & RxNorm mapping, Clinical UI. | M1 | IN_PROGRESS |
-| M3 | Research & Extraction Tab & Cloud Sync | Features 11, 12, 13, 14, 15, 16, 17: HIPAA de-identification, LOINC extraction, FHIR R4 Bundle assembler, Supabase sync, Research UI. | M1 | PLANNED |
-| M4 | Final Integration, Build & E2E Acceptance | Features 18, 19: Full build verification (`npm run build`), 100% E2E test suite pass (Tiers 1–4), Tier 5 adversarial hardening, README.md. | M1, M2, M3, E2E | PLANNED |
-
----
+| 1 | M1: Benchmark Curation, Freezing & Baseline | Test harness, 164-item dataset curation, cross-verification, SHA-256 freeze, baseline measurement | none | DONE |
+| 2 | M2: PPK Ingestion, OCR & Sanitization | Ingest 122 files across 9 divisions, local OCR for scanned PDFs, hospital identity scrubbing, Ingestion Report | none | DONE |
+| 3 | M3: Knowledge Store & Reasoning Engine | Compile `ppkStore.json`, build `PpkKnowledgeEngine` (multi-problem, dosing, contraindications, OOS refusal, citations) | M2 | DONE |
+| 4 | M4: 3-Mode Integration & UI Wiring | Integrate into Jawab Konsul TS, Periksa Pasien POMR, Ringkas Kasus, and SpPdWorkflowPanel | M3 | DONE |
+| 5 | M5: Acceptance Verification & Hardening | Execute frozen benchmark, verify all acceptance criteria (score ≥85%, gain ≥40 pp, 0 red flags), adversarial testing, zero-egress audit | M1, M4 | PLANNED |
 
 ## Interface Contracts
 
-### 1. Content Script ↔ Side Panel / Background (`src/types/messages.ts`)
-```typescript
-export type ExtensionMessage =
-  | { type: 'TEXT_SELECTED'; text: string; sourceUrl?: string; timestamp: number }
-  | { type: 'GET_SELECTED_TEXT' }
-  | { type: 'SELECTED_TEXT_RESPONSE'; text: string }
-  | { type: 'OPEN_SIDE_PANEL' };
-```
+### Benchmark Runner ↔ Evaluation Engine
+- `runClinicalBenchmark(options: BenchmarkRunOptions): Promise<BenchmarkSummaryReport>`
+- Types defined in `tests/benchmark/benchmark_schema.ts`:
+  * `ClinicalBenchmarkItem`: `{ id, division, questionType, isHidden, vignette, clinicalQuestion, expectedAnswer, redFlags, citationTarget }`
+  * `EvaluationResult`: `{ itemId, score (0 | 0.5 | 1.0), status ('benar' | 'sebagian' | 'salah'), redFlagTriggered: boolean, redFlagViolations: string[], citationValid: boolean, latencyMs }`
+  * `BenchmarkSummaryReport`: `{ overallScore, openSetScore, hiddenSetScore, divisionScores, questionTypeScores, citationAccuracy, outOfScopeAccuracy, totalRedFlags, passedAllCriteria }`
 
-### 2. Clinical Service Engine (`src/types/clinical.ts`)
-```typescript
-export interface ClinicalEntity {
-  id: string;
-  text: string;
-  label: 'DISEASE' | 'DRUG' | 'SYMPTOM' | 'ANATOMY' | 'PROCEDURE';
-  start: number;
-  end: number;
-  confidence: number;
-}
+### `PpkKnowledgeEngine` ↔ `InternalMedicineEngine`
+- `PpkKnowledgeEngine.matchKnowledge(problem: SpPdProblem, vitals: VitalSigns, labs: AbnormalLabResult[]): PpkMatchedGuideline | null`
+- `PpkKnowledgeEngine.evaluateOutofScope(queryText: string): { isOutOfScope: boolean; refusalMessage?: string }`
+- `PpkKnowledgeEngine.formatCitation(guideline: PpkMatchedGuideline, section: string): string`
+- `PpkKnowledgeEngine.getAdjustedDosing(drugName: string, standardDose: string, eGfr?: number, astAltRatio?: number): DoseAdjustmentResult`
 
-export interface SnomedConcept {
-  code: string;       // e.g. "38341003"
-  display: string;    // e.g. "Hypertensive disorder, systemic arterial (disorder)"
-  preferredTerm: string; // e.g. "Hypertension"
-  matchedText: string;
-  confidence: number;
-}
-
-export interface RxNormConcept {
-  rxcui: string;      // e.g. "29046"
-  name: string;       // e.g. "lisinopril"
-  termType: 'IN' | 'SCD' | 'SBD';
-  ttyDisplay: string;
-  dosage?: string;    // e.g. "10mg"
-  matchedText: string;
-  confidence: number;
-}
-
-export interface SoapSection {
-  title: 'Subjective' | 'Objective' | 'Assessment' | 'Plan';
-  content: string[];
-  citations?: Array<{ start: number; end: number; sourceText: string }>;
-}
-
-export interface SoapNote {
-  subjective: SoapSection;
-  objective: SoapSection;
-  assessment: SoapSection;
-  plan: SoapSection;
-  generatedAt: string;
-}
-
-export interface ClinicalAnalysisResult {
-  rawText: string;
-  soapNote: SoapNote;
-  diagnoses: SnomedConcept[];
-  medications: RxNormConcept[];
-  executionTimeMs: number;
-  inferenceDevice: 'webgpu' | 'wasm' | 'cpu';
-}
-```
-
-### 3. Research & Extraction Engine (`src/types/research.ts`)
-```typescript
-export interface DeidEntity {
-  text: string;
-  category: string; // 'NAME' | 'DATE' | 'MRN' | 'PHONE' | etc.
-  replacement: string;
-  start: number;
-  end: number;
-}
-
-export interface HipaaComplianceResult {
-  compliant: boolean;
-  safeHarborMet: boolean;
-  residualRisk: 'low' | 'moderate' | 'high';
-  redactedCount: number;
-  unredactedSuspects: number;
-  timestamp: string;
-}
-
-export interface LoincLabRecord {
-  testName: string;   // e.g. "Triglycerides"
-  loincCode: string;  // e.g. "2571-8"
-  value: number;      // e.g. 210
-  unit: string;       // e.g. "mg/dL"
-  referenceRange?: string; // e.g. "< 150 mg/dL"
-  flag?: 'low' | 'normal' | 'high' | 'critical';
-}
-
-export interface FhirBundleExportResult {
-  bundle: any;        // HL7 FHIR R4 Transaction Bundle JSON
-  resourceCount: number;
-  generatedAt: string;
-}
-
-export interface SupabaseConfig {
-  url: string;
-  anonKey: string;
-  tableName?: string; // defaults to 'fhir_bundles'
-}
-```
-
----
+### `SpPdWorkflowPanel` ↔ `PpkKnowledgeEngine`
+- `SpPdWorkflowPanel` consumes `consultationAnswer.ppkGuidance` and `pomrNote.ppkCitations`.
+- `ProtocolCard` renders `PpkMatchedGuideline` with interactive titration tables and EMR copy actions.
 
 ## Code Layout
-```
-internize.ai/
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-├── tailwind.config.js
-├── postcss.config.js
-├── biome.json (or .eslintrc.cjs)
-├── manifest.json
-├── sidepanel.html
-├── src/
-│   ├── background/
-│   │   └── index.ts
-│   ├── content/
-│   │   └── index.ts
-│   ├── sidepanel/
-│   │   ├── index.tsx
-│   │   ├── App.tsx
-│   │   └── index.css
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── Header.tsx
-│   │   │   ├── TabNavigation.tsx
-│   │   │   └── StatusBar.tsx
-│   │   ├── ui/
-│   │   │   ├── Button.tsx
-│   │   │   ├── Card.tsx
-│   │   │   ├── Badge.tsx
-│   │   │   ├── Toast.tsx
-│   │   │   └── Modal.tsx
-│   ├── features/
-│   │   ├── clinical/
-│   │   │   ├── ClinicalServiceTab.tsx
-│   │   │   ├── SoapNoteViewer.tsx
-│   │   │   ├── SnomedTable.tsx
-│   │   │   └── RxNormTable.tsx
-│   │   ├── research/
-│   │   │   ├── ResearchExtractionTab.tsx
-│   │   │   ├── DeidentifiedPreview.tsx
-│   │   │   ├── LoincTable.tsx
-│   │   │   ├── FhirBundleViewer.tsx
-│   │   │   └── SettingsDrawer.tsx
-│   ├── services/
-│   │   ├── clinical/
-│   │   │   ├── engine.ts
-│   │   │   ├── croge.ts
-│   │   │   ├── snomedDictionary.ts
-│   │   │   ├── rxnormDictionary.ts
-│   │   │   └── soapSynthesizer.ts
-│   │   ├── deid/
-│   │   │   ├── deidentifier.ts
-│   │   │   └── hipaaChecker.ts
-│   │   ├── loinc/
-│   │   │   ├── extractor.ts
-│   │   │   └── loincDictionary.ts
-│   │   ├── fhir/
-│   │   │   └── assembler.ts
-│   │   ├── supabase/
-│   │   │   └── client.ts
-│   │   └── storage/
-│   │   │   └── chromeStorage.ts
-│   ├── types/
-│   │   ├── messages.ts
-│   │   ├── clinical.ts
-│   │   ├── research.ts
-│   │   └── fhir.ts
-├── tests/
-│   ├── e2e/
-│   │   ├── runner.ts
-│   │   ├── tier1_features.test.ts
-│   │   ├── tier2_boundaries.test.ts
-│   │   ├── tier3_pairwise.test.ts
-│   │   └── tier4_application.test.ts
-│   └── unit/
-└── README.md
-```
+- `scripts/ingest_ppk/` — PPK document ingestion, OCR extraction, hospital de-identification, and store compilation.
+- `docs/PPK_INGESTION_REPORT.md` — Authoritative report on ingestion status of all 122 documents.
+- `src/services/clinical/knowledge/ppkStore.json` — Compiled, compressed, sanitized knowledge base.
+- `src/services/clinical/knowledge/ppkKnowledgeEngine.ts` — In-memory query, dosing adjustment, out-of-scope refusal, and citation formatting.
+- `src/services/clinical/internalMedicineEngine.ts` — Extended to consume `ppkKnowledgeEngine`.
+- `src/features/clinical/SpPdWorkflowPanel.tsx` — UI display of PPK recommendations and citations.
+- `tests/benchmark/` — Frozen benchmark items, runner, validator, and evaluation reports:
+  * `benchmark_schema.ts` — Authoritative TypeScript schema.
+  * `data/clinical_benchmark_open.json` — 124 open set items.
+  * `data/clinical_benchmark_hidden.json` — 32 hidden set items.
+  * `BENCHMARK_FREEZE.md` — SHA-256 hashes and freeze timestamp.
+  * `run_clinical_benchmark.ts` — Evaluation runner script.
+  * `BASELINE_REPORT.md` — Pre-implementation baseline scores and metrics.

@@ -58,3 +58,21 @@ coverage/
 
 # Supabase local
 .supabase/
+
+# Clinical Docs & Hospital Guidelines (Confidential - zero egress & no git push)
+docs/ppk/
+docs/clinical/
+scripts/ingest_ppk/cache/
+*.pdf
+*.docx
+*.doc
+*.traineddata
+scripts/debug_*.ts
+scripts/inspect_*.ts
+scripts/scan_*.ts
+scripts/print_*.ts
+temp_*.json
+tests/m3_*.ts
+tests/m4_*.ts
+tests/m5_*.ts
+

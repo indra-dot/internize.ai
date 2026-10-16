@@ -3,6 +3,7 @@ import {
   AlertOctagon,
   AlertTriangle,
   ArrowRight,
+  BookOpen,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -32,6 +33,7 @@ import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import {
   InternalMedicineEngine,
+  convertPpkToProtocolTemplate,
   type SpPdConsultResult,
   type SpPdPomrResult,
   type SpPdSummaryResult,
@@ -39,6 +41,7 @@ import {
   type SurgicalUrgencyType,
   type OperativeToleranceStatus,
 } from '../../services/clinical/internalMedicineEngine';
+import { ProtocolCard } from './ProtocolCard';
 import { insertTextToActiveField } from '../../services/emr/fieldInjector';
 import {
   type CloudSynthesizerMode,
@@ -1057,6 +1060,26 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                 </Card>
               );
             })()}
+
+            {/* Matched PPK Protocols & Titration Tables for Consult */}
+            {consultResult.matchedProtocols && consultResult.matchedProtocols.length > 0 && (
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-1.5 text-maroon-950 font-extrabold text-xs">
+                    <BookOpen className="w-4 h-4 text-gold-600" />
+                    <span>Protokol PPK & Titrasi Perioperatif Terkait ({consultResult.matchedProtocols.length})</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-medium">
+                    121 Dokumen PAPDI
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {consultResult.matchedProtocols.map((proto) => (
+                    <ProtocolCard key={proto.id} protocol={proto} onShowToast={onShowToast} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1570,6 +1593,26 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                 })}
               </CardContent>
             </Card>
+
+            {/* Matched PPK Protocols & Titration Section for POMR */}
+            {pomrResult.matchedPpkGuidelines && pomrResult.matchedPpkGuidelines.length > 0 && (
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-1.5 text-maroon-950 font-extrabold text-xs">
+                    <BookOpen className="w-4 h-4 text-gold-600" />
+                    <span>Panduan Praktik Klinis (PPK PAPDI) & Protokol Terkait ({pomrResult.matchedPpkGuidelines.length})</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-medium">
+                    121 Dokumen PAPDI
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {pomrResult.matchedPpkGuidelines.map(convertPpkToProtocolTemplate).map((proto) => (
+                    <ProtocolCard key={proto.id} protocol={proto} onShowToast={onShowToast} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
