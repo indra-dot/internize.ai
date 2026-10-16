@@ -562,3 +562,5 @@ export const CDSS_CALCULATORS_DB: CdssCalculatorMeta[] = [
     requiredInputs: ['msuCrystal', 'pattern', 'characteristics', 'uricAcid'],
   },
 ];
+
+export const ALL_CDSS_CALCULATORS = CDSS_CALCULATORS_DB;

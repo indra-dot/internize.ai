@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   BookOpen,
+  Calculator,
   Camera,
   CheckCircle,
   ChevronDown,
@@ -36,6 +37,7 @@ import { ImageInputPanel } from './ImageInputPanel';
 import { SAMPLE_ONKOLOGI_KOLOREKTAL } from './OncologyConverterCard';
 import { PpkExplorerModal } from './PpkExplorerModal';
 import { PrivacySensorPreviewModal } from './PrivacySensorPreviewModal';
+import { CdssExplorerModal } from './CdssExplorerModal';
 import { RxNormTable } from './RxNormTable';
 import { SnomedTable } from './SnomedTable';
 import { SoapNoteViewer } from './SoapNoteViewer';
@@ -74,6 +76,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
   const [showPpkExplorer, setShowPpkExplorer] = useState<boolean>(false);
   const [showPrivacyPreview, setShowPrivacyPreview] = useState<boolean>(false);
+  const [showCdssExplorer, setShowCdssExplorer] = useState<boolean>(false);
 
   const [soapNote, setSoapNote] = useState<SoapNote | null>(null);
   const [snomedConcepts, setSnomedConcepts] = useState<SnomedConcept[]>([]);
@@ -255,6 +258,18 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
           >
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
             <span>Sensor</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCdssExplorer(true)}
+            className="h-7 px-2 gap-1 bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 border-amber-500/50 font-bold text-[11px] shadow-sm shrink-0"
+            title="Kalkulator Klinis CDSS (ADJUSTR.IO, Calc-Med, fluid, EMD, GEH, HOM, Rheuma)"
+          >
+            <Calculator className="w-3 h-3 text-amber-300" />
+            <span>CDSS</span>
           </Button>
 
           <Button
@@ -791,6 +806,21 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
         isOpen={showPrivacyPreview}
         onClose={() => setShowPrivacyPreview(false)}
         rawText={inputText}
+        onShowToast={onShowToast}
+      />
+
+      {/* ── 10. CDSS Explorer Modal ──────────────────────────────────── */}
+      <CdssExplorerModal
+        isOpen={showCdssExplorer}
+        onClose={() => setShowCdssExplorer(false)}
+        clinicalText={inputText}
+        onInsertToDraft={(content) => {
+          const nextText = inputText ? `${inputText}\n\n${content}` : content;
+          setInputText(nextText);
+          onTextChange?.(nextText);
+          saveClinicalDraft(nextText);
+          onShowToast?.('Hasil kalkulator CDSS disisipkan ke draf!', 'success');
+        }}
         onShowToast={onShowToast}
       />
     </div>

@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
+  Calculator,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -47,6 +48,7 @@ import {
 import { ProtocolCard } from './ProtocolCard';
 import { PpkExplorerModal } from './PpkExplorerModal';
 import { PrivacySensorPreviewModal } from './PrivacySensorPreviewModal';
+import { CdssExplorerModal } from './CdssExplorerModal';
 import { insertTextToActiveField } from '../../services/emr/fieldInjector';
 import {
   type CloudSynthesizerMode,
@@ -140,6 +142,7 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
   const [showEmrPreview, setShowEmrPreview] = useState<boolean>(false);
   const [showPrivacyPreview, setShowPrivacyPreview] = useState<boolean>(false);
   const [showPpkExplorer, setShowPpkExplorer] = useState<boolean>(false);
+  const [showCdssExplorer, setShowCdssExplorer] = useState<boolean>(false);
 
   // ── Cloud Synthesizer state ─────────────────────────────────────────────────
   const [cloudAvailable, setCloudAvailable] = useState<boolean>(false);
@@ -807,6 +810,17 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
               >
                 <Search className="w-3 h-3 mr-0.5" />
                 <span>PPK</span>
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowCdssExplorer(true)}
+                className="h-6 px-1.5 text-[10px] bg-slate-800/90 text-amber-300 border-amber-500/50 hover:bg-slate-700 hover:text-amber-200"
+                title="Buka Kalkulator Klinis CDSS (ADJUSTR.IO, Calc-Med, fluid, EMD, GEH, HOM, Rheuma)"
+              >
+                <Calculator className="w-3 h-3 mr-0.5" />
+                <span>CDSS</span>
               </Button>
 
               <Button
@@ -1930,6 +1944,18 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
         isOpen={showPrivacyPreview}
         onClose={() => setShowPrivacyPreview(false)}
         rawText={inputText}
+      />
+
+      {/* ── CDSS Explorer Modal ── */}
+      <CdssExplorerModal
+        isOpen={showCdssExplorer}
+        onClose={() => setShowCdssExplorer(false)}
+        clinicalText={inputText}
+        onInsertToDraft={(content) => {
+          onApplySample ? onApplySample((inputText ? `${inputText}\n\n` : '') + content) : undefined;
+          onShowToast?.('Hasil perhitungan CDSS disisipkan ke draf!', 'success');
+        }}
+        onShowToast={onShowToast}
       />
     </div>
   );
