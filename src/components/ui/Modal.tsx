@@ -9,6 +9,8 @@ export interface ModalProps {
   title?: string;
   children: React.ReactNode;
   className?: string;
+  bodyClassName?: string;
+  hideCloseButton?: boolean;
   /** Width preset. Defaults to 'md'. */
   size?: 'sm' | 'md' | 'lg';
 }
@@ -30,6 +32,8 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   children,
   className,
+  bodyClassName,
+  hideCloseButton = false,
   size = 'md',
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -92,8 +96,8 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
       )}
 
-      {/* Close button when no title */}
-      {!title && (
+      {/* Close button when no title and not hidden */}
+      {!title && !hideCloseButton && (
         <button
           type="button"
           onClick={onClose}
@@ -105,7 +109,7 @@ export const Modal: React.FC<ModalProps> = ({
       )}
 
       {/* Body */}
-      <div className="p-4">{children}</div>
+      <div className={bodyClassName || 'p-4'}>{children}</div>
     </dialog>
   );
 };

@@ -45,7 +45,8 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleSelectSampleFromTour = () => {
+  const handleStartSampleCase = () => {
+    handleCloseTour();
     setActiveTab('clinical');
     setSampleLoadTrigger((prev) => prev + 1);
   };
@@ -102,7 +103,8 @@ export const App: React.FC = () => {
       <OnboardingTourModal
         isOpen={showTour}
         onClose={handleCloseTour}
-        onSelectSampleCase={handleSelectSampleFromTour}
+        onStartSampleCase={handleStartSampleCase}
+        onSelectSampleCase={handleStartSampleCase}
       />
 
       {/* Active Tab View */}

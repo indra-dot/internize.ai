@@ -7,12 +7,14 @@ export interface HeaderProps {
   onDeviceMode?: 'webgpu' | 'wasm' | 'ready';
   onSettingsClick?: () => void;
   onHelpClick?: () => void;
+  onHelpTour?: () => void;
   onClearSessionClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onDeviceMode = 'ready',
   onHelpClick,
+  onHelpTour,
   onClearSessionClick,
 }) => {
   const logoUrl =
@@ -72,22 +74,30 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* Quick Action: Feature Tour Help Button */}
-          {onHelpClick && (
-            <button
-              type="button"
-              onClick={onHelpClick}
-              title="Buka Panduan Fitur Internize 2.1"
-              className="p-1 rounded-md text-gold-700 hover:text-maroon-900 hover:bg-gold-50 border border-gold-300/60 transition-colors flex items-center justify-center font-bold text-xs w-6 h-6 shrink-0"
-            >
-              ?
-            </button>
-          )}
+          <button
+            type="button"
+            data-testid="header-help-tour-btn"
+            onClick={onHelpClick || onHelpTour}
+            title="Buka Panduan Fitur Internize 2.1"
+            aria-label="Panduan Fitur Internize 2.1"
+            className="p-1 rounded-md text-gold-700 hover:text-maroon-900 hover:bg-gold-50 border border-gold-300/60 transition-colors flex items-center justify-center font-bold text-xs w-6 h-6 shrink-0 cursor-pointer shadow-2xs"
+          >
+            ?
+          </button>
 
-          <Badge variant="success" size="sm" className="hidden xs:inline-flex gap-1 py-0.5 bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px]">
+          <Badge
+            variant="success"
+            size="sm"
+            className="hidden xs:inline-flex gap-1 py-0.5 bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px]"
+          >
             <ShieldCheck className="w-3 h-3 text-emerald-600" />
             <span>On-Device</span>
           </Badge>
-          <Badge variant="primary" size="sm" className="gap-1 py-0.5 bg-maroon-50 text-maroon-900 border-maroon-200 text-[10px]">
+          <Badge
+            variant="primary"
+            size="sm"
+            className="gap-1 py-0.5 bg-maroon-50 text-maroon-900 border-maroon-200 text-[10px]"
+          >
             <Cpu className="w-3 h-3 text-maroon-700" />
             <span className="uppercase font-semibold">{onDeviceMode}</span>
           </Badge>
