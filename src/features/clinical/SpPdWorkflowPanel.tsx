@@ -1802,6 +1802,11 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
       <PpkExplorerModal
         isOpen={showPpkExplorer}
         onClose={() => setShowPpkExplorer(false)}
+        onApplyToCase={(doc, templateText) => {
+          onApplySample?.(templateText);
+          setShowPpkExplorer(false);
+          onShowToast?.(`Panduan PPK "${doc.title}" berhasil diterapkan ke kasus!`, 'success');
+        }}
         onShowToast={onShowToast}
       />
 

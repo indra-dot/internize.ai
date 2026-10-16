@@ -32,7 +32,9 @@ import type {
   SoapNote,
 } from '../../types/clinical';
 import { ImageInputPanel } from './ImageInputPanel';
+import { SAMPLE_ONKOLOGI_KOLOREKTAL } from './OncologyConverterCard';
 import { PpkExplorerModal } from './PpkExplorerModal';
+import { PrivacySensorPreviewModal } from './PrivacySensorPreviewModal';
 import { RxNormTable } from './RxNormTable';
 import { SnomedTable } from './SnomedTable';
 import { SoapNoteViewer } from './SoapNoteViewer';
@@ -42,9 +44,6 @@ import {
   SAMPLE_RABER_CONSUL,
   SpPdWorkflowPanel,
 } from './SpPdWorkflowPanel';
-import {
-  SAMPLE_ONKOLOGI_KOLOREKTAL,
-} from './OncologyConverterCard';
 
 export interface ClinicalServiceTabProps {
   initialText?: string;
@@ -73,6 +72,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
   const [showOcrPanel, setShowOcrPanel] = useState<boolean>(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
   const [showPpkExplorer, setShowPpkExplorer] = useState<boolean>(false);
+  const [showPrivacyPreview, setShowPrivacyPreview] = useState<boolean>(false);
 
   const [soapNote, setSoapNote] = useState<SoapNote | null>(null);
   const [snomedConcepts, setSnomedConcepts] = useState<SnomedConcept[]>([]);
@@ -231,22 +231,42 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-gold-100">121 PPK &amp; Clinical Pathways</span>
-              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-gold-500/20 text-gold-300 border border-gold-500/30">9 Divisi PAPDI</span>
+              <span className="text-xs font-bold text-gold-100">
+                121 PPK &amp; Clinical Pathways
+              </span>
+              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-gold-500/20 text-gold-300 border border-gold-500/30">
+                9 Divisi PAPDI
+              </span>
             </div>
-            <p className="text-[10px] text-slate-300 font-medium">Buka panduan, dosis obat &amp; kriteria ICU instan tanpa input teks</p>
+            <p className="text-[10px] text-slate-300 font-medium">
+              Buka panduan, dosis obat &amp; kriteria ICU instan tanpa input teks
+            </p>
           </div>
         </div>
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          onClick={() => setShowPpkExplorer(true)}
-          className="h-7 px-2.5 gap-1 bg-gold-500 hover:bg-gold-600 text-maroon-950 font-bold text-[11px] shadow-sm shrink-0 border border-gold-400"
-        >
-          <Search className="w-3 h-3 text-maroon-950" />
-          <span>Cari PPK</span>
-        </Button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPrivacyPreview(true)}
+            className="h-7 px-2 gap-1 bg-slate-800/90 hover:bg-slate-700 text-emerald-300 border-emerald-500/50 font-bold text-[11px] shadow-sm shrink-0"
+            title="Pratinjau sensor privasi de-identifikasi data pasien"
+          >
+            <ShieldCheck className="w-3 h-3 text-emerald-400" />
+            <span>Sensor</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => setShowPpkExplorer(true)}
+            className="h-7 px-2.5 gap-1 bg-gold-500 hover:bg-gold-600 text-maroon-950 font-bold text-[11px] shadow-sm shrink-0 border border-gold-400"
+          >
+            <Search className="w-3 h-3 text-maroon-950" />
+            <span>Cari PPK</span>
+          </Button>
+        </div>
       </div>
 
       {/* ── 1. Alur Kerja Linear (Clean Step Indicator) ───────────────── */}
@@ -471,7 +491,6 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
         </div>
       )}
 
-
       {/* Draf SOAP Terstruktur (Jika tombol Analisis ditekan) */}
       {soapNote && (
         <div className="pt-1">
@@ -566,7 +585,9 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
             {/* Backend hardware status */}
             <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
               <div>
-                <span className="font-semibold text-slate-800 block text-[11px]">Backend Komputasi Klinis</span>
+                <span className="font-semibold text-slate-800 block text-[11px]">
+                  Backend Komputasi Klinis
+                </span>
                 <p className="text-[10.5px] text-slate-500">
                   {inferenceDevice === 'webgpu'
                     ? 'Akselerasi WebGPU terdeteksi & aktif di peramban.'
@@ -631,8 +652,8 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
               </p>
               <p className="text-[10.5px] text-slate-600 leading-relaxed mt-0.5">
                 Pemrosesan klinis inti berjalan lokal di peramban. Mode cloud bersifat opsional
-                (BYOK) dan hanya mengirim teks yang sudah di-de-identifikasi ke Google Gemini.
-                Data catatan medis tetap di perangkat Anda kecuali mode cloud diaktifkan.
+                (BYOK) dan hanya mengirim teks yang sudah di-de-identifikasi ke Google Gemini. Data
+                catatan medis tetap di perangkat Anda kecuali mode cloud diaktifkan.
               </p>
             </div>
           </div>
@@ -655,7 +676,9 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
       <div className="rounded-lg bg-amber-50/90 border border-amber-200/80 p-2.5 flex items-start gap-2">
         <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
         <p className="text-[10.5px] leading-relaxed text-amber-900">
-          <strong className="font-semibold">Clinical Scaffolding &amp; Decision Support Only:</strong>{' '}
+          <strong className="font-semibold">
+            Clinical Scaffolding &amp; Decision Support Only:
+          </strong>{' '}
           internize.ai Sp.PD menghasilkan draf terstruktur untuk mempermudah telaah klinis Dokter
           Spesialis Penyakit Dalam. Bukan pengganti pertimbangan klinis independen DPJP. Seluruh
           saran toleransi operasi, dosis terapi, dan rencana pemantauan wajib ditinjau dan
@@ -667,6 +690,21 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
       <PpkExplorerModal
         isOpen={showPpkExplorer}
         onClose={() => setShowPpkExplorer(false)}
+        onApplyToCase={(doc, templateText) => {
+          setInputText(templateText);
+          onTextChange?.(templateText);
+          saveClinicalDraft(templateText);
+          setShowPpkExplorer(false);
+          onShowToast?.(`Panduan PPK "${doc.title}" diterapkan ke catatan kasus!`, 'success');
+        }}
+        onShowToast={onShowToast}
+      />
+
+      {/* ── 9. Privacy Sensor Preview Modal ────────────────────────── */}
+      <PrivacySensorPreviewModal
+        isOpen={showPrivacyPreview}
+        onClose={() => setShowPrivacyPreview(false)}
+        rawText={inputText}
         onShowToast={onShowToast}
       />
     </div>
