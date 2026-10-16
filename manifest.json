@@ -35,14 +35,15 @@
   },
   "web_accessible_resources": [
     {
+      "matches": [
+        "chrome-extension://*/*"
+      ],
       "resources": [
         "wasm/*",
         "models/*",
         "models/clinical-ner/*"
       ],
-      "matches": [
-        "chrome-extension://*/*"
-      ]
+      "use_dynamic_url": false
     }
   ]
 }

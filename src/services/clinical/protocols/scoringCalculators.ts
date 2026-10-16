@@ -100,6 +100,7 @@ export function calculateARISCAT(text: string, vitals: ParsedVitals, labs: Parse
 
   return {
     name: 'ARISCAT Score',
+    score: totalScore,
     totalScore,
     interpretation,
     components,
@@ -138,6 +139,7 @@ export function calculateRCRI(text: string, _vitals: ParsedVitals, labs: ParsedL
 
   return {
     name: 'RCRI Score',
+    score: totalScore,
     totalScore,
     interpretation,
     components,
@@ -188,6 +190,7 @@ export function calculateCaprini(text: string, _vitals: ParsedVitals, _labs: Par
 
   return {
     name: 'Caprini VTE Score',
+    score: totalScore,
     totalScore,
     interpretation,
     components,
@@ -256,6 +259,7 @@ export function calculateImprove(text: string, _vitals: ParsedVitals, labs: Pars
 
   return {
     name: 'Improve Bleeding Risk',
+    score: totalScore,
     totalScore,
     interpretation,
     components,
@@ -277,7 +281,10 @@ export const CONSENSUS_OPTIMAL_CONDITIONS: string[] = [
 ];
 
 export function formatAriscatLine(score?: number | null): string {
-  const actualScore = score ?? 33;
+  if (score === null || score === undefined) {
+    return 'ARISCAT score [Data Kurang] (Parameter durasi operasi/SpO2 belum lengkap)';
+  }
+  const actualScore = score;
   let risk = '13.3% risk of in-hospital post-op pulmonary complication';
   if (actualScore < 26) risk = '1.6% risk of in-hospital post-op pulmonary complication';
   else if (actualScore <= 44) risk = '13.3% risk of in-hospital post-op pulmonary complication';
@@ -296,13 +303,19 @@ export function formatRcriLine(score?: number | null): string {
 }
 
 export function formatImproveLine(score?: number | null): string {
-  const actualScore = score ?? 3.5;
+  if (score === null || score === undefined) {
+    return 'Improved bleeding risk score [Data Kurang] (Parameter perdarahan/ICU belum lengkap)';
+  }
+  const actualScore = score;
   const risk = actualScore < 7 ? 'No increased risk of bleeding' : 'Increased risk of bleeding';
   return `Improved bleeding risk score ${actualScore} points (${risk})`;
 }
 
 export function formatCapriniLine(score?: number | null): string {
-  const actualScore = score ?? 15;
+  if (score === null || score === undefined) {
+    return 'Caprini VTE score [Data Kurang] (Parameter usia/tindakan belum lengkap)';
+  }
+  const actualScore = score;
   let risk = '10.7% VTE risk';
   if (actualScore <= 1) risk = '0.5% VTE risk';
   else if (actualScore === 2) risk = '0.7% VTE risk';

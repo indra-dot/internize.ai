@@ -3125,9 +3125,9 @@ export function generateConsultationAnswer(
       pulmonaryRiskNotes: problems.some((p) => p.division === 'pulmo')
         ? 'Optimalisasi bronkodilator pre/post ekstubasi.'
         : 'Risiko paru minimal.',
-      ariscatScore: ariscatRes.score,
-      capriniScore: capriniRes.score,
-      improveBleedingScore: improveRes.score,
+      ariscatScore: ariscatRes.totalScore ?? ariscatRes.score ?? null,
+      capriniScore: capriniRes.totalScore ?? capriniRes.score ?? null,
+      improveBleedingScore: improveRes.totalScore ?? improveRes.score ?? null,
     },
     abnormalLabs: labs,
     labTrends,

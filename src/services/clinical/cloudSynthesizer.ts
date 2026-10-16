@@ -83,7 +83,8 @@ export interface RisikoTindakan {
   nama_skor: string;
   poin: string;
   interpretasi: string;
-  level_risiko: 'low' | 'moderate' | 'high' | 'critical';
+  level_risiko: 'low' | 'moderate' | 'high' | 'critical' | 'unknown';
+  isPartial?: boolean;
 }
 
 export interface EvaluasiPreoperatif {
@@ -464,7 +465,7 @@ function normalizePreopDraft(
     const m = item && /(\d+)/.exec(item.poin);
     if (m) ariscatVal = parseInt(m[1], 10);
   }
-  if (ariscatVal === null) ariscatVal = 33;
+  // ariscatVal remains null if absent (formatAriscatLine handles Data Kurang)
 
   let rcriVal = groundingScores?.rcriScore ?? 0;
   const rcriMatch = /(?:revised cardiac risk index|rcri)\D*?(\d+)/i.exec(rawJawabKonsul);
@@ -485,7 +486,7 @@ function normalizePreopDraft(
     const m = item && /([\d\.]+)/.exec(item.poin);
     if (m) improveVal = parseFloat(m[1]);
   }
-  if (improveVal === null || isNaN(improveVal)) improveVal = 3.5;
+  if (improveVal !== null && isNaN(improveVal)) improveVal = null;
 
   let capriniVal: number | null = groundingScores?.capriniScore ?? null;
   const capriniMatch = /caprini(?: vte score)?\D*?(\d+)/i.exec(rawJawabKonsul);
@@ -496,7 +497,7 @@ function normalizePreopDraft(
     const m = item && /(\d+)/.exec(item.poin);
     if (m) capriniVal = parseInt(m[1], 10);
   }
-  if (capriniVal === null) capriniVal = 15;
+  // capriniVal remains null if absent
 
   // 2. Format standard risk score lines using exact clinical rules
   const ariscatLine = formatAriscatLine(ariscatVal);
@@ -547,27 +548,33 @@ function normalizePreopDraft(
     risiko_tindakan: [
       {
         nama_skor: 'ARISCAT score',
-        poin: `${ariscatVal} points`,
+        poin: ariscatVal !== null ? `${ariscatVal} points` : 'Data Kurang',
         interpretasi: ariscatLine.replace(/^.*?\((.*?)\)$/, '$1'),
-        level_risiko: ariscatVal >= 45 ? 'high' : ariscatVal >= 26 ? 'moderate' : 'low',
+        level_risiko:
+          ariscatVal === null ? 'unknown' : ariscatVal >= 45 ? 'high' : ariscatVal >= 26 ? 'moderate' : 'low',
+        isPartial: ariscatVal === null,
       },
       {
         nama_skor: 'Revised Cardiac Risk Index',
         poin: `${rcriVal} point`,
         interpretasi: rcriLine.replace(/^.*?\((.*?)\)$/, '$1'),
         level_risiko: rcriVal >= 2 ? 'high' : rcriVal === 1 ? 'moderate' : 'low',
+        isPartial: false,
       },
       {
         nama_skor: 'Improved bleeding risk score',
-        poin: `${improveVal} points`,
+        poin: improveVal !== null ? `${improveVal} points` : 'Data Kurang',
         interpretasi: improveLine.replace(/^.*?\((.*?)\)$/, '$1'),
-        level_risiko: improveVal >= 7 ? 'high' : 'low',
+        level_risiko: improveVal === null ? 'unknown' : improveVal >= 7 ? 'high' : 'low',
+        isPartial: improveVal === null,
       },
       {
         nama_skor: 'Caprini VTE score',
-        poin: `${capriniVal} points`,
+        poin: capriniVal !== null ? `${capriniVal} points` : 'Data Kurang',
         interpretasi: capriniLine.replace(/^.*?\((.*?)\)$/, '$1'),
-        level_risiko: capriniVal >= 5 ? 'high' : capriniVal >= 3 ? 'moderate' : 'low',
+        level_risiko:
+          capriniVal === null ? 'unknown' : capriniVal >= 5 ? 'high' : capriniVal >= 3 ? 'moderate' : 'low',
+        isPartial: capriniVal === null,
       },
     ],
   };

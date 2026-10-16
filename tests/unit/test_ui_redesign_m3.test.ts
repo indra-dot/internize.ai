@@ -294,14 +294,20 @@ describe('Milestone 3: Beginner User-Friendly UI Redesign Suite (Features 10-14)
   // ══════════════════════════════════════════════════════════════════════════
   // Feature 13: Prominent 1-Click Sample Button
   // ══════════════════════════════════════════════════════════════════════════
-  describe('Feature 13: Prominent 1-Click Sample Case Button', () => {
-    it('renders the prominent sample button above textarea in ClinicalServiceTab', () => {
+  describe('Feature 13: Prominent 1-Click Sample Case Button (Single Bottom Placement)', () => {
+    it('renders exactly one prominent sample button in empty state without upper duplicate', () => {
       const html = ReactDOMServer.renderToString(
         React.createElement(ClinicalServiceTab, { initialText: '' }),
       );
 
-      expect(html).toContain('data-testid="prominent-sample-preop-btn"');
-      expect(html).toContain('[ ⚡ Coba Contoh Kasus Pre-Op (1-Klik) ]');
+      // Single bottom button present
+      expect(html).toContain('data-testid="empty-state-sample-preop-btn"');
+      expect(html).toContain('Coba Contoh Kasus Pre-Op (1-Klik)');
+
+      // Upper duplicate button removed
+      expect(html).not.toContain('data-testid="prominent-sample-preop-btn"');
+      // No duplicate bracketed text with extra lightning icon
+      expect(html).not.toContain('[ ⚡ Coba Contoh Kasus Pre-Op (1-Klik) ]');
     });
 
     it('uses warm gold gradient styling and distinctive contrast', () => {
@@ -313,15 +319,6 @@ describe('Milestone 3: Beginner User-Friendly UI Redesign Suite (Features 10-14)
       expect(html).toContain('via-amber-400');
       expect(html).toContain('to-amber-500');
       expect(html).toContain('text-maroon-950');
-    });
-
-    it('also provides the prominent button in empty state', () => {
-      const html = ReactDOMServer.renderToString(
-        React.createElement(ClinicalServiceTab, { initialText: '' }),
-      );
-
-      expect(html).toContain('data-testid="empty-state-sample-preop-btn"');
-      expect(html).toContain('[ ⚡ Coba Contoh Kasus Pre-Op (1-Klik) ]');
     });
 
     it('sample text SAMPLE_PREOP_CONSUL contains comprehensive Sp.PD pre-operative data', () => {

@@ -486,18 +486,6 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
             />
           )}
 
-          {/* ⚡ Prominent 1-Click Sample Button for Beginners */}
-          <button
-            type="button"
-            data-testid="prominent-sample-preop-btn"
-            onClick={handleLoadSpPdSample}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-600 hover:to-amber-500 text-maroon-950 font-black text-xs border border-amber-300 shadow-sm transition-all hover:scale-[1.005] active:scale-[0.99] cursor-pointer"
-            title="Klik untuk langsung memuat contoh kasus klinis pre-operatif terencana lengkap dengan lab & komorbid"
-          >
-            <Zap className="w-4 h-4 text-maroon-950 fill-maroon-950 shrink-0" />
-            <span>[ ⚡ Coba Contoh Kasus Pre-Op (1-Klik) ]</span>
-          </button>
-
           {/* Quick Preset Buttons */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
             <span className="text-[10.5px] text-slate-500 font-medium shrink-0 flex items-center gap-1">
@@ -624,8 +612,8 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
               onClick={handleLoadSpPdSample}
               className="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-600 hover:to-amber-500 text-maroon-950 font-black text-xs border border-amber-300 shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
             >
-              <Zap className="w-3.5 h-3.5 fill-maroon-950 text-maroon-950" />
-              <span>[ ⚡ Coba Contoh Kasus Pre-Op (1-Klik) ]</span>
+              <Zap className="w-3.5 h-3.5 fill-maroon-950 text-maroon-950 shrink-0" />
+              <span>Coba Contoh Kasus Pre-Op (1-Klik)</span>
             </button>
             <div className="flex items-center justify-center gap-2 flex-wrap">
               <Button

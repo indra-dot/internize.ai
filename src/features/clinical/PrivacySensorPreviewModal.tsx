@@ -139,8 +139,10 @@ export const PrivacySensorPreviewModal: React.FC<PrivacySensorPreviewModalProps>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      hideCloseButton
+      bodyClassName="flex flex-col flex-1 min-h-0 overflow-hidden p-0"
       size="lg"
-      className="w-[96vw] max-w-5xl max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl border-emerald-800/40"
+      className="w-[96vw] max-w-5xl h-[92vh] max-h-[92vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl border-emerald-800/40"
     >
       {/* ── Modal Header ── */}
       <div className="bg-gradient-to-r from-emerald-950 via-slate-950 to-maroon-950 p-3.5 text-white flex items-center justify-between border-b border-emerald-500/30 shrink-0">

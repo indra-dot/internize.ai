@@ -368,44 +368,60 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
     const rcriLevel = rcriScore >= 2 ? 'high' : rcriScore === 1 ? 'moderate' : 'low';
     const rcriText = formatRcriLine(rcriScore).replace(/^.*?\((.*?)\)$/, '$1');
 
-    const ariscatVal = consultResult.riskStratification.ariscatScore ?? 33;
-    const ariscatLevel = ariscatVal >= 45 ? 'high' : ariscatVal >= 26 ? 'moderate' : 'low';
-    const ariscatText = formatAriscatLine(ariscatVal).replace(/^.*?\((.*?)\)$/, '$1');
+    const ariscatVal = consultResult.riskStratification.ariscatScore ?? null;
+    const ariscatLevel =
+      ariscatVal === null ? 'unknown' : ariscatVal >= 45 ? 'high' : ariscatVal >= 26 ? 'moderate' : 'low';
+    const ariscatText =
+      ariscatVal === null
+        ? 'Parameter durasi operasi / SpO2 belum lengkap di catatan medis'
+        : formatAriscatLine(ariscatVal).replace(/^.*?\((.*?)\)$/, '$1');
 
-    const improveVal = consultResult.riskStratification.improveBleedingScore ?? 3.5;
-    const improveLevel = improveVal >= 7 ? 'high' : 'low';
-    const improveText = formatImproveLine(improveVal).replace(/^.*?\((.*?)\)$/, '$1');
+    const improveVal = consultResult.riskStratification.improveBleedingScore ?? null;
+    const improveLevel =
+      improveVal === null ? 'unknown' : improveVal >= 7 ? 'high' : 'low';
+    const improveText =
+      improveVal === null
+        ? 'Parameter riwayat perdarahan / ICU belum terdeteksi'
+        : formatImproveLine(improveVal).replace(/^.*?\((.*?)\)$/, '$1');
 
-    const capriniVal = consultResult.riskStratification.capriniScore ?? 15;
-    const capriniLevel = capriniVal >= 5 ? 'high' : capriniVal >= 3 ? 'moderate' : 'low';
-    const capriniText = formatCapriniLine(capriniVal).replace(/^.*?\((.*?)\)$/, '$1');
+    const capriniVal = consultResult.riskStratification.capriniScore ?? null;
+    const capriniLevel =
+      capriniVal === null ? 'unknown' : capriniVal >= 5 ? 'high' : capriniVal >= 3 ? 'moderate' : 'low';
+    const capriniText =
+      capriniVal === null
+        ? 'Parameter mobilitas / jenis operasi belum lengkap di catatan medis'
+        : formatCapriniLine(capriniVal).replace(/^.*?\((.*?)\)$/, '$1');
 
     return {
       status_toleransi: consultResult.toleranceStatus,
       risiko_tindakan: [
         {
           nama_skor: 'ARISCAT score',
-          poin: `${ariscatVal} points`,
+          poin: ariscatVal !== null ? `${ariscatVal} points` : 'Data Kurang',
           interpretasi: ariscatText,
           level_risiko: ariscatLevel,
+          isPartial: ariscatVal === null,
         },
         {
           nama_skor: 'Revised Cardiac Risk Index',
           poin: `${rcriScore} point`,
           interpretasi: rcriText,
           level_risiko: rcriLevel,
+          isPartial: false,
         },
         {
           nama_skor: 'Improved bleeding risk score',
-          poin: `${improveVal} points`,
+          poin: improveVal !== null ? `${improveVal} points` : 'Data Kurang',
           interpretasi: improveText,
           level_risiko: improveLevel,
+          isPartial: improveVal === null,
         },
         {
           nama_skor: 'Caprini VTE score',
-          poin: `${capriniVal} points`,
+          poin: capriniVal !== null ? `${capriniVal} points` : 'Data Kurang',
           interpretasi: capriniText,
           level_risiko: capriniLevel,
+          isPartial: capriniVal === null,
         },
       ],
       target_optimalisasi: [...CONSENSUS_OPTIMAL_CONDITIONS],
@@ -664,17 +680,19 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
         {/* 4 Grid Mini-Cards for Risk Scores */}
         <div className="grid grid-cols-2 gap-2">
           {evaluasi.risiko_tindakan.map((r, idx) => {
-            const colorMap = {
+            const colorMap: Record<string, string> = {
               low: 'bg-emerald-50/80 border-emerald-300 text-emerald-950',
               moderate: 'bg-amber-50/80 border-amber-300 text-amber-950',
               high: 'bg-orange-50/80 border-orange-400 text-orange-950',
               critical: 'bg-rose-50/80 border-rose-400 text-rose-950',
+              unknown: 'bg-slate-50/90 border-slate-300 text-slate-800',
             };
-            const badgeMap = {
+            const badgeMap: Record<string, string> = {
               low: 'bg-emerald-100 text-emerald-800 border-emerald-300',
               moderate: 'bg-amber-100 text-amber-800 border-amber-300',
               high: 'bg-orange-100 text-orange-800 border-orange-300',
               critical: 'bg-rose-100 text-rose-800 border-rose-300',
+              unknown: 'bg-slate-200 text-slate-700 border-slate-300',
             };
 
             return (
@@ -687,7 +705,7 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                     {r.nama_skor}
                   </span>
                   <span className={`text-[8.5px] uppercase font-extrabold px-1.5 py-0.2 rounded border ${badgeMap[r.level_risiko] || badgeMap.moderate}`}>
-                    {r.level_risiko}
+                    {r.isPartial ? 'Data Kurang' : r.level_risiko}
                   </span>
                 </div>
                 <div className="font-extrabold text-sm text-slate-900 leading-none">
@@ -696,6 +714,13 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                 <p className="text-[10px] text-slate-700 leading-snug font-medium pt-0.5">
                   {r.interpretasi}
                 </p>
+                {r.isPartial && (
+                  <div className="pt-0.5">
+                    <span className="inline-flex items-center gap-1 text-[8.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100/90 text-amber-900 border border-amber-300">
+                      ⚠️ Data Kurang (Lengkapi di Form PPK/CDSS)
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })}

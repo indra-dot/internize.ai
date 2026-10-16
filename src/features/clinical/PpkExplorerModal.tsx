@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   BookOpen,
   Check,
+  ChevronLeft,
   ChevronRight,
   Clipboard,
   Copy,
@@ -211,6 +212,7 @@ export const PpkExplorerModal: React.FC<PpkExplorerModalProps> = ({
   const [activeTab, setActiveTab] = useState<'ptx' | 'pdx' | 'pmx' | 'pex' | 'icu' | 'citasi'>(
     'ptx',
   );
+  const [mobileListOpen, setMobileListOpen] = useState(false);
 
   const index = useMemo(() => PpkInvertedIndex.getInstance(), []);
   const allDocs = useMemo(() => index.getAllDocuments(), [index]);
@@ -275,6 +277,7 @@ export const PpkExplorerModal: React.FC<PpkExplorerModalProps> = ({
 
   const handleSelectDoc = (doc: PpkStoredDocument) => {
     setSelectedDoc(doc);
+    setMobileListOpen(false);
     onSelectGuideline?.(doc);
   };
 
@@ -282,8 +285,10 @@ export const PpkExplorerModal: React.FC<PpkExplorerModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      hideCloseButton
+      bodyClassName="flex flex-col flex-1 min-h-0 overflow-hidden p-0"
       size="lg"
-      className="w-[96vw] max-w-5xl max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl border-maroon-800/40"
+      className="w-[96vw] max-w-5xl h-[92vh] max-h-[92vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl border-maroon-800/40"
     >
       {/* ── Modal Header ── */}
       <div className="bg-gradient-to-r from-maroon-950 via-maroon-900 to-slate-950 p-3.5 text-white flex items-center justify-between border-b border-gold-600/40 shrink-0">
@@ -320,9 +325,9 @@ export const PpkExplorerModal: React.FC<PpkExplorerModalProps> = ({
       </div>
 
       {/* ── Main Layout: Sidebar & Content ── */}
-      <div className="flex-1 overflow-hidden flex flex-col sm:flex-row bg-slate-100/70">
+      <div className="flex-1 overflow-hidden flex flex-col sm:flex-row bg-slate-100/70 min-h-0">
         {/* Left Column: Search & Guideline List */}
-        <div className="w-full sm:w-80 border-r border-slate-200 flex flex-col bg-white shrink-0 max-h-[35vh] sm:max-h-full">
+        <div className={`w-full sm:w-80 border-r border-slate-200 flex flex-col bg-white shrink-0 sm:max-h-full min-h-0 ${selectedDoc && !mobileListOpen ? 'hidden sm:flex' : 'flex flex-1 sm:flex-initial'}`}>
           {/* Search Box */}
           <div className="p-2.5 border-b border-slate-200/80 space-y-2 bg-slate-50/70">
             <div className="relative">
@@ -447,9 +452,24 @@ export const PpkExplorerModal: React.FC<PpkExplorerModalProps> = ({
         </div>
 
         {/* Right Column: Selected Guideline Detail Viewer */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col bg-slate-50">
+        <div className={`flex-1 overflow-y-auto p-3 sm:p-4 flex flex-col bg-slate-50 min-h-0 ${!selectedDoc || mobileListOpen ? 'hidden sm:flex' : 'flex'}`}>
           {selectedDoc ? (
             <div className="space-y-3.5 flex-1 flex flex-col">
+              {/* Mobile Focus Bar: Back to List (< sm) */}
+              <div className="sm:hidden -mx-3 -mt-3 mb-2 px-3 py-2 bg-gradient-to-r from-maroon-950 to-maroon-900 border-b border-gold-600/40 flex items-center justify-between sticky top-0 z-10 shadow-xs">
+                <button
+                  type="button"
+                  onClick={() => setMobileListOpen(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gold-500/20 text-gold-200 hover:text-white border border-gold-400/40 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5 text-gold-300" />
+                  <span>← Ganti PPK / Tampilkan Daftar ({filteredDocs.length})</span>
+                </button>
+                <span className="text-[10px] font-mono text-gold-300/80 uppercase">
+                  {selectedDoc.division}
+                </span>
+              </div>
+
               {/* Document Banner */}
               <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-2.5">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5">
