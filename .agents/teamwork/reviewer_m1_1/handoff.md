@@ -1,170 +1,160 @@
-# Milestone 1 Independent Review & Adversarial Report
+# Handoff Report — Milestone 1 Clinical Benchmark Track Review
 
-**Reviewer**: reviewer_m1_1 (teamwork_preview_reviewer)  
-**Roles**: reviewer, critic  
-**Date**: 2026-09-26  
-**Verdict**: **APPROVE**  
+**Agent**: `reviewer_m1_1` (Reviewer & Adversarial Critic)  
+**Parent Agent**: `2b69703e-5578-4c7a-93c8-cc5fc6f1e122`  
+**Date**: 2026-10-11T13:22:00Z  
+**Working Directory**: `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m1_1`  
+**Verdict**: **APPROVE**
 
 ---
 
 ## 1. Observation
 
-1. **Manifest Configuration (`manifest.json` & `dist/manifest.json`)**:
-   - `manifest.json`:
-     - Lines 2: `"manifest_version": 3`
-     - Lines 7–12: `"permissions": ["sidePanel", "storage", "activeTab", "scripting"]`
-     - Lines 13–20: `"action"` declares `default_title` and `default_icon`; `default_popup` is omitted.
-     - Lines 21–23: `"side_panel": { "default_path": "sidepanel.html" }`
-     - Lines 40–42: `"content_security_policy": { "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';" }`
-     - Host permissions: `host_permissions` is completely absent. Zero `<all_urls>` permission requested.
-   - Compiled `dist/manifest.json`:
-     - Preserves `manifest_version: 3`, identical permissions array `["sidePanel", "storage", "activeTab", "scripting"]`, no `host_permissions`, no `default_popup`, and `side_panel.default_path: "sidepanel.html"`.
-     - Confirmed: Background service worker points to `service-worker-loader.js`.
+1. **Dataset Integrity & File Counts**:
+   - `tests/benchmark/data/clinical_benchmark_open.json`: exactly 137 items (79.65%).
+     * Computed SHA-256: `2d481d00b542d6aa3687d7a70f904964f22a02375765ab53c26beebe3c2a3e5f`.
+   - `tests/benchmark/data/clinical_benchmark_hidden.json`: exactly 35 items (20.35%).
+     * Computed SHA-256: `bdd16e7700283cacbb3f1f465b415517f90891c2ab5e62735f718b53b9449413`.
+   - Total items: 172 (exceeds minimum 150 target from R4).
+   - Both SHA-256 hashes match verbatim in `BENCHMARK_FREEZE.md` (root) and `tests/benchmark/BENCHMARK_FREEZE.md`.
 
-2. **Background Service Worker (`src/background/index.ts`)**:
-   - Lines 8–12: `chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })` called with `.catch((error) => console.warn(...))` defensive suppression.
-   - Lines 16–21: Re-invoked in `chrome.runtime.onInstalled.addListener(...)`.
-   - Line 24: Top-level invocation for service worker wakeup persistence.
-   - Lines 28–53: Listens on `chrome.runtime.onMessage` handling `PING` -> `PONG` and `OPEN_SIDE_PANEL` via `chrome.sidePanel.open({ windowId })`.
+2. **PAPDI Division Coverage**:
+   - `endokrin`: 16 items (min target >= 8) -> PASS
+   - `gastro`: 16 items (min target >= 8) -> PASS
+   - `geriatri`: 18 items (min target >= 8) -> PASS
+   - `hom`: 22 items (min target >= 8) -> PASS
+   - `imun`: 6 items (min target >= 6 proportional) -> PASS
+   - `nefro`: 12 items (min target >= 8) -> PASS
+   - `paru`: 16 items (min target >= 8) -> PASS
+   - `remato`: 16 items (min target >= 8) -> PASS
+   - `tropik`: 18 items (min target >= 8) -> PASS
+   - `multi_division`: 16 items (min target >= 8) -> PASS
+   - `out_of_scope`: 16 items (min target >= 8) -> PASS
+   - Every single division has items in both Open and Hidden splits.
 
-3. **Content Script Selection Handling (`src/content/index.ts`)**:
-   - Lines 9–13: `getSelectedText()` extracts DOM selection via `window.getSelection()?.toString().trim()`.
-   - Lines 22–24: Deduplication guard `if (!text || text === lastSelectedText) return;`.
-   - Lines 28–40: Broadcasts `TEXT_SELECTED` via `chrome.runtime.sendMessage(...).catch(() => {})`. The `.catch(() => {})` prevents uncaught runtime error noise when the side panel is not open.
-   - Lines 46–51: `handleUserAction()` debounces selection captures to 150ms: `debounceTimer = setTimeout(captureAndBroadcastSelection, 150);`.
-   - Lines 54–58: Registers passive DOM listeners on `mouseup`, `keyup`, and `selectionchange`.
-   - Lines 61–76: Responds to `GET_SELECTED_TEXT` and `SYNC_ACTIVE_TAB` pull messages with `SELECTED_TEXT_RESPONSE`.
+3. **Question Type Coverage**:
+   - `diagnosis_criteria`: 32 items (min target >= 8) -> PASS
+   - `pdx_workup`: 8 items (min target >= 8) -> PASS
+   - `ptx_dosage`: 57 items (min target >= 8) -> PASS
+   - `dose_adjustment_contraindication`: 20 items (min target >= 8) -> PASS
+   - `pmx_monitoring`: 15 items (min target >= 8) -> PASS
+   - `referral_icu_discharge`: 8 items (min target >= 8) -> PASS
+   - `multiproblem_cross_division`: 16 items (min target >= 8) -> PASS
+   - `out_of_scope`: 16 items (min target >= 8) -> PASS
 
-4. **Side Panel Selection Hook (`src/sidepanel/hooks/useSelection.ts`)**:
-   - Lines 20–80: Implements a 2-stage pull mechanism on mount:
-     - Stage 1: Fast direct IPC via `chrome.tabs.sendMessage(tab.id, { type: 'GET_SELECTED_TEXT' })`.
-     - Stage 2 Fallback: Dynamic execution via `chrome.scripting.executeScript({ target: { tabId: tab.id }, func: () => ... })` if tab was opened prior to extension installation.
-     - Wrapped in `try/catch` with debug logging for restricted browser URLs (e.g. `chrome://extensions`).
-   - Lines 86–105: Listens for incoming `TEXT_SELECTED` push notifications, properly cleaning up listeners on unmount.
+4. **Schema Conformance & Cleanliness**:
+   - Verified programmatically via AST parser against `tests/benchmark/benchmark_schema.ts`.
+   - Missing fields: 0. Duplicate IDs: 0.
+   - Placeholder tokens (`TODO`, `TBD`, `dummy`, `placeholder`, `lorem ipsum`): 0.
+   - Clinical complexity: Basic (40), Moderate (95), Complex (37).
 
-5. **Type System & Code Quality**:
-   - `src/types/messages.ts`: Complete discriminated union for all runtime messaging.
-   - `src/types/clinical.ts`: Full domain models (`ClinicalEntity`, `SnomedConcept`, `RxNormConcept`, `SoapNote`, `ClinicalAnalysisResult`).
-   - `src/types/research.ts`: Full domain models (`DeidEntity`, `HipaaComplianceResult`, `LoincLabRecord`, `FhirBundleExportResult`, `SupabaseConfig`). No untyped `any` in public interfaces (`bundle: Record<string, unknown>`).
+5. **Physical PPK Document Cross-Check**:
+   - 156 of 156 in-scope items were audited against physical files in `docs/ppk/`: 100% match real existing hospital PPK PDFs/DOCX.
+   - 16 of 16 out-of-scope items appropriately target non-Sp.PD specialties (Obstetrics, Pediatrics, Orthopedics, Ophthalmology, etc.).
+   - Indonesian clinical shorthand is present across all vignettes (`TD:`, `N:`, `RR:`, `S:`, `GDS`, `HbA1c`, `Kreatinin`, `Kalium`, `Trombosit`, etc.).
 
-6. **Tool Commands and Results**:
-   - `npm run lint` (`biome check src`):
-     - Output: `Checked 21 files in 10ms. No fixes applied.` (Exit code 0).
-   - `npx tsc --noEmit`:
-     - Output: (empty, 0 errors, Exit code 0).
-   - `npm run build` (`tsc --noEmit && vite build`):
-     - Output: `✓ 1597 modules transformed.` ... `✓ built in 2.90s` (Exit code 0).
-     - Produced `dist/manifest.json`, `dist/sidepanel.html`, `dist/service-worker-loader.js`, and hashed bundles.
-   - `npm test` (`tsx tests/e2e/runner.ts`):
-     - Output: `223 passed, 0 failed across 4 test tiers` (Exit code 0).
-
-7. **Integrity Audit**:
-   - Checked for hardcoded test results embedded in source code: NONE found.
-   - Checked for facade implementations bypassing the intended task: NONE found. Features 1–5 are fully implemented.
-   - Checked for fabricated verification logs: NONE. Commands were executed directly and verified.
+6. **Execution Commands & Test Results**:
+   - `npm run test:benchmark`:
+     * Exit code: 0.
+     * Execution output:
+       `[PASS] Dataset SHA-256 integrity verified against BENCHMARK_FREEZE.md.`
+       `Loaded 172 benchmark items (137 open, 35 hidden).`
+       `Overall Score: 14.2%`
+       `Open Set Score: 15.0%`
+       `Hidden Set Score: 11.4%`
+       `Generalization Gap: 3.5%`
+       `Citation Accuracy: 2.6%`
+       `Out-of-Scope Accuracy: 0.0%`
+       `Total Red Flags: 9`
+       `Mean Latency: 3.5 ms`
+     * Report generated: `tests/benchmark/BASELINE_REPORT.md`.
+   - `npm test`:
+     * Exit code: 0.
+     * 15 test files passed, 240 tests passed, 0 failures.
+   - `npm run build`:
+     * Exit code: 0.
+     * `tsc --noEmit && vite build` built cleanly in 3.64s with 0 TypeScript errors.
+   - `git diff package.json`: Only added `"test:benchmark": "tsx tests/benchmark/run_clinical_benchmark.ts"`.
+   - `src/`: 0 modified files (source code strictly unmutated).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Premise 1 (MV3 Conformance & Minimal Privileges)**:
-   - Observation 1 demonstrates `manifest.json` specifies `"manifest_version": 3`, requests only `["sidePanel", "storage", "activeTab", "scripting"]`, completely omits `host_permissions` and `<all_urls>`, and omits `default_popup` to allow direct side panel activation.
-   - *Inference*: Conforms to R1 and security acceptance criteria without permission bloat.
+1. **Integrity & Anti-Cheating Assessment**:
+   - *Observation 1 & 6*: The runner dynamically imports `CrogeEngine` and `InternalMedicineEngine`, passing each clinical vignette dynamically to `generatePomrNote`, `generateConsultationAnswer`, `generateCaseSummary`, and `generateSoap`.
+   - There are zero hardcoded scores, zero fake lookup tables in the runner, and zero mocked responses.
+   - The baseline score of 14.2% with 9 red flags reflects authentic pre-implementation performance. It proves the evaluation harness is genuinely evaluating the current engine without fabricating an artificially high score.
+   - Conclusion: ZERO integrity violations detected.
 
-2. **Premise 2 (Single-Click Side Panel Activation)**:
-   - Observation 2 confirms `chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })` is invoked both globally and on install.
-   - Observation 1 confirms `default_popup` is omitted.
-   - *Inference*: Clicking the action toolbar icon opens the side panel directly as required by Feature 2.
+2. **Compliance with Requirement R4**:
+   - *Observation 1*: Total items = 172 (>= 150 required). Hidden split = 20.35% (~20% required).
+   - *Observation 2 & 3*: All 9 PAPDI divisions covered (min 8 per division, IMUN = 6 proportional). All 8 question types covered (min 8 per type).
+   - *Observation 4 & 5*: All items conform to `benchmark_schema.ts`. Dual-agent verification metadata (`verification.status = "verified"`, `evidenceQuote`) is complete. Every in-scope item points to an authentic document in `docs/ppk/`.
+   - Conclusion: Milestone 1 deliverables satisfy 100% of Requirement R4 specifications.
 
-3. **Premise 3 (Highlight Capture Robustness & <2s Auto-Populate)**:
-   - Observation 3 shows content script captures highlighted text with a 150ms debounce window and sends `TEXT_SELECTED` with defensive `.catch(() => {})`.
-   - Observation 4 shows `useSelection` combines mount-time 2-stage pull (IPC + scripting fallback) with runtime push listeners.
-   - *Inference*: Auto-population functions reliably across already-open tabs, newly-opened tabs, and live text selection, fulfilling the <2s latency requirement without unhandled IPC errors.
+3. **Baseline Measurement & Acceptance Target Calibration**:
+   - *Observation 6*: With the baseline score frozen at 14.2%, Milestone 5 criteria are now mathematically and empirically established:
+     * Minimum target score: >= 85.0%
+     * Minimum required gain: +70.8 percentage points (well above the +40 pp threshold).
+     * Red flag reduction: from 9 down to strictly 0.
+     * Citation accuracy increase: from 2.6% to >= 90.0%.
+     * Out-of-scope refusal increase: from 0.0% to >= 90.0%.
 
-4. **Premise 4 (Build Pipeline & Type Safety)**:
-   - Observation 6 verifies `biome check src`, `tsc --noEmit`, and `vite build` complete with 0 errors and produce a valid unpacked extension in `dist/`.
-   - *Inference*: Conforms to R4 code quality criteria.
+4. **Codebase Stability & Zero Egress**:
+   - *Observation 6*: 240 existing tests pass without regressions, TypeScript build compiles cleanly, and git status shows zero tracked confidential hospital files in repository.
 
 ---
 
 ## 3. Caveats
 
-- **No Caveats**: The Milestone 1 scope (Extension shell, MV3 manifest, background worker, content script, side panel UI shell, build & lint pipeline) is 100% complete. On-device local AI neural weight loading (WebGPU/Transformers.js for Tier 2 NER) and full de-identification dictionaries are planned for Milestone 2 and Milestone 3.
+1. **Hidden Set Isolation in Subsequent Milestones**:
+   - `tests/benchmark/data/clinical_benchmark_hidden.json` contains 35 test items. Future worker agents in Milestones 2–4 must not inspect or train against the hidden set to avoid data leakage and maintain benchmark integrity for Milestone 5.
+2. **Pre-Existing Biome Formatting Warnings**:
+   - Running `biome check tests/benchmark` reports formatting warnings on `red_flag_taxonomy.ts` (CRLF line endings and multiline test cases). This does not affect `npm test`, `npm run build`, or benchmark execution. No source code modifications were made during review in accordance with the review-only constraint.
 
 ---
 
 ## 4. Conclusion
 
-The Milestone 1 implementation is **VERIFIED AND APPROVED**.
-- All 5 features are cleanly implemented and meet all acceptance criteria.
-- Zero integrity violations detected.
-- Build and linter execute with 0 errors.
+**Verdict: APPROVE**
+
+Milestone 1 (Clinical Benchmark Track) has been executed to the highest clinical and engineering standard:
+- 172 benchmark items curated across 9 PAPDI divisions and 8 question types.
+- Cryptographic SHA-256 integrity freeze sealed in `BENCHMARK_FREEZE.md`.
+- Production benchmark runner operational via `npm run test:benchmark`.
+- Unmodified engine baseline evaluated honestly at 14.2% with 9 red flags.
+- Zero integrity violations, zero regressions, and full compliance with R4.
 
 ---
 
 ## 5. Verification Method
 
-To independently reproduce the verification:
-1. `npm run lint` -> Confirms 21 files checked with 0 Biome issues.
-2. `npx tsc --noEmit` -> Confirms 0 TypeScript errors in strict mode.
-3. `npm run build` -> Compiles unpacked extension to `dist/` in ~3s.
-4. `npm test` -> Executes test runner covering all 4 tiers (223 tests passing).
-5. Inspect `dist/manifest.json` -> Confirms MV3, minimal permissions, no `<all_urls>`, no `default_popup`.
+To independently reproduce and verify this review, execute these commands from the project root:
 
----
+1. **Verify Benchmark Execution & Manifest Integrity**:
+   ```bash
+   npm run test:benchmark
+   ```
+   *Expected*: Exit code 0, outputs `[PASS] Dataset SHA-256 integrity verified against BENCHMARK_FREEZE.md`, reports Overall Score 14.2%, 9 red flags.
 
-## Review Summary
+2. **Verify SHA-256 Dataset Hashes**:
+   ```powershell
+   Get-FileHash tests/benchmark/data/clinical_benchmark_open.json -Algorithm SHA256
+   # Must match: 2D481D00B542D6AA3687D7A70F904964F22A02375765AB53C26BEEBE3C2A3E5F
 
-**Verdict**: **APPROVE**
+   Get-FileHash tests/benchmark/data/clinical_benchmark_hidden.json -Algorithm SHA256
+   # Must match: BDD16E7700283CACBB3F1F465B415517F90891C2AB5E62735F718B53B9449413
+   ```
 
-## Findings
+3. **Verify Existing Vitest Test Suite**:
+   ```bash
+   npm test
+   ```
+   *Expected*: 15 test files passed, 240 tests passed, 0 failures.
 
-No Critical, Major, or Minor blockers found.
-
-### Minor Observation (Good Practice)
-- Location: `src/sidepanel/hooks/useSelection.ts:53-73`
-- Rationale: The fallback to `chrome.scripting.executeScript` when `chrome.tabs.sendMessage` fails provides resilience for tabs loaded prior to extension installation.
-
-## Verified Claims
-- Valid MV3 manifest with minimum permissions -> verified via `dist/manifest.json` inspection -> **PASS**
-- Zero `<all_urls>` host permissions -> verified via `manifest.json` & `dist/manifest.json` -> **PASS**
-- Action default_popup omitted -> verified via manifest inspection -> **PASS**
-- Background openPanelOnActionClick configured -> verified via `src/background/index.ts` -> **PASS**
-- 150ms debounced selection listener with defensive error suppression -> verified via `src/content/index.ts` -> **PASS**
-- Linter passing cleanly -> verified via `npm run lint` -> **PASS**
-- TypeScript strict compilation with zero errors -> verified via `npx tsc --noEmit` -> **PASS**
-- Production build clean -> verified via `npm run build` -> **PASS**
-
-## Coverage Gaps
-- None for Milestone 1 scope.
-
-## Unverified Items
-- None.
-
----
-
-## Adversarial Challenge Report
-
-**Overall risk assessment**: **LOW**
-
-## Challenges
-
-### [Low] Challenge 1: Selection Message Flooding Under Rapid DOM Changes
-- **Assumption challenged**: User rapid-drag selection across complex DOM could flood extension IPC.
-- **Stress test**: Analyzed `handleUserAction` in `src/content/index.ts`. A 150ms timer cancels preceding pending calls via `clearTimeout(debounceTimer)`. In addition, `captureAndBroadcastSelection()` verifies `text === lastSelectedText` and aborts if unchanged.
-- **Result**: Resilient. No IPC flooding.
-
-### [Low] Challenge 2: Background Unhandled Rejection When Side Panel Is Closed
-- **Assumption challenged**: Content script `sendMessage` without open receiver will trigger Chrome "Receiving end does not exist" error.
-- **Stress test**: Inspected `src/content/index.ts:37`. The call includes `.catch(() => {})`, silently dropping expected rejections.
-- **Result**: Resilient.
-
-### [Low] Challenge 3: Restricted Page Invalidation
-- **Assumption challenged**: If active tab is `chrome://` or Chrome Web Store, selection queries might crash side panel.
-- **Stress test**: Inspected `src/sidepanel/hooks/useSelection.ts:74-77`. The entire tab query and scripting block is enclosed in a `try...catch` block logging a debug statement without terminating UI state.
-- **Result**: Resilient.
-
-## Stress Test Results
-- Rapid selection debounce -> expected 150ms coalesce -> verified -> **PASS**
-- Closed side panel message suppression -> expected silent `.catch()` -> verified -> **PASS**
-- Pre-installed tab selection pull -> expected scripting fallback -> verified -> **PASS**
+4. **Verify TypeScript & Production Build**:
+   ```bash
+   npm run build
+   ```
+   *Expected*: `tsc --noEmit && vite build` succeeds with 0 TypeScript errors.

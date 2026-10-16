@@ -1,56 +1,56 @@
 /**
  * client.ts
  * Supabase integration for internize.ai.
- * Reads Supabase credentials from chrome.storage.sync and provides
- * a typed push function for FHIR Bundle upsert.
+ * Reads Supabase credentials strictly from chrome.storage.local (with sync fallback migration)
+ * and provides a typed push function for FHIR Bundle upsert.
  */
 
 import { type SupabaseClient, createClient } from '@supabase/supabase-js';
 import type { FhirBundle } from '../../types/fhir';
 import type { SupabaseConfig } from '../../types/research';
+import {
+  localGet,
+  localSet,
+  syncGet,
+  syncRemove,
+} from '../storage/chromeStorage';
 
 // ---------------------------------------------------------------------------
 // Credential helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Loads Supabase config from chrome.storage.sync.
+ * Loads Supabase config from chrome.storage.local.
+ * Falls back to chrome.storage.sync for backward compatibility and auto-migrates
+ * legacy credentials into local storage while deleting the sync copy.
  * Returns null if running outside extension context or if not configured.
  */
 export async function loadSupabaseConfig(): Promise<SupabaseConfig | null> {
-  return new Promise((resolve) => {
-    if (typeof chrome === 'undefined' || !chrome.storage?.sync) {
-      resolve(null);
-      return;
-    }
-    chrome.storage.sync.get(['supabaseConfig'], (result) => {
-      const config = result.supabaseConfig as SupabaseConfig | undefined;
-      if (config?.url && config?.anonKey) {
-        resolve(config);
-      } else {
-        resolve(null);
-      }
-    });
-  });
+  // 1. Check local storage first
+  const { supabaseConfig: localConfig } = await localGet(['supabaseConfig']);
+  if (localConfig?.url && localConfig?.anonKey) {
+    return localConfig;
+  }
+
+  // 2. Fallback: check chrome.storage.sync for existing credentials & auto-migrate
+  const { supabaseConfig: syncConfig } = await syncGet(['supabaseConfig']);
+  if (syncConfig?.url && syncConfig?.anonKey) {
+    // Migrate to local and purge from sync
+    await localSet({ supabaseConfig: syncConfig });
+    await syncRemove(['supabaseConfig']);
+    return syncConfig;
+  }
+
+  return null;
 }
 
 /**
- * Saves Supabase config to chrome.storage.sync.
+ * Saves Supabase config to chrome.storage.local and removes any legacy
+ * copy from chrome.storage.sync to ensure credentials never sync across devices.
  */
 export async function saveSupabaseConfig(config: SupabaseConfig): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (typeof chrome === 'undefined' || !chrome.storage?.sync) {
-      resolve();
-      return;
-    }
-    chrome.storage.sync.set({ supabaseConfig: config }, () => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve();
-      }
-    });
-  });
+  await localSet({ supabaseConfig: config });
+  await syncRemove(['supabaseConfig']);
 }
 
 // ---------------------------------------------------------------------------

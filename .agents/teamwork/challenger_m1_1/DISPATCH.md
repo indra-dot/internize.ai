@@ -1,14 +1,22 @@
-## 2026-09-26T12:26:03Z
-**Context**: Milestone 1 Empirical Verification (Challenger 1)
-**Identity**: You are challenger_m1_1, a teamwork_preview_challenger.
-**Working Directory**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m1_1
-**Original Request**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\ORIGINAL_REQUEST.md (MANDATORY: Read this first).
-**Scope Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\sub_orch_m1\SCOPE.md
-**Project Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
+## 2026-10-11T13:13:45Z
+You are Challenger 1 for Milestone 1: Clinical Benchmark Track.
+Your working directory is:
+c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m1_1
 
-**Objective**:
-Empirically stress-test Milestone 1 build artifacts and configuration:
-1. Verify `dist/manifest.json` parses as valid JSON and conforms strictly to MV3 rules. Assert permissions contains only `["sidePanel", "storage", "activeTab", "scripting"]` and NO `<all_urls>` or `http://*/*` in `host_permissions`.
-2. Verify all files referenced in `dist/manifest.json` (`sidepanel.html`, `service-worker-loader.js`, icons) exist and are non-empty.
-3. Test build idempotency: execute `npm run build` and ensure exit code 0.
-4. Record your verdict (APPROVE or CHALLENGE_FAILED) with empirical evidence in `handoff.md` and send a completion message with summary.
+MANDATORY: Read:
+1. ORIGINAL_REQUEST.md at: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md (specifically R4 and Acceptance Criteria)
+2. PROJECT.md at: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
+3. GEMINI.md in the project root.
+4. Worker handoff: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m1_1\handoff.md
+
+Tasks:
+1. Execute adversarial, independent cross-verification of candidate answer keys against physical documents in `docs/ppk/`:
+   - "setiap jawaban kunci harus diverifikasi silang oleh agen kedua yang independen terhadap teks PPK; item yang diperdebatkan atau tidak didukung PPK dibuang sebelum di-freeze."
+2. Write a verification script to audit all 172 items across `tests/benchmark/data/clinical_benchmark_open.json` and `clinical_benchmark_hidden.json`:
+   - Verify that every cited PPK file exists in `docs/ppk/`.
+   - Verify that cited sections exist and dosages/criteria correspond to authentic guidelines.
+   - Check if any items are disputed, unsupported, or hallucinated.
+3. Render an explicit verdict: APPROVE or REQUEST_CHANGES.
+4. Write your report in:
+   `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m1_1\handoff.md`.
+5. Send completion message to parent.

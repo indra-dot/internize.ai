@@ -1,16 +1,29 @@
-## 2026-09-26T12:26:03Z
+## 2026-10-11T13:13:45Z
+You are the Forensic Integrity Auditor for Milestone 1: Clinical Benchmark Track.
+Your working directory is:
+c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\auditor_m1_1
 
-**Context**: Milestone 1 Forensic Integrity Audit
-**Identity**: You are auditor_m1_1, a teamwork_preview_auditor.
-**Working Directory**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\auditor_m1_1
-**Original Request**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\ORIGINAL_REQUEST.md (MANDATORY: Read this first).
-**Scope Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\sub_orch_m1\SCOPE.md
-**Project Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
+MANDATORY: Read:
+1. ORIGINAL_REQUEST.md at: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md
+2. PROJECT.md at: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
+3. GEMINI.md in the project root.
+4. Worker handoff: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m1_1\handoff.md
 
-**Objective**:
-Perform a rigorous forensic integrity audit of Milestone 1:
-1. Verify genuine implementation: Ensure code is not a facade, dummy mockup, or hardcoded shell.
-2. Verify security constraints: Ensure NO `<all_urls>` host permissions exist in `manifest.json` or source code.
-3. Verify no telemetry, external analytics, or unauthorized external network calls are present.
-4. Verify all files follow genuine MV3 architecture.
-5. Record your verdict (CLEAN or INTEGRITY VIOLATION) in `handoff.md` with detailed evidence. Note: An INTEGRITY VIOLATION is a binary veto. Send a completion message with summary.
+Tasks:
+Perform comprehensive forensic integrity verification on Milestone 1 deliverables:
+1. Anti-Cheating Check:
+   - Verify that neither `tests/benchmark/run_clinical_benchmark.ts` nor any helper script hardcodes test outputs, fakes scores, or fabricates metrics.
+   - Verify that `--baseline` evaluation executes genuine inference against real `CrogeEngine` / `InternalMedicineEngine`.
+2. Source Code Invariant Check:
+   - Verify that `src/` files were NOT modified by Milestone 1 (`git diff --stat src/` must be completely empty).
+   - Verify that `docs/ppk/` is NOT staged or tracked in git (`git ls-files docs/ppk/` must be empty).
+3. Freezing Invariant Check:
+   - Compute SHA-256 of `tests/benchmark/data/clinical_benchmark_open.json` and `clinical_benchmark_hidden.json`.
+   - Verify that actual file hashes match the values recorded in `BENCHMARK_FREEZE.md` (root and `tests/benchmark/`).
+4. Privacy & Zero-Egress Invariant:
+   - Verify that no network requests are made during inference or benchmark execution.
+   - Verify that no raw hospital identities (RSUP Sanglah, RS Ngoerah, physician names) leak into tracked project files.
+5. Render an explicit verdict: CLEAN or INTEGRITY VIOLATION.
+6. Write your detailed forensic report in:
+   `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\auditor_m1_1\handoff.md`.
+7. Send completion message to parent.

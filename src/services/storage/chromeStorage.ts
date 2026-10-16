@@ -5,7 +5,15 @@
  * the extension context (e.g., during development / Vite dev server).
  */
 
+import { clearClinicalCache } from '../clinical/clinicalCache';
 import type { LocalStorageSchema, SyncStorageSchema } from '../../types/storage';
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/** Draft TTL: 12 hours in milliseconds (43,200,000 ms). */
+export const DRAFT_TTL_MS = 12 * 60 * 60 * 1000;
 
 // ---------------------------------------------------------------------------
 // Generic helpers
@@ -101,7 +109,7 @@ export async function localRemove(keys: (keyof LocalStorageSchema)[]): Promise<v
 }
 
 // ---------------------------------------------------------------------------
-// Draft persistence helpers (convenience wrappers)
+// Draft persistence helpers (convenience wrappers with 12h TTL auto-expiry)
 // ---------------------------------------------------------------------------
 
 /** Persists the clinical tab's input text as a draft. */
@@ -109,10 +117,20 @@ export async function saveClinicalDraft(inputText: string): Promise<void> {
   await localSet({ clinicalDraft: { inputText, lastUpdated: Date.now() } });
 }
 
-/** Loads the previously saved clinical draft, if any. */
+/**
+ * Loads the previously saved clinical draft, if any.
+ * Auto-purges and returns null if older than 12 hours (DRAFT_TTL_MS) or missing timestamp.
+ */
 export async function loadClinicalDraft(): Promise<string | null> {
   const { clinicalDraft } = await localGet(['clinicalDraft']);
-  return clinicalDraft?.inputText ?? null;
+  if (!clinicalDraft) return null;
+
+  const now = Date.now();
+  if (!clinicalDraft.lastUpdated || now - clinicalDraft.lastUpdated > DRAFT_TTL_MS) {
+    await localRemove(['clinicalDraft']);
+    return null;
+  }
+  return clinicalDraft.inputText ?? null;
 }
 
 /** Persists the research tab's raw text as a draft. */
@@ -120,8 +138,49 @@ export async function saveResearchDraft(rawText: string): Promise<void> {
   await localSet({ researchDraft: { rawText, lastUpdated: Date.now() } });
 }
 
-/** Loads the previously saved research draft, if any. */
+/**
+ * Loads the previously saved research draft, if any.
+ * Auto-purges and returns null if older than 12 hours (DRAFT_TTL_MS) or missing timestamp.
+ */
 export async function loadResearchDraft(): Promise<string | null> {
   const { researchDraft } = await localGet(['researchDraft']);
-  return researchDraft?.rawText ?? null;
+  if (!researchDraft) return null;
+
+  const now = Date.now();
+  if (!researchDraft.lastUpdated || now - researchDraft.lastUpdated > DRAFT_TTL_MS) {
+    await localRemove(['researchDraft']);
+    return null;
+  }
+  return researchDraft.rawText ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Patient session wiper (1-Click Panic Button)
+// ---------------------------------------------------------------------------
+
+/**
+ * Wipes all active patient drafts, session token maps, and synthesis caches.
+ * Does NOT delete user preferences, Gemini API keys, or Supabase credentials.
+ */
+export async function clearAllPatientSessions(): Promise<void> {
+  // 1. Wipe clinical and research drafts from local storage
+  await localRemove(['clinicalDraft', 'researchDraft']);
+
+  // 2. Wipe chrome.storage.session (in-memory token maps for cloud synthesizer)
+  if (typeof chrome !== 'undefined' && chrome.storage?.session) {
+    try {
+      await new Promise<void>((resolve) => {
+        if (typeof chrome.storage.session.clear === 'function') {
+          chrome.storage.session.clear(() => resolve());
+        } else {
+          resolve();
+        }
+      });
+    } catch (e) {
+      console.warn('[chromeStorage] Failed to clear session storage:', e);
+    }
+  }
+
+  // 3. Clear all cached clinical synthesis analyses & entities
+  await clearClinicalCache();
 }

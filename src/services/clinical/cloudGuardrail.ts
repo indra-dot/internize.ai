@@ -154,9 +154,10 @@ function assertTokensIntact(
   return null;
 }
 
-/** Extract all tokens of form [WORD_N] from a sanitized text string */
+/** Extract all tokens of form [WORD_N] or standard Safe Harbor tokens [NAME], [MRN], etc. */
 export function extractTokens(sanitizedText: string): string[] {
-  const TOKEN_RE = /\[([A-Z_]+_\d+)\]/g;
+  const TOKEN_RE =
+    /\[((?:NAME|MRN|NIK|BPJS|PHONE|FAX|EMAIL|SSN|HEALTH_PLAN_ID|ADDRESS|ZIP|DATE|PATIENT|DOCTOR|HOSPITAL|CLINIC|AGE|GENDER|IP_ADDRESS|URL|ACCOUNT_NUMBER|LICENSE_NUMBER)(?:_\d+)?|[A-Z_]+_\d+)\]/g;
   const tokens = new Set<string>();
   let m: RegExpExecArray | null;
   // eslint-disable-next-line no-cond-assign
@@ -168,25 +169,68 @@ export function extractTokens(sanitizedText: string): string[] {
 
 // ─── Layer 3: Anti-Leakage Scan ──────────────────────────────────────────────
 
-interface LeakagePattern {
+export interface LeakagePattern {
   name: string;
   pattern: RegExp;
 }
 
 /**
  * Patterns that should NEVER appear in a properly de-identified cloud response.
- * These represent direct identifiers that escaped sanitization.
+ * Covers US HIPAA Safe Harbor + Indonesian UU PDP No. 27/2022 identifiers.
  */
-const LEAKAGE_PATTERNS: LeakagePattern[] = [
+export const LEAKAGE_PATTERNS: LeakagePattern[] = [
+  // 1. National Identity (NIK 16-digit)
   { name: 'NIK (16-digit)', pattern: /\b\d{16}\b/ },
-  { name: 'Indonesian phone (+62)', pattern: /\+62\s?8\d{7,11}\b/ },
-  { name: 'Indonesian phone (08xx)', pattern: /\b08\d{7,11}\b/ },
+
+  // 2. Health Plan / BPJS Kesehatan (13-digit)
+  {
+    name: 'BPJS Kesehatan (13-digit)',
+    pattern: /\b(?:\d{13}|\d{4}[-\s]\d{4}[-\s]\d{5})\b/,
+  },
+  {
+    name: 'BPJS Kesehatan (prefixed)',
+    pattern: /\b(?:BPJS(?:(?:\s+Kesehatan)|\s+TK)?|No\.?\s*Kartu|No\.?\s*Peserta)[:.\s#]+(?!\s*\[)[0-9-]{10,16}\b/i,
+  },
+
+  // 3. Telecommunications (Indonesian phone formatted & unformatted)
+  {
+    name: 'Indonesian phone (+62 formatted)',
+    pattern: /\+62[\s.-]?8(?:[\s.-]?\d){6,11}\b/,
+  },
+  {
+    name: 'Indonesian phone (08xx formatted)',
+    pattern: /\b08[1-9](?:[\s.-]?\d){6,11}\b/,
+  },
+
+  // 4. Medical Record Numbers (Indonesian MRN)
+  {
+    name: 'Indonesian MRN',
+    pattern: /\b(?:No\.?\s*RM|RM|NRM|MRN|No\.?\s*Rekam\s*Medis|Nomor\s*Rekam\s*Medis|Rekam\s*Medis|Medical\s*Record(?:\s*Number)?)[:.\s#]+(?!\s*\[)(?=[A-Za-z0-9\-./]*\d)(?:[A-Za-z0-9\/-]|\.(?=\d)){3,16}\b/i,
+  },
+
+  // 5. Patient Name Honorifics (Indonesian Honorifics)
+  {
+    name: 'Indonesian honorific name (Tn/Ny/Nn/By/Sdr/Bp)',
+    pattern: /\b(?:Tn|Ny|Nn|By|Sdr|Sdri|Bpk?)\.?\s+(?!\s*\[)(?!\b(?:Pasien|Dokter)\b)[A-Z][a-zA-Z'.]+/i,
+  },
+  {
+    name: 'Indonesian honorific name (An/Anak)',
+    pattern: /\bAn\.?\s+(?!\s*\[)(?!(?:defisiensi|aplastik|hemolitik|gravis|pernisiosa|renal|normositik|mikrositik|makrositik|megaloblastik|sideroblastik|ec|akut|kronik|pasien|dokter)\b)[A-Z][a-zA-Z'.]+/i,
+  },
+  {
+    name: 'Indonesian honorific name (Ibu)',
+    pattern: /\bIbu\.?\s+(?!\s*\[)(?!(?:jari|hamil|menyusui|kandung|pasien|bayi|dokter)\b)[A-Z][a-zA-Z'.]+/i,
+  },
+
+  // 6. Network & Web Identifiers
   { name: 'IPv4 address', pattern: /\b(?:\d{1,3}\.){3}\d{1,3}\b/ },
   { name: 'Email address', pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}\b/i },
+
+  // 7. Standard US SSN
   { name: 'SSN pattern', pattern: /\b\d{3}-\d{2}-\d{4}\b/ },
 ];
 
-function scanForLeakage(jsonStr: string): string | null {
+export function scanForLeakage(jsonStr: string): string | null {
   for (const { name, pattern } of LEAKAGE_PATTERNS) {
     if (pattern.test(jsonStr)) {
       return `PHI leakage detected: ${name} pattern found in cloud response`;

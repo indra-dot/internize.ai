@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  BookOpen,
   Camera,
   CheckCircle,
   ChevronDown,
@@ -9,6 +10,7 @@ import {
   FileText,
   Lock,
   RotateCcw,
+  Search,
   ShieldCheck,
   Sliders,
   Sparkles,
@@ -30,6 +32,7 @@ import type {
   SoapNote,
 } from '../../types/clinical';
 import { ImageInputPanel } from './ImageInputPanel';
+import { PpkExplorerModal } from './PpkExplorerModal';
 import { RxNormTable } from './RxNormTable';
 import { SnomedTable } from './SnomedTable';
 import { SoapNoteViewer } from './SoapNoteViewer';
@@ -47,6 +50,7 @@ export interface ClinicalServiceTabProps {
   initialText?: string;
   onTextChange?: (text: string) => void;
   onShowToast?: (message: string, type: 'info' | 'success' | 'warning' | 'error') => void;
+  sampleLoadTrigger?: number;
 }
 
 export const SAMPLE_CLINICAL_NOTE =
@@ -60,6 +64,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
   initialText = '',
   onTextChange,
   onShowToast,
+  sampleLoadTrigger,
 }) => {
   const [inputText, setInputText] = useState<string>(initialText);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -67,6 +72,7 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
   const [executionTimeMs, setExecutionTimeMs] = useState<number | null>(null);
   const [showOcrPanel, setShowOcrPanel] = useState<boolean>(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
+  const [showPpkExplorer, setShowPpkExplorer] = useState<boolean>(false);
 
   const [soapNote, setSoapNote] = useState<SoapNote | null>(null);
   const [snomedConcepts, setSnomedConcepts] = useState<SnomedConcept[]>([]);
@@ -97,6 +103,13 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
     setInputText(initialText);
     onTextChange?.(initialText);
   }, [initialText, onTextChange]);
+
+  // ── React to tour sample load trigger ──────────────────────────────────
+  useEffect(() => {
+    if (sampleLoadTrigger && sampleLoadTrigger > 0) {
+      handleLoadSpPdSample();
+    }
+  }, [sampleLoadTrigger]);
 
   // ── Handlers ──────────────────────────────────────────────────────────
 
@@ -210,6 +223,32 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4 px-4 pb-6 select-text">
+      {/* ── 0. Top Bar: Quick PPK Explorer Launch Banner ───────────────── */}
+      <div className="bg-gradient-to-r from-maroon-900 via-maroon-950 to-slate-900 p-2.5 rounded-xl border border-gold-600/40 shadow-sm flex items-center justify-between text-white">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-maroon-800 border border-gold-500/50 flex items-center justify-center text-gold-300 shrink-0">
+            <BookOpen className="w-3.5 h-3.5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-gold-100">121 PPK &amp; Clinical Pathways</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-gold-500/20 text-gold-300 border border-gold-500/30">9 Divisi PAPDI</span>
+            </div>
+            <p className="text-[10px] text-slate-300 font-medium">Buka panduan, dosis obat &amp; kriteria ICU instan tanpa input teks</p>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={() => setShowPpkExplorer(true)}
+          className="h-7 px-2.5 gap-1 bg-gold-500 hover:bg-gold-600 text-maroon-950 font-bold text-[11px] shadow-sm shrink-0 border border-gold-400"
+        >
+          <Search className="w-3 h-3 text-maroon-950" />
+          <span>Cari PPK</span>
+        </Button>
+      </div>
+
       {/* ── 1. Alur Kerja Linear (Clean Step Indicator) ───────────────── */}
       <div className="bg-slate-100/90 border border-slate-200/90 rounded-xl p-2.5 shadow-2xs">
         <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500">
@@ -623,6 +662,13 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
           divalidasi oleh dokter penanggung jawab sebelum persetujuan tindakan medis.
         </p>
       </div>
+
+      {/* ── 8. PPK Explorer Modal ──────────────────────────────────── */}
+      <PpkExplorerModal
+        isOpen={showPpkExplorer}
+        onClose={() => setShowPpkExplorer(false)}
+        onShowToast={onShowToast}
+      />
     </div>
   );
 };

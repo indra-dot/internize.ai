@@ -421,6 +421,131 @@ const VALID_MARKDOWN_POMR = `
   expect('Markdown re-id: no residual [PATIENT_1]', !reidentified.includes('[PATIENT_1]'));
 }
 
+section('Layer 3 Hardening: Indonesian Phone Formats');
+{
+  // 3g. Formatted 0812-3456-7890
+  const bad = buildValidOutput({ summary_one_liner: 'Kontak: 0812-3456-7890' });
+  const res = runGuardrail(bad, '');
+  expect('Hyphenated Indonesian phone (0812-3456-7890) → phi_leak', res.status === 'phi_leak');
+
+  // 3h. Formatted +62 812-3456-7890
+  const bad2 = buildValidOutput({ summary_one_liner: 'Telp: +62 812-3456-7890' });
+  const res2 = runGuardrail(bad2, '');
+  expect('Formatted +62 phone (+62 812-3456-7890) → phi_leak', res2.status === 'phi_leak');
+
+  // 3i. Space-separated 0812 3456 7890
+  const bad3 = buildValidOutput({ summary_one_liner: 'WA: 0812 3456 7890' });
+  const res3 = runGuardrail(bad3, '');
+  expect('Space-separated phone (0812 3456 7890) → phi_leak', res3.status === 'phi_leak');
+
+  // 3j. Anti-false-positive: time format 08.00 - 12.00
+  const goodTime = buildValidOutput({ summary_one_liner: 'Jadwal visit pk 08.00 - 12.00' });
+  const resGoodTime = runGuardrail(goodTime, '');
+  expect('Time string (pk 08.00 - 12.00) does NOT trigger phi_leak', resGoodTime.status === 'pass');
+}
+
+section('Layer 3 Hardening: 13-Digit BPJS Card Numbers');
+{
+  // 3k. Standalone 13-digit BPJS card
+  const bad = buildValidOutput({ summary_one_liner: 'No BPJS: 0001234567890 terlampir' });
+  const res = runGuardrail(bad, '');
+  expect('13-digit BPJS card (0001234567890) → phi_leak', res.status === 'phi_leak');
+
+  // 3l. Hyphenated 13-digit BPJS card
+  const bad2 = buildValidOutput({ summary_one_liner: 'BPJS: 0001-2345-67890' });
+  const res2 = runGuardrail(bad2, '');
+  expect('Hyphenated BPJS card (0001-2345-67890) → phi_leak', res2.status === 'phi_leak');
+}
+
+section('Layer 3 Hardening: Indonesian MRN Markers');
+{
+  // 3m. Unredacted Indonesian No. RM: 12-34-56
+  const bad = buildValidOutput({ summary_one_liner: 'Pasien No. RM: 12-34-56 masuk IGD' });
+  const res = runGuardrail(bad, '');
+  expect('Unredacted No. RM: 12-34-56 → phi_leak', res.status === 'phi_leak');
+
+  // 3n. Unredacted RM: 123456
+  const bad2 = buildValidOutput({ summary_one_liner: 'RM: 123456 terdaftar' });
+  const res2 = runGuardrail(bad2, '');
+  expect('Unredacted RM: 123456 → phi_leak', res2.status === 'phi_leak');
+
+  // 3o. Unredacted NRM: 998877
+  const bad3 = buildValidOutput({ summary_one_liner: 'NRM: 998877' });
+  const res3 = runGuardrail(bad3, '');
+  expect('Unredacted NRM: 998877 → phi_leak', res3.status === 'phi_leak');
+
+  // 3p. Valid token No. RM [MRN_1] passes
+  const validToken = buildValidOutput({ summary_one_liner: 'Pasien No. RM [MRN_1] di rawat' });
+  const resToken = runGuardrail(validToken, 'Pasien No. RM [MRN_1]');
+  expect('Sanitized token No. RM [MRN_1] passes', resToken.status === 'pass');
+
+  // 3q. Anti-false-positive: Cardiology RM (Regurgitasi Mitral)
+  const validCardio = buildValidOutput({ summary_one_liner: 'Murmur sistolik ec RM moderate' });
+  const resCardio = runGuardrail(validCardio, '');
+  expect('Cardiology abbreviation (RM moderate) does NOT trigger phi_leak', resCardio.status === 'pass');
+}
+
+section('Layer 3 Hardening: Indonesian Honorific Name Leaks');
+{
+  // 3r. Unredacted Tn. Budi Santoso
+  const bad = buildValidOutput({ summary_one_liner: 'Pasien Tn. Budi Santoso datang kontrol' });
+  const res = runGuardrail(bad, '');
+  expect('Unredacted Tn. Budi Santoso → phi_leak', res.status === 'phi_leak');
+
+  // 3s. Unredacted Ny. Siti Aminah
+  const bad2 = buildValidOutput({ summary_one_liner: 'Keluhan Ny. Siti Aminah lemas' });
+  const res2 = runGuardrail(bad2, '');
+  expect('Unredacted Ny. Siti Aminah → phi_leak', res2.status === 'phi_leak');
+
+  // 3t. Unredacted An. Dimas
+  const bad3 = buildValidOutput({ summary_one_liner: 'An. Dimas batuk 3 hari' });
+  const res3 = runGuardrail(bad3, '');
+  expect('Unredacted An. Dimas → phi_leak', res3.status === 'phi_leak');
+
+  // 3u. Unredacted Sdr. Joko
+  const bad4 = buildValidOutput({ summary_one_liner: 'Sdr. Joko demam' });
+  const res4 = runGuardrail(bad4, '');
+  expect('Unredacted Sdr. Joko → phi_leak', res4.status === 'phi_leak');
+
+  // 3v. Valid token Tn. [PATIENT_1] passes
+  const validToken = buildValidOutput({ summary_one_liner: 'Pasien Tn. [PATIENT_1] stabil' });
+  const resToken = runGuardrail(validToken, 'Pasien Tn. [PATIENT_1]');
+  expect('Sanitized token Tn. [PATIENT_1] passes', resToken.status === 'pass');
+
+  // 3w. Anti-false-positive: Clinical Anemia (An. defisiensi besi)
+  const validAnemia = buildValidOutput({ summary_one_liner: 'Diagnosis: An. defisiensi besi + An. renal ec CKD' });
+  const resAnemia = runGuardrail(validAnemia, '');
+  expect('Clinical diagnosis (An. defisiensi besi) does NOT trigger phi_leak', resAnemia.status === 'pass');
+
+  // 3x. Anti-false-positive: Anatomy (Ibu jari)
+  const validAnatomy = buildValidOutput({ summary_one_liner: 'Nyeri podagra pada ibu jari kaki kanan' });
+  const resAnatomy = runGuardrail(validAnatomy, '');
+  expect('Anatomy term (ibu jari) does NOT trigger phi_leak', resAnatomy.status === 'pass');
+}
+
+section('Markdown Guardrail Hardening');
+{
+  // 6i. Hyphenated phone in Markdown note → phi_leak
+  const mdPhone = `${VALID_MARKDOWN_KONSUL}\nNo Kontak: 0812-3456-7890`;
+  const resPhone = runMarkdownGuardrail(mdPhone, VALID_SANITIZED_TEXT, 'konsul');
+  expect('Hyphenated phone in Markdown → phi_leak', resPhone.status === 'phi_leak');
+
+  // 6j. 13-digit BPJS in Markdown note → phi_leak
+  const mdBpjs = `${VALID_MARKDOWN_KONSUL}\nBPJS: 0001234567890`;
+  const resBpjs = runMarkdownGuardrail(mdBpjs, VALID_SANITIZED_TEXT, 'konsul');
+  expect('13-digit BPJS in Markdown → phi_leak', resBpjs.status === 'phi_leak');
+
+  // 6k. Unredacted MRN in Markdown note → phi_leak
+  const mdMrn = `${VALID_MARKDOWN_KONSUL}\nNo. RM: 12-34-56`;
+  const resMrn = runMarkdownGuardrail(mdMrn, VALID_SANITIZED_TEXT, 'konsul');
+  expect('Unredacted No. RM: 12-34-56 in Markdown → phi_leak', resMrn.status === 'phi_leak');
+
+  // 6l. Unredacted Tn. Budi in Markdown note → phi_leak
+  const mdName = `${VALID_MARKDOWN_KONSUL}\nPasien Tn. Budi Santoso`;
+  const resName = runMarkdownGuardrail(mdName, VALID_SANITIZED_TEXT, 'konsul');
+  expect('Unredacted Tn. Budi Santoso in Markdown → phi_leak', resName.status === 'phi_leak');
+}
+
 // ─── Summary ─────────────────────────────────────────────────────────────────
 
 console.log(`\n${'═'.repeat(60)}`);

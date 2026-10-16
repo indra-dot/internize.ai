@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-26T12:26:03Z
+# BRIEFING — 2026-10-11T13:20:00Z
 
 ## Mission
-Objectively review code quality, UI architecture, and type safety of Milestone 1, verifying strict types, zero untyped `any`, modular React 18 UI components, Tailwind CSS styling, responsive layout (380px-480px), tab switching, and state management, while checking for integrity violations.
+Independently review and adversarial challenge the Milestone 1 Clinical Benchmark Track deliverables: runner harness `tests/benchmark/run_clinical_benchmark.ts`, red flag taxonomy `tests/benchmark/red_flag_taxonomy.ts`, baseline report `tests/benchmark/BASELINE_REPORT.md`, frozen manifest `BENCHMARK_FREEZE.md`, SHA-256 integrity, 4-tier rubric, test suites (`npm test`), and build health (`npm run build`), while checking for integrity violations.
 
 ## 🔒 My Identity
 - Archetype: teamwork_preview_reviewer
@@ -10,6 +10,8 @@ Objectively review code quality, UI architecture, and type safety of Milestone 1
 - Original parent: 791af45b-3beb-4fa7-8e22-f43786b815da
 - Milestone: Milestone 1 Verification
 - Instance: 2 of 2
+- Current Milestone: Milestone 1 Clinical Benchmark Track (Harness, Red Flags, Baseline)
+- Current Parent Conversation ID: 2b69703e-5578-4c7a-93c8-cc5fc6f1e122
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
@@ -18,51 +20,48 @@ Objectively review code quality, UI architecture, and type safety of Milestone 1
 - Never trust unverified claims; independently verify with tools
 - `.agents/teamwork/` must contain only metadata — do not place source code or tests here
 - Communicate results via send_message to parent `791af45b-3beb-4fa7-8e22-f43786b815da`
+- Current Parent Recipient: 2b69703e-5578-4c7a-93c8-cc5fc6f1e122
 
 ## Current Parent
-- Conversation ID: 791af45b-3beb-4fa7-8e22-f43786b815da
-- Updated: 2026-09-26T12:28:00Z
+- Conversation ID: 2b69703e-5578-4c7a-93c8-cc5fc6f1e122
+- Updated: 2026-10-11T13:20:00Z
 
 ## Review Scope
-- **Files to review**: `src/types/**`, `src/sidepanel/**`, `src/components/**`, `src/features/**`, `package.json`, `tsconfig.json`, `tailwind.config.js`
-- **Interface contracts**: `PROJECT.md`, `SCOPE.md`, `ORIGINAL_REQUEST.md`, `worker_m1/handoff.md`
-- **Review criteria**: type safety, zero untyped `any`, clean modular React architecture, responsive design (380px-480px), tab switching, state management, integrity
+- **Files to review**: `tests/benchmark/run_clinical_benchmark.ts`, `tests/benchmark/red_flag_taxonomy.ts`, `tests/benchmark/BASELINE_REPORT.md`, `BENCHMARK_FREEZE.md`, `tests/benchmark/BENCHMARK_FREEZE.md`, `tests/benchmark/benchmark_schema.ts`, `tests/benchmark/data/*`, `package.json`
+- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `GEMINI.md`, `worker_m1_1/handoff.md`
+- **Review criteria**: single command execution, SHA-256 integrity verification, 4-tier rubric correctness, red flag taxonomy logic, baseline report reproducibility, integrity violation audit, build and test suite health
 
 ## Key Decisions Made
-- Confirmed zero untyped `any` in TypeScript definitions and implementations.
-- Confirmed full conformance with `PROJECT.md` contracts across `messages.ts`, `clinical.ts`, `research.ts`, `fhir.ts`, `storage.ts`.
-- Verified React 18 UI modular architecture, responsive constraints (380px-480px), and Tailwind CSS design tokens.
-- Evaluated tab switching, state management, and two-stage selection synchronization.
-- Adversarially tested rapid event debouncing, pre-installed tab fallback, and error containment on restricted URLs.
-- Verdict: APPROVE.
+- Confirmed zero integrity violations: no hardcoded outputs, no fake test scores, no dummy facades.
+- Independently verified SHA-256 hashes of open (`2d481d00...`) and hidden (`bdd16e77...`) datasets match `BENCHMARK_FREEZE.md`.
+- Executed `npm run test:benchmark` and verified clean run matching `BASELINE_REPORT.md` (14.2% score, 9 red flags, 2.6% citation accuracy, 3.4ms latency).
+- Executed 41 positive and 39 negative test cases for `red_flag_taxonomy.ts` (100% passed).
+- Verified `npm test` (15 test files, 240 tests passed, 0 failures) and `npm run build` (0 TypeScript errors).
+- Discovered root causes of the 9 baseline red flags (compound negation gap in RF-CONTRA-003, subjective vignette echo in POMR S-section, and surgical clearance target Hb >= 10 in gastro).
+- Verdict: APPROVE with documented adversarial findings for downstream milestones.
 
 ## Artifact Index
-- `DISPATCH.md` — incoming dispatch instructions
+- `DISPATCH.md` — incoming dispatch log
 - `BRIEFING.md` — persistent working memory
 - `progress.md` — liveness heartbeat
-- `handoff.md` — final review report and verdict
+- `handoff.md` — formal Reviewer 2 review & challenge report
 
 ## Review Checklist
 - **Items reviewed**:
-  - `src/types/messages.ts`: Conforms to PROJECT.md Contract 1, sound discriminated union.
-  - `src/types/clinical.ts`: Conforms to PROJECT.md Contract 2, strong types for entities, SNOMED, RxNorm, SOAP.
-  - `src/types/research.ts`: Conforms to PROJECT.md Contract 3, replaced `bundle: any` with `bundle: Record<string, unknown>`.
-  - `src/types/fhir.ts`: Strong types for FHIR R4 Bundle and Entries.
-  - `src/types/storage.ts`: Types for sync and local storage schemas.
-  - `src/sidepanel/App.tsx`: Clean shell architecture, tab state management, floating toast manager.
-  - `src/sidepanel/hooks/useSelection.ts`: Two-stage selection sync (<2s auto-populate) with IPC + scripting fallback.
-  - `src/components/layout/**`: Header, TabNavigation, StatusBar responsive and accessible.
-  - `src/components/ui/**`: Button, Card, Badge, Toast with clsx/twMerge.
-  - `src/features/**`: ClinicalServiceTab, ResearchExtractionTab, SettingsTab.
+  - `tests/benchmark/run_clinical_benchmark.ts`: verified single command runner, CLI flags, 4-tier rubric, scoring engine.
+  - `tests/benchmark/red_flag_taxonomy.ts`: verified 15 rules across 3 categories (OVERDOSE_2X, CONTRAINDICATION_ORGAN, MISSED_CITO), tested all test cases.
+  - `tests/benchmark/BASELINE_REPORT.md`: verified exact replication against live runner.
+  - `BENCHMARK_FREEZE.md`: verified SHA-256 hashes, counts (172 items: 137 open, 35 hidden).
+  - `package.json`: verified `test:benchmark` script addition.
+  - `npm test`: 240 tests passed.
+  - `npm run build`: built in 4.09s, 0 errors.
 - **Verdict**: APPROVE
-- **Unverified claims**: 0 remaining (all verified independently).
+- **Unverified claims**: 0 remaining
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Selection message flooding: Prevented via 150ms debounce and equality deduplication.
-  - Receiver absence: Handled via `.catch(() => {})` on sendMessage.
-  - Un-injected pre-existing tabs: Handled via dynamic scripting fallback.
-  - Restricted URL errors: Contained via try/catch in useSelection.
-  - Tab state unmounting: Notes reset on tab toggle; recommended draft lifting for M2.
-- **Vulnerabilities found**: 0 critical/major. 1 non-blocking observation regarding lifting tab draft states in M2.
-- **Untested angles**: Full WebGPU neural weight loading (deferred to M2 by design).
+  - Lookbehind negation failure in RF-CONTRA-003: Confirmed that compound phrasing `"JANGAN menghentikan atau memulai"` bypasses negative lookbehind.
+  - Subjective history reflection: Confirmed that runner evaluates full narrative including echoed vignette text in POMR S-section.
+  - Integrity bypass in evaluation mode: Confirmed that `verifyFreezeIntegrity` warns but does not prevent exit code 0 if `overallAcceptancePassed` does not explicitly check `integrityVerified`.
+- **Vulnerabilities found**: 3 non-blocking findings for Milestone 3/4/5 hardening.
+- **Untested angles**: PPK knowledge store parsing (deferred to Milestone 2 & 3).

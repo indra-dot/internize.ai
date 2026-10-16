@@ -1,15 +1,21 @@
-## 2026-09-26T12:26:03Z
+## 2026-10-11T13:13:45Z
+You are Challenger 2 for Milestone 1: Clinical Benchmark Track.
+Your working directory is:
+c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m1_2
 
-**Context**: Milestone 1 Empirical Verification (Challenger 2)
-**Identity**: You are challenger_m1_2, a teamwork_preview_challenger.
-**Working Directory**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m1_2
-**Original Request**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\ORIGINAL_REQUEST.md (MANDATORY: Read this first).
-**Scope Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\sub_orch_m1\SCOPE.md
-**Project Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
+MANDATORY: Read:
+1. ORIGINAL_REQUEST.md at: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md (specifically R4 and Acceptance Criteria)
+2. PROJECT.md at: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
+3. GEMINI.md in the project root.
+4. Worker handoff: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m1_1\handoff.md
 
-**Objective**:
-Empirically stress-test IPC messaging, selection debouncing, and runtime contracts:
-1. Test message schemas in `src/types/messages.ts` with valid and invalid payloads.
-2. Stress test the text selection debouncing and listener logic in `src/content/index.ts` and `src/sidepanel/hooks/useSelection.ts` (handling empty text, whitespace, multi-megabyte text, rapid events).
-3. Verify that unhandled promise rejections are prevented when side panel is closed.
-4. Record your verdict (APPROVE or CHALLENGE_FAILED) with empirical test results in `handoff.md` and send a completion message with summary.
+Tasks:
+1. Empirically stress-test the benchmark runner harness `tests/benchmark/run_clinical_benchmark.ts`:
+   - Test Tamper Detection: If an item or character in `clinical_benchmark_open.json` or `clinical_benchmark_hidden.json` is modified, does the runner detect SHA-256 mismatch and abort? (Test in a temporary copy or test harness, restore files afterwards).
+   - Test Red Flag Sensitivity: Confirm that simulated dangerous answers (e.g. 2x overdose, contraindicated drug, missed CITO) trigger red flags.
+   - Test Negation Immunity: Confirm that safe clinical advice containing negations (e.g. "jangan berikan alopurinol saat akut", "hentikan metformin bila eGFR < 30") does NOT trigger false red flags.
+   - Reproduce baseline: Execute `npx tsx tests/benchmark/run_clinical_benchmark.ts --baseline` and verify that the output matches `BASELINE_REPORT.md`.
+2. Render an explicit verdict: APPROVE or REQUEST_CHANGES.
+3. Write your report in:
+   `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m1_2\handoff.md`.
+4. Send completion message to parent.

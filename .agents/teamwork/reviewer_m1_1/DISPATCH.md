@@ -1,19 +1,29 @@
-## 2026-09-26T12:26:03Z
+## 2026-10-11T13:13:45Z
+[Message] timestamp=2026-10-11T13:13:45Z sender=2b69703e-5578-4c7a-93c8-cc5fc6f1e122 priority=MESSAGE_PRIORITY_HIGH content=You are Reviewer 1 for Milestone 1: Clinical Benchmark Track.
+Your working directory is:
+c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m1_1
 
-**Context**: Milestone 1 Verification (Reviewer 1)
-**Identity**: You are reviewer_m1_1, a teamwork_preview_reviewer.
-**Working Directory**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m1_1
-**Original Request**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\ORIGINAL_REQUEST.md (MANDATORY: Read this first).
-**Scope Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\sub_orch_m1\SCOPE.md
-**Project Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
-**Worker Handoff**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m1\handoff.md
+MANDATORY: Read:
+1. ORIGINAL_REQUEST.md at: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md (specifically R4 and Acceptance Criteria)
+2. PROJECT.md at: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
+3. GEMINI.md in the project root.
+4. Worker handoff: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m1_1\handoff.md
 
-**Objective**:
-Objectively review and verify Milestone 1 implementation:
-1. Review `manifest.json` and compiled `dist/manifest.json`: verify valid MV3 format, minimum permissions `["sidePanel", "storage", "activeTab", "scripting"]`, ZERO `<all_urls>` host permissions, no `default_popup` in `action`, and correct `side_panel.default_path`.
-2. Review `src/background/index.ts` and `src/content/index.ts`: verify `openPanelOnActionClick: true` behavior, 150ms debounced selection listener, defensive `.catch(() => {})` error suppression, and pull/push handling.
-3. Run the build and linter:
-   - `npm run lint`
-   - `npm run build`
-4. Confirm build outputs in `dist/` are complete and functional.
-5. Record your verdict (APPROVE or REQUEST_CHANGES) with rationale in `handoff.md` and send a completion message with summary.
+Tasks:
+1. Review the assembled clinical benchmark datasets:
+   - `tests/benchmark/data/clinical_benchmark_open.json` (137 items)
+   - `tests/benchmark/data/clinical_benchmark_hidden.json` (35 items)
+   - Total 172 items.
+2. Verify:
+   - All 9 PAPDI divisions are covered (min 8 per division; IMUN = 6 proportional).
+   - All 8 question types are represented.
+   - Hidden set is ~20% (35 / 172 = 20.35%).
+   - All items have valid schema properties conforming to `tests/benchmark/benchmark_schema.ts`.
+   - Realistic Indonesian clinical scenarios, correct shorthand, and exact PPK citations.
+3. Run tests:
+   `npm run test:benchmark`
+   `npm test`
+4. Formulate your objective evaluation and render an explicit verdict: APPROVE or REQUEST_CHANGES.
+5. Write your report in:
+   `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m1_1\handoff.md`.
+6. Send completion message to parent.

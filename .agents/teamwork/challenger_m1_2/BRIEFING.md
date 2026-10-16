@@ -1,60 +1,50 @@
-# BRIEFING — 2026-09-26T12:29:15Z
+# BRIEFING — 2026-10-11T13:20:00Z
 
 ## Mission
-Empirically stress-test IPC messaging schemas, selection debouncing, and runtime contracts for Milestone 1.
+Adversarially and empirically stress-test the Milestone 1 Clinical Benchmark Runner harness (`tests/benchmark/run_clinical_benchmark.ts`), its datasets, tamper detection, red flag sensitivity, negation immunity, and baseline reproduction.
 
 ## 🔒 My Identity
-- Archetype: teamwork_preview_challenger
+- Archetype: EMPIRICAL CHALLENGER
 - Roles: critic, specialist
 - Working directory: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m1_2
-- Original parent: 791af45b-3beb-4fa7-8e22-f43786b815da
-- Milestone: Milestone 1
-- Instance: 2 of 2
+- Original parent: 2b69703e-5578-4c7a-93c8-cc5fc6f1e122
+- Milestone: Milestone 1: Clinical Benchmark Track
+- Instance: 2 of 2 (Challenger 2)
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Run empirical verification tests ourselves; do not trust claims without reproduction
-- .agents/teamwork/ holds only metadata (plans, progress, handoffs) — no source code or test files here
+- Empirical verification mandatory — must run verification code ourselves, no unverified claims
+- All output and handoff in our folder (`.agents/teamwork/challenger_m1_2/`)
 
 ## Current Parent
-- Conversation ID: 791af45b-3beb-4fa7-8e22-f43786b815da
-- Updated: 2026-09-26T12:29:15Z
+- Conversation ID: 2b69703e-5578-4c7a-93c8-cc5fc6f1e122
+- Updated: 2026-10-11T13:20:00Z
 
 ## Review Scope
-- **Files to review**: src/types/messages.ts, src/content/index.ts, src/sidepanel/hooks/useSelection.ts, src/background/index.ts
-- **Interface contracts**: PROJECT.md, .agents/teamwork/sub_orch_m1/SCOPE.md, ORIGINAL_REQUEST.md
-- **Review criteria**: IPC messaging schema validity, selection debouncing, edge-case text handling (empty, whitespace, huge text, rapid events), unhandled rejection prevention when side panel is closed
+- **Files to review**: `tests/benchmark/run_clinical_benchmark.ts`, `tests/benchmark/red_flag_taxonomy.ts`, `tests/benchmark/data/clinical_benchmark_open.json`, `tests/benchmark/data/clinical_benchmark_hidden.json`, `BENCHMARK_FREEZE.md`, `tests/benchmark/BASELINE_REPORT.md`
+- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md (R4), GEMINI.md
+- **Review criteria**: Tamper detection, red flag sensitivity, negation immunity, baseline reproduction, zero PHI / on-device compliance
 
 ## Key Decisions Made
-- Executed dedicated empirical stress harness in `tests/unit/stress_ipc.ts` using `npx tsx`.
-- Measured real timings, event collapse behavior, multi-MB memory handling, and unhandled rejection absorption.
-- Verdict: APPROVE Milestone 1 runtime architecture, surfacing 5 concrete optimizations and findings in handoff report.
+- Executed empirical probes across all 4 mandatory dimensions.
+- Verdict rendered: **REQUEST_CHANGES** due to 2 blocking flaws (Tamper detection does not abort on hash mismatch; 8 item-specific triggers collide with golden expected answers) and 1 high-severity regex false positive flaw.
 
 ## Artifact Index
-- `.agents/teamwork/challenger_m1_2/BRIEFING.md` — Persistent state and awareness index
-- `.agents/teamwork/challenger_m1_2/progress.md` — Liveness heartbeat and progress log
-- `.agents/teamwork/challenger_m1_2/DISPATCH.md` — Inbound dispatch log
-- `tests/unit/stress_ipc.ts` — Standalone empirical stress test suite (20 tests)
-- `.agents/teamwork/challenger_m1_2/handoff.md` — 5-component empirical challenge report
+- `.agents/teamwork/challenger_m1_2/handoff.md` — Authoritative 5-component adversarial review report and verdict.
+- `.agents/teamwork/challenger_m1_2/progress.md` — Task progress and heartbeat.
 
 ## Attack Surface
 - **Hypotheses tested**:
-  * IPC payload fuzzing (Unicode, emojis, HTML/SQL injection, null bytes, extreme timestamps) [Confirmed lossless]
-  * Debounce timing collapses 100 rapid events to 1 dispatch within 150ms window [Confirmed]
-  * Empty and whitespace-only text filtering [Confirmed]
-  * Repeated identical selection deduplication [Confirmed]
-  * Multi-megabyte selection handling up to 10MB [Confirmed fast (<0.1ms)]
-  * Closed sidepanel promise rejection prevention [Confirmed: `.catch()` catches asynchronous rejection]
-  * Deselect-then-reselect anomaly (Stale `lastSelectedText` state) [Defect Confirmed]
-  * Receiver vulnerability under malformed / null message [Defect Confirmed: uncaught TypeError]
-  * Synchronous exceptions in `chrome.runtime.sendMessage` [Finding: not caught by `.catch()` alone]
-  * UI render loop performance with multi-MB notes (`split(/\s+/)`) [Finding: 77.5ms UI block on 5MB]
+  1. Does the runner abort on tampered open/hidden datasets? (Result: FAILED - logs warning and continues execution; exits 0 in baseline mode).
+  2. Does global red flag taxonomy catch simulated dangerous inputs? (Result: 25/26 caught; 1 missed due to formulation keyword gap).
+  3. Are safe clinical statements immune to false red flags? (Result: 4 false alarms caught in global taxonomy; 8 items in benchmark have triggers colliding with expected answer).
+  4. Is the baseline score reproducible? (Result: PASSED - reproduced 14.2% score, 9 red flags, 3.3ms latency).
 - **Vulnerabilities found**:
-  * Stale `lastSelectedText` on deselect prevents re-broadcasting identical text after clearing.
-  * Lack of runtime guard against non-object or null messages in `onMessage` listeners.
-- **Untested angles**:
-  * Cross-origin iframe selection inside host pages.
-  * Manifest CSP violation under dynamic wasm imports (to be covered in Milestone 2).
+  1. Tamper check non-aborting flaw in `run_clinical_benchmark.ts` (lines 468-475).
+  2. Item trigger collision with golden expected answers in 8 benchmark items (`BM-NEFRO-007`, `BM-GASTRO-005`, `BM-GERI-002`, `BM-NEFRO-009`, `BM-REMATO-007`, `BM-ENDO-016`, `BM-HOM-017`, `BM-NEFRO-007`).
+  3. Morphology flaw with `memberikan` in negative lookbehinds (`RF-CONTRA-002`, `RF-CONTRA-004`, `RF-CONTRA-005`).
+  4. False alarm on `"jangan tunda epinefrin"` in `RF-CITO-001`.
+- **Untested angles**: Full runtime integration with future M3/M4 `PpkKnowledgeEngine` (deferred to M5).
 
 ## Loaded Skills
 - None

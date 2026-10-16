@@ -1,189 +1,121 @@
-# Milestone 1 Empirical Challenge Report
+# Handoff Report — Milestone 1 Clinical Benchmark Adversarial Cross-Verification
 
-**Agent**: `challenger_m1_1` (teamwork_preview_challenger)  
-**Milestone**: Milestone 1 — Chrome Extension Shell MV3 & Tooling  
-**Verdict**: **APPROVE**  
-**Overall Risk Assessment**: LOW  
+**Agent**: `challenger_m1_1` (Milestone 1 Empirical Challenger & Independent Verifier)  
+**Parent Agent**: `2b69703e-5578-4c7a-93c8-cc5fc6f1e122`  
+**Date**: 2026-10-11T13:25:00Z  
+**Working Directory**: `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m1_1`  
+**Verdict**: **REQUEST_CHANGES**
 
 ---
 
 ## 1. Observation
 
-Direct empirical observations from executing verification scripts and tool commands on the workspace:
+We executed an exhaustive, independent, adversarial cross-verification of all 172 candidate benchmark items (137 Open Set, 35 Hidden Set) against the physical guideline corpus in `docs/ppk/` (122 files across 9 PAPDI divisions).
 
-### Observation 1: Manifest Schema & MV3 Permissions Conformance
-In `dist/manifest.json`:
-- Lines 1–12:
-```json
-{
-  "manifest_version": 3,
-  "name": "internize.ai - Clinical & Research AI Assistant",
-  "version": "0.1.0",
-  "description": "On-device clinical note generation, HIPAA de-identification, and FHIR export.",
-  "minimum_chrome_version": "116",
-  "permissions": [
-    "sidePanel",
-    "storage",
-    "activeTab",
-    "scripting"
-  ],
-```
-- `host_permissions` is undefined (zero entries, zero broad `<all_urls>` or `http://*/*` wildcards).
-- `permissions` contains strictly and exactly `["sidePanel", "storage", "activeTab", "scripting"]` — no unexpected or superfluous permissions.
-- `action.default_popup` is undefined, preventing popup interception and enabling single-click side panel auto-opening via `chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })`.
-- Lines 40–42:
-```json
-  "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
-  },
-```
-Content Security Policy correctly specifies `'wasm-unsafe-eval'` for local WebGPU/WASM acceleration while prohibiting remote script execution.
+### 1.1 Physical Corpus & Citation Verification
+- Tool executed: `python .agents/teamwork/challenger_m1_1/audit_benchmark.py`
+- Total physical files in `docs/ppk/`: **122 files** (56 digital text PDFs/DOCX, 66 scanned printout PDFs).
+- Total clinical items audited: **156 items** (excluding 16 Out-of-Scope items).
+- All 156 clinical items cite physical files that exist on disk in `docs/ppk/{divisionFolder}/{documentName}` (**0 missing files**).
+- All 16 Out-of-Scope items cite `OUT_OF_SCOPE_DECLARATION`.
+- Open Set SHA-256: `2d481d00b542d6aa3687d7a70f904964f22a02375765ab53c26beebe3c2a3e5f`
+- Hidden Set SHA-256: `bdd16e7700283cacbb3f1f465b415517f90891c2ab5e62735f718b53b9449413`
+- Hashes match `tests/benchmark/BENCHMARK_FREEZE.md`.
 
-### Observation 2: Referenced Files Existence and Non-Emptiness
-Empirical inspection via `fs.statSync` in `tests/m1_challenger_empirical.ts` verified that every file referenced in `dist/manifest.json` exists and has positive byte size:
-- `side_panel.default_path` -> `dist/sidepanel.html` (480 bytes)
-- `background.service_worker` -> `dist/service-worker-loader.js` (40 bytes)
-- `icons.16` -> `dist/icons/icon16.png` (102 bytes, verified PNG header magic `0x89504E47`)
-- `icons.48` -> `dist/icons/icon48.png` (152 bytes, verified PNG header magic `0x89504E47`)
-- `icons.128` -> `dist/icons/icon128.png` (390 bytes, verified PNG header magic `0x89504E47`)
-- `action.default_icon` -> `dist/icons/icon16.png`, `dist/icons/icon48.png`, `dist/icons/icon128.png` (all exist, >0 bytes)
-- `content_scripts[0].js` -> `dist/assets/index.ts-loader-BIbj1hd9.js` (352 bytes)
-- `web_accessible_resources[0].resources` -> `dist/assets/src-content-index.ts-CpSC0qt0.js` (1050 bytes)
-- `sidepanel.html` assets:
-  * `<div id="root"></div>` present
-  * Script `dist/assets/sidepanel-B2DyTXC2.js` exists (201,180 bytes)
-  * Stylesheet `dist/assets/sidepanel-Ckn85Bci.css` exists (22,230 bytes)
-- `service-worker-loader.js` module:
-  * Imports `dist/assets/index.ts-BOZojHYn.js` (850 bytes) which exists and is non-empty.
+### 1.2 Discrepancy Findings: Unsupported / Hallucinated Guideline Quotes
+Our empirical text cross-check against extracted digital and OCR text discovered **8 items** where the candidate answer key or `quotedGuidelineText` is **NOT supported by or directly contradicts** the physical document in `docs/ppk/`:
 
-### Observation 3: Build Idempotency
-Executing `npm run build` returned exit code 0:
-```
-> internize-ai@0.1.0 build
-> tsc --noEmit && vite build
+1. **`BM-PARU-001`** (`docs/ppk/PARU/PPK_(CAP)_(2024).pdf`):
+   - *Candidate quote*: `"Stratifikasi risiko CURB-65: C (Confusion), U (Urea > 7 mmol/L), R (RR >= 30 x/menit), B (BP < 90/60 mmHg), 65 (Umur >= 65 tahun)..."`
+   - *Physical reality*: In `PPK_(CAP)_(2024).pdf` pages 1–2, the hospital PPK explicitly adopts the **ATS/IDSA 2007/2019 criteria** (9 minor criteria: RR >= 30, PaO2/FiO2 < 250, multilobar, confusion, BUN > 20 mg/dL, WBC < 4000, PLT < 100k, hypothermia, hypotension; 2 major criteria: septic shock on vasopressor, mechanical ventilation). The British CURB-65 score does NOT exist anywhere in this document.
+2. **`BM-NEFRO-012`** (`docs/ppk/NEFRO/PPK_(Hipertensi)_(2016).pdf`):
+   - *Candidate quote*: `"Pada penurunan laju filtrasi glomerulus berat (eGFR < 30 mL/menit/1.73m2), agen biguanid (metformin) harus dihentikan untuk mencegah asidosis laktat... hindari agen nefrotoksik."`
+   - *Physical reality*: In physical `PPK_(Hipertensi)_(2016).pdf` (5 pages), neither `"metformin"` nor `"biguanid"` appears anywhere in the document. The quote was synthesized from general medical knowledge and falsely attributed to this PPK.
+3. **`BM-PARU-010`** (`docs/ppk/PARU/PPK_(TB PARU RAJAL)_(2024).pdf`):
+   - *Candidate quote*: `"Etambutol: Gangguan penglihatan / buta warna merah-hijau (neuritis retrobulbar). Tatalaksana: Hentikan etambutol segera, evaluasi oftalmologi."`
+   - *Physical reality*: The physical document `PPK_(TB PARU RAJAL)_(2024).pdf` has no section `"Efek Samping OAT & Penatalaksanaannya"` and makes no mention of ethambutol optic/retrobulbar neuritis.
+4. **`BM-PARU-016`** (`docs/ppk/PARU/PPK_(EFUSI PLEURA MASIF)_(2018).pdf`):
+   - *Candidate quote*: `"Pungsi pleura terapeutik: Evakuasi cairan dilakukan bertahap maksimal 1000 - 1500 cc per sesi untuk mencegah edema paru re-ekspansi."`
+   - *Physical reality*: The physical document's `Terapi/tindakan` merely lists `"Punksi pleura / WSD mini / WSD thoracostomy / Pleurodesis"`. The 1000–1500 cc volume ceiling and re-expansion pulmonary edema rationale are textbook additions not in this PPK.
+5. **`BM-TROPIK-011`** (`docs/ppk/TROPIK/PPK_(DHF Ver-1).pdf`):
+   - *Candidate quote*: `"Transfusi trombosit profilaksis tidak direkomendasikan... Waspadai kelebihan cairan pada fase konvalesens/penyembuhan, infus harus dihentikan bila hemodinamik stabil."`
+   - *Physical reality*: Neither `"transfusi"` nor `"konvalesens"` appears in `PPK_(DHF Ver-1).pdf` or `PPK_(DHF Ver-2).pdf`.
+6. **`BM-NEFRO-009`** (`docs/ppk/NEFRO/PPK_(ISK Pada Ibu Hamil)_(2016).pdf`):
+   - *Candidate quote*: `"Hindari obat yang teratogenik atau berisiko pada fetus: Quinolon (siprofloksasin), Kotrimoksazol pada trimester I dan aterm."`
+   - *Physical reality*: On page 2 under `Pemilihan Antibiotika - Terapi tiga hari`, the local 2016 hospital guideline explicitly writes: `"Levofloxacin 1x250mg/hari"` and `"TMP-sulfamethoxazole 2x160/800mg"`. The candidate item contradicts the written text of the physical document.
+7. **`BM-GASTRO-009`** (`docs/ppk/GASTRO/PPK_(Pankreatitis Akut)_(2021).pdf`):
+   - *Candidate quote*: `"Resusitasi cairan awal dengan Ringer Laktat 250-500 ml/jam pada 12-24 jam pertama..."`
+   - *Physical reality*: On page 3 under `Terapi/tindakan`, the physical document writes: `"2. Resusitasi cairan : kristaloid (sampai 10 L/hari bila terjadi gangguan hemodinamik pada pankreatitis berat)."`. The 250-500 mL/h quote was taken from ACG 2013 guidelines, not the hospital PPK text.
+8. **`BENCH-MULTI-003`** (`docs/ppk/PARU/PPK_(PPOK EKSASERBASI AKUT)_(2018).pdf`):
+   - *Candidate quote*: `"Oksigenasi dikontrol ketat dengan target saturasi 88-92% untuk menghindari depresi pusat pernapasan dan hiperkapnia perburukan. Berikan inhalasi kombinasi beta-2 agonis dan antikolinergik. Waspadai hipokalemia sekunder."`
+   - *Physical reality*: On page 2, the document only writes: `"Target saturasi diatas 88 %... Salbutamol 2,5 mg dan ipratropium bromide 0,5 mg..."`. The quoted paragraph does not exist.
 
-vite v5.4.21 building for production...
-transforming...
-✓ 1597 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/service-worker-loader.js                   0.04 kB
-dist/icons/icon16.png                           0.10 kB
-dist/icons/icon48.png                           0.15 kB
-dist/assets/index.ts-loader-BIbj1hd9.js         0.35 kB
-dist/icons/icon128.png                          0.39 kB
-dist/sidepanel.html                             0.48 kB │ gzip:  0.32 kB
-dist/manifest.json                              1.36 kB │ gzip:  0.60 kB
-dist/assets/sidepanel-Ckn85Bci.css             22.23 kB │ gzip:  4.80 kB
-dist/assets/index.ts-BOZojHYn.js                0.85 kB │ gzip:  0.43 kB
-dist/assets/src-content-index.ts-CpSC0qt0.js    1.05 kB │ gzip:  0.51 kB
-dist/assets/sidepanel-B2DyTXC2.js             201.18 kB │ gzip: 62.46 kB
-✓ built in 4.21s
-```
-
-### Observation 4: Empirical Challenger Test Suite Execution
-Executing `npx tsx tests/m1_challenger_empirical.ts` yielded:
-```
-======================================================
-CHALLENGER M1: EMPIRICAL STRESS-TEST OF BUILD ARTIFACTS
-======================================================
-
-  [PASS] dist/manifest.json exists
-  [PASS] dist/manifest.json parses as valid JSON
-  [PASS] manifest_version is 3
-  [PASS] manifest.name is non-empty string
-  [PASS] manifest.version is semver
-  [PASS] permissions contains only ["sidePanel", "storage", "activeTab", "scripting"]
-  [PASS] host_permissions contains NO <all_urls> or broad patterns
-  [PASS] action.default_title is defined
-  [PASS] action.default_icon is defined
-  [PASS] action.default_popup is undefined (single-click sidePanel)
-  [PASS] side_panel.default_path is sidepanel.html
-  [PASS] background.service_worker is defined
-  [PASS] background.type is module
-  [PASS] CSP specifies 'wasm-unsafe-eval' and no remote eval
-  [PASS] Referenced file [side_panel.default_path] "sidepanel.html" exists and is non-empty
-  [PASS] Referenced file [background.service_worker] "service-worker-loader.js" exists and is non-empty
-  [PASS] Referenced file [icons.16] "icons/icon16.png" exists and is non-empty
-  [PASS] Referenced file [icons.48] "icons/icon48.png" exists and is non-empty
-  [PASS] Referenced file [icons.128] "icons/icon128.png" exists and is non-empty
-  [PASS] Referenced file [action.default_icon.16] "icons/icon16.png" exists and is non-empty
-  [PASS] Referenced file [action.default_icon.48] "icons/icon48.png" exists and is non-empty
-  [PASS] Referenced file [action.default_icon.128] "icons/icon128.png" exists and is non-empty
-  [PASS] Referenced file [content_scripts[0].js] "assets/index.ts-loader-BIbj1hd9.js" exists and is non-empty
-  [PASS] Referenced file [web_accessible_resources[0]] "assets/src-content-index.ts-CpSC0qt0.js" exists and is non-empty
-  [PASS] sidepanel.html contains <div id="root"
-  [PASS] sidepanel.html script "assets/sidepanel-B2DyTXC2.js" exists and non-empty
-  [PASS] sidepanel.html stylesheet "assets/sidepanel-Ckn85Bci.css" exists and non-empty
-  [PASS] service-worker-loader.js is non-empty
-  [PASS] service-worker-loader.js imported module "assets/index.ts-BOZojHYn.js" exists and non-empty
-  [PASS] manifest contains no browser_action (MV2)
-  [PASS] manifest contains no page_action (MV2)
-  [PASS] manifest background contains no scripts array (MV2)
-  [PASS] Icon icons/icon16.png has valid PNG binary magic header
-  [PASS] Icon icons/icon48.png has valid PNG binary magic header
-  [PASS] Icon icons/icon128.png has valid PNG binary magic header
-  [PASS] dist does not leak .env file
-  [PASS] dist does not leak .git directory
-
-Results: 37 Passed, 0 Failed
-```
-
-### Observation 5: Full Test Suite & Lint Passes
-- `npm run lint` (`biome check src`): 21 files checked in 12ms, 0 errors, 0 warnings.
-- `npm test` (`tsx tests/e2e/runner.ts`): 223 / 223 tests passed across 4 tiers in 3.02s.
+### 1.3 Discrepancy Findings: Red Flag Self-Contradiction & Negation Blindness
+In **7 items**, the item-level `redFlag.triggers` regexes lack negative lookbehinds for Indonesian clinical negation words (`dilarang`, `jangan`, `tidak boleh`, `hindari`, `kontraindikasi`). In `run_clinical_benchmark.ts:224`, the runner tests `re.test(engineOutputText)`. Consequently, an engine that correctly states the clinical contraindication trips the red flag on its own correct prescription:
+1. `BM-NEFRO-007`: Trigger `/nifedipin.*sublingual/i`. When the engine correctly outputs: *"Nifedipin short-acting sublingual DILARANG KONTRAINDIKASI karena menyebabkan penurunan tensi mendadak"*, it trips the red flag and fails with score 0.0!
+2. `BM-HOM-017`: Trigger `/vankomisin.*rutin.*semua.*pasien.*neutropenia/i`. Outputting: *"Vankomisin TIDAK direkomendasikan sebagai terapi empiris rutin semua pasien neutropenia"* trips the red flag!
+3. `BM-NEFRO-009`: Triggers `/siprofloksasin.*pada.*ibu.*hamil/i` and `/kotrimoksazol.*trimester.*1/i`. Outputting: *"Kontraindikasi: hindari siprofloksasin pada ibu hamil"* trips the red flag!
+4. `BM-REMATO-007`: Trigger `/methotrexate.*tiap.*hari/i`. Outputting: *"Diberikan seminggu sekali, bukan methotrexate tiap hari"* trips the red flag!
+5. `BM-GERI-002`: Trigger `/haloperidol.*(5|10).*mg.*geriatri/i`. Outputting: *"Hindari haloperidol 5-10 mg pada geriatri"* trips the red flag!
+6. `BM-GASTRO-005`: Trigger `/parasentesis.*>\s*5.*tanpa.*albumin/i`. Outputting: *"Parasentesis > 5 L tidak boleh tanpa albumin"* trips the red flag!
 
 ---
 
 ## 2. Logic Chain
 
-1. **Manifest Conformance**: Observation 1 shows `manifest_version: 3`, permissions strictly bounded to `["sidePanel", "storage", "activeTab", "scripting"]`, and no host permissions or broad `<all_urls>` grants. Observation 4 verifies that deprecated MV2 keys (`browser_action`, `page_action`, `background.scripts`) are absent. Therefore, `dist/manifest.json` complies with MV3 specifications and project security policies.
-2. **Side Panel Single-Click Usability**: Observation 1 establishes that `action.default_popup` is omitted. Combined with `chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })` in the background worker, clicking the extension icon directly launches the side panel without triggering an extraneous popup.
-3. **Asset Referential Integrity**: Observation 2 and Observation 4 empirically verify every entry in `dist/manifest.json` and nested dependencies in `sidepanel.html` and `service-worker-loader.js`. All 12 referenced files exist and contain non-zero byte payloads, with icons bearing genuine PNG signatures (`0x89504E47`). Therefore, loading `dist/` as an unpacked extension in Chrome will not fail with `ERR_FILE_NOT_FOUND` or missing entry points.
-4. **Build Pipeline & Reproducibility**: Observation 3 confirms that `npm run build` executes TypeScript checks and Vite rollup without emitting compilation errors or bundle discrepancies. Re-running the empirical test suite after the clean build passes 37/37 checks, demonstrating idempotency.
-5. **Codebase Hygiene**: Observation 5 demonstrates zero Biome lint violations across 21 source files and a 100% pass rate (223/223 tests) on the end-to-end test suite.
+1. **Mandate from ORIGINAL_REQUEST.md (R4)**:
+   - *"setiap jawaban kunci harus diverifikasi silang oleh agen kedua yang independen terhadap teks PPK; item yang diperdebatkan atau tidak didukung PPK dibuang sebelum di-freeze."*
+   - *"Akurasi sitasi >= 90% (dokumen PPK yang dirujuk benar mendukung jawaban)."*
+2. **Evaluation of Observations**:
+   - The 8 items documented in Observation 1.2 directly violate R4: their answer keys and citations rely on external medical knowledge or consensus guidelines (ATS/IDSA, ACG, British Thoracic Society) rather than the physical text in `docs/ppk/`. Freezing them creates an invalid benchmark that will misgrade future on-device PPK engines.
+   - The 7 self-contradicting triggers documented in Observation 1.3 introduce severe false-positive penalties. In Milestone 5, an engine that faithfully reproduces PAPDI contraindications will be wrongly classified as committing lethal/severe harm safety violations (`grade = 'red_flag'`).
+3. **Capacity Assessment**:
+   - Removing the 8 unsupported items leaves **164 valid items** (164 >= 150 minimum required by R4).
+   - All 9 divisions retain >= 8 items (Imun retains 5 items, explicitly permitted in R4: *"min. 8 per divisi; IMUN boleh lebih sedikit sesuai isi"*).
+   - Repairing the 7 red flag triggers with negation guards (`(?<!(?:tidak\s*boleh|jangan|kontraindikasi|hindari|tunda|stop|dilarang)\s*(?:pemberian\s*)?)...`) eliminates false positives.
 
 ---
 
 ## 3. Caveats
 
-- **Physical Chrome Web Store Upload / Ingestion**: While manifest MV3 compliance and local unpacked loading integrity are empirically verified, packaging as a signed CRX or automated upload to Google Developer Dashboard was not executed (as this requires an active Google Developer account and external credentials).
-- **GPU Hardware Specifics**: On-device WebGPU execution relies on client hardware support; software fallback to WASM is provisioned in the architecture, but specific hardware GPU shader compilation was verified via reference harnesses rather than on a discrete GPU device.
-- No other caveats.
+1. **General Medical Soundness**: The medical concepts in the 8 flagged items are correct according to broader international literature (e.g. CURB-65 for CAP, avoiding metformin in CKD eGFR < 30, avoiding ethambutol in optic neuritis). However, the benchmark's purpose is to ground the engine specifically in the hospital's authentic 122 PPK documents. Items not supported by the physical text must not be frozen.
+2. **Remaining 164 Items**: The remaining 164 items (95.3%) are grounded in the physical documents, have verified physical citations, conform to the schema, and exhibit zero cross-set leakage.
+3. **Unmodified Engine Baseline**: The baseline run of 14.2% on `run_clinical_benchmark.ts` is reproducible and verified.
 
 ---
 
 ## 4. Conclusion
 
-**Verdict: APPROVE**
+**Verdict: REQUEST_CHANGES**
 
-Milestone 1 build artifacts and configuration have been thoroughly stress-tested and meet all requirements:
-1. `dist/manifest.json` is strictly MV3-compliant, parses cleanly, has exact permissions `["sidePanel", "storage", "activeTab", "scripting"]`, and has zero host permission leaks.
-2. All referenced assets (`sidepanel.html`, `service-worker-loader.js`, icons, content scripts, CSS) exist and have non-zero file sizes.
-3. Build idempotency is verified: `npm run build` consistently exits 0, produces valid artifacts, and passes all 37 empirical checks.
+Before sealing the benchmark freeze in Milestone 1, the following concrete changes must be executed by `worker_m1`:
+1. **Discard or Replace the 8 Unsupported Items**:
+   - `BM-PARU-001`, `BM-NEFRO-012`, `BM-PARU-010`, `BM-PARU-016`, `BM-TROPIK-011`, `BM-NEFRO-009`, `BM-GASTRO-009`, and `BENCH-MULTI-003`.
+   - Alternatively, adjust their `expectedAnswer` and `quotedGuidelineText` to match the exact physical text in their respective documents (e.g. ATS/IDSA criteria for CAP, 10 L/day crystalloid for pancreatitis).
+2. **Harden the 7 Item-Level Red Flag Triggers**:
+   - Add negative lookbehinds or affirmative prescribing verbs to `BM-NEFRO-007`, `BM-HOM-017`, `BM-NEFRO-009`, `BM-REMATO-007`, `BM-GERI-002`, and `BM-GASTRO-005` so correct warnings do not trigger false-positive safety failures.
+3. **Re-seal and Update Hashes**:
+   - Update `clinical_benchmark_open.json` and `clinical_benchmark_hidden.json`.
+   - Recalculate SHA-256 hashes and update `BENCHMARK_FREEZE.md`.
+   - Re-run `npx tsx tests/benchmark/run_clinical_benchmark.ts --baseline` to generate the authoritative baseline report.
 
 ---
 
 ## 5. Verification Method
 
-To independently reproduce this verification:
-1. Run the empirical stress-test script:
-   ```bash
-   npx tsx tests/m1_challenger_empirical.ts
-   ```
-   Assert output displays `Results: 37 Passed, 0 Failed` with exit code 0.
-2. Run clean production build:
-   ```bash
-   npm run build
-   ```
-   Assert exit code is 0.
-3. Re-verify the freshly built artifacts:
-   ```bash
-   npx tsx tests/m1_challenger_empirical.ts
-   ```
-4. Run linter and full test suite:
-   ```bash
-   npm run lint
-   npm test
-   ```
-   Assert 21 files checked with 0 errors, and 223/223 tests passed.
+To independently reproduce the empirical findings in this report, run:
+
+```powershell
+# 1. Run the Challenger 1 independent audit script
+python .agents/teamwork/challenger_m1_1/audit_benchmark.py
+
+# 2. Inspect the 8 low-overlap / unsupported items against physical PDFs
+python .agents/teamwork/challenger_m1_1/check_8_items.py
+
+# 3. Verify the existing runner execution and baseline score
+npm run test:benchmark
+```
+
+**Invalidation Conditions**:
+- If any of the 8 cited quotes are proven to exist in the physical documents in `docs/ppk/`.
+- If the 7 flagged red flag triggers can be demonstrated not to trip on affirmative warning statements containing `"DILARANG KONTRAINDIKASI"` or `"TIDAK DIBENARKAN"`.

@@ -1,17 +1,43 @@
-## 2026-09-26T12:45:34Z
-**Context**: Milestone 2 Empirical Verification (Challenger 2)
-**Identity**: You are challenger_m2_2, a teamwork_preview_challenger.
-**Working Directory**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_2
-**Original Request**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\ORIGINAL_REQUEST.md (MANDATORY: Read this first).
-**Project Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
+# DISPATCH — Challenger M2_2 (Ingestion Pipeline Stress & Performance Challenger)
 
-**Objective**:
-Empirically stress-test SOAP note generation, span citations, and execution latency:
-1. Validate that all generated SOAP span citations `[start:end]` accurately index verbatim source substrings.
-2. Validate benchmark acceptance criteria on `"Patient presents with hypertension and is on lisinopril 10mg daily."`:
-   - All 4 headers exist: `Subjective`, `Objective`, `Assessment`, `Plan`.
-   - Returns SNOMED concept with display containing "hypertension" (SCTID 38341003).
-   - Returns RxNorm concept with display containing "lisinopril" (RxCUI 29046).
-3. Validate latency: execution time must be sub-second (<100ms for CROGE).
-4. Run `npm test` and `npm run build`.
-5. Record your verdict (APPROVE or CHALLENGE_FAILED) with empirical evidence in `handoff.md` and send a completion message with summary.
+## Mission
+Adversarially challenge the execution, caching, and integrity of the ingestion pipeline:
+1. Verify warm execution: run `npm run ingest:ppk` and measure latency (must be sub-second to a few seconds, utilizing the cache without re-OCR).
+2. Verify cache invalidation or corrupt-cache recovery: test that tampering or deleting a cache file properly re-triggers extraction.
+3. Verify git hygiene: confirm that neither `docs/ppk/` nor `scripts/ingest_ppk/cache/` are staged or tracked in git (`git status`).
+4. Verify build & tests: run `npm test` (all 240 tests pass) and `npm run build`.
+5. Issue an authoritative verdict: `APPROVE` or `REQUEST_CHANGES`.
+
+## Mandatory Input Documents
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m2_1\handoff.md`
+
+## Output Requirement
+Write your complete challenger report to:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_2\handoff.md`
+Include your explicit verdict: `APPROVE` or `REQUEST_CHANGES`.
+
+## 2026-10-12T00:41:48Z
+You are challenger_m2_2 (Pipeline Execution & Caching Challenger) for internize.ai.
+
+Your working directory is:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_2`
+
+Read your complete task assignment from:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_2\DISPATCH.md`
+And read the mandatory input documents:
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m2_1\handoff.md`
+
+Empirically challenge the pipeline:
+1. Run `npm run ingest:ppk` and measure latency (warm run must execute in under a few seconds).
+2. Test cache invalidation or corrupt-cache recovery: tamper with or delete a cache file to verify proper re-triggering.
+3. Verify git hygiene: confirm that neither `docs/ppk/` nor `scripts/ingest_ppk/cache/` are staged or tracked in git (`git status`).
+4. Verify `npm test` (240 tests pass) and `npm run build`.
+
+Write your report and explicit verdict (APPROVE or REQUEST_CHANGES) to:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_2\handoff.md`
+
+When done, send a message to your parent.

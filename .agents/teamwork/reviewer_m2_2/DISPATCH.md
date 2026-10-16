@@ -1,19 +1,46 @@
-## 2026-09-26T12:45:34Z
+# DISPATCH — Reviewer M2_2 (Pipeline Architecture & Sanitization Code Review)
 
-**Context**: Milestone 2 Verification (Reviewer 2)
-**Identity**: You are reviewer_m2_2, a teamwork_preview_reviewer.
-**Working Directory**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m2_2
-**Original Request**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\ORIGINAL_REQUEST.md (MANDATORY: Read this first).
-**Project Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
-**Worker Handoff**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m2\handoff.md
+## Mission
+Independently review the Milestone 2 codebase in `scripts/ingest_ppk/`:
+1. Code quality, architecture, and robustness of `extract_raw.py`, `cache_manager.ts`, `ocr_worker_pool.ts`, `sanitizer.ts`, `compiler.ts`, `run_ingest.ts`.
+2. Sanitization rigor: ensure hospital identities and physician metadata are stripped while preserving clinical keywords (`RS tipe B`, `RS rujukan`).
+3. Verify that zero external cloud AI APIs or network calls are made.
+4. Verify `package.json` and `.gitignore` integration (`scripts/ingest_ppk/cache/` ignored).
+5. Issue an authoritative verdict: `APPROVE` or `REQUEST_CHANGES`.
 
-**Objective**:
-Objectively review Milestone 2 UI components, type safety, and security:
-1. Inspect `src/features/clinical/`: `ClinicalServiceTab.tsx`, `SoapNoteViewer.tsx`, `SnomedTable.tsx`, `RxNormTable.tsx`. Verify clean architecture, Tailwind styling, sample loader, copy actions, and disclaimer.
-2. Inspect `src/services/clinical/engine.ts`: verify on-device Transformers.js v3 WebGPU/WASM integration and zero external network calls (zero PHI egress).
-3. Verify TypeScript type safety in `src/types/clinical.ts`: zero untyped `any`.
-4. Run:
-   - `npm run lint`
-   - `npx tsc --noEmit`
-   - `npm run build`
-5. Record your verdict (APPROVE or REQUEST_CHANGES) with rationale in `handoff.md` and send a completion message with summary.
+## Mandatory Input Documents
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m2_1\handoff.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\scripts\ingest_ppk\`
+
+## Output Requirement
+Write your complete review report to:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m2_2\handoff.md`
+Include your explicit verdict: `APPROVE` or `REQUEST_CHANGES`.
+
+
+## 2026-10-12T00:41:48Z
+You are reviewer_m2_2 (Pipeline Architecture & Sanitization Code Reviewer) for internize.ai.
+
+Your working directory is:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m2_2`
+
+Read your complete task assignment from:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m2_2\DISPATCH.md`
+And read the mandatory input documents:
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m2_1\handoff.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\scripts\ingest_ppk\`
+
+Review the implementation in `scripts/ingest_ppk/`:
+1. Architecture and code quality of extraction, OCR worker pool, caching, sanitization, and compiler.
+2. Sanitization rigor (hospital names, Cyrillic H, doctor names, NIPs stripped; generic medical terms protected).
+3. Zero network egress and gitignore validation (`scripts/ingest_ppk/cache/` ignored).
+4. Verify `npm test` and `npm run build`.
+
+Write your report and explicit verdict (APPROVE or REQUEST_CHANGES) to:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m2_2\handoff.md`
+
+When done, send a message to your parent.

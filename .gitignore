@@ -50,6 +50,7 @@ coverage/
 # Temp / scratch
 *.tmp
 *.temp
+.agents/
 
 # Archives & bundles
 *.zip

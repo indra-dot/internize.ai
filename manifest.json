@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "internize.ai - Clinical & Research AI Assistant",
-  "version": "0.1.0",
+  "version": "2.1.0",
   "description": "On-device clinical note generation, HIPAA de-identification, and FHIR export.",
   "minimum_chrome_version": "116",
   "permissions": [

@@ -1,14 +1,46 @@
-## 2026-09-26T12:45:34Z
+# DISPATCH — Challenger M2_1 (Empirical Zero-Leakage & Sanitization Challenger)
 
-**Context**: Milestone 2 Empirical Verification (Challenger 1)
-**Identity**: You are challenger_m2_1, a teamwork_preview_challenger.
-**Working Directory**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_1
-**Original Request**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\ORIGINAL_REQUEST.md (MANDATORY: Read this first).
-**Project Document**: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md
+## Mission
+Adversarially challenge and stress-test the sanitization and de-identification outputs of Milestone 2:
+1. Search `src/services/clinical/knowledge/ppkStore.json` and `docs/PPK_INGESTION_REPORT.md` for any leaked hospital identities (`Sanglah`, `Ngoerah`, `Denpasar`), doctor names, NIPs, director signatures, SK numbers, or Cyrillic characters (`\u041d`).
+2. Test whether legitimate clinical text was accidentally damaged or over-redacted (e.g. check for generic terms `RS tipe B`, `RS rujukan`, `KRS`, `MRS`, drug names, doses).
+3. Validate coverage: verify that at least 116 documents (≥95%) are genuinely present and that the excluded document `KRITERIA 2.docx` is truly non-clinical.
+4. Issue an authoritative verdict: `APPROVE` or `REQUEST_CHANGES`.
 
-**Objective**:
-Empirically stress-test SNOMED and RxNorm resolution and negation boundaries:
-1. Test complex sentences with NegEx: `"Denies hypertension, reports asthma"`, `"No fever, but presents with hypertension"`, `"Family history of diabetes, patient has hypertension"`.
-2. Test medication sig parsing: `"lisinopril 10mg daily"`, `"lisinopril 2.5 mg po qd"`, `"metformin 500mg BID"`.
-3. Test out-of-dictionary terms and edge cases (emojis, punctuation, whitespace, empty string).
-4. Record your verdict (APPROVE or CHALLENGE_FAILED) with empirical test results in `handoff.md` and send a completion message with summary.
+## Mandatory Input Documents
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m2_1\handoff.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\src\services\clinical\knowledge\ppkStore.json`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\docs\PPK_INGESTION_REPORT.md`
+
+## Output Requirement
+Write your complete challenger report to:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_1\handoff.md`
+Include your explicit verdict: `APPROVE` or `REQUEST_CHANGES`.
+
+
+## 2026-10-12T00:41:48Z
+You are challenger_m2_1 (Empirical Zero-Leakage & Sanitization Challenger) for internize.ai.
+
+Your working directory is:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_1`
+
+Read your complete task assignment from:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_1\DISPATCH.md`
+And read the mandatory input documents:
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\ORIGINAL_REQUEST.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m2_1\handoff.md`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\src\services\clinical\knowledge\ppkStore.json`
+- `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\docs\PPK_INGESTION_REPORT.md`
+
+Empirically challenge the deliverables:
+1. Search `src/services/clinical/knowledge/ppkStore.json` and `docs/PPK_INGESTION_REPORT.md` for any leaked hospital identities (`Sanglah`, `Ngoerah`, `Denpasar`), doctor names, NIPs, director signatures, SK numbers, or Cyrillic characters (`\u041d`).
+2. Test whether legitimate clinical text was damaged or over-redacted (generic terms `RS tipe B`, `RS rujukan`, `KRS`, `MRS`, drug names, doses).
+3. Verify that 121 clinical documents are genuinely present and `KRITERIA 2.docx` exclusion is valid.
+
+Write your report and explicit verdict (APPROVE or REQUEST_CHANGES) to:
+`c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\challenger_m2_1\handoff.md`
+
+When done, send a message to your parent.

@@ -1,72 +1,56 @@
-# BRIEFING — 2026-09-26T12:29:30Z
+# BRIEFING — 2026-10-11T13:20:00Z
 
 ## Mission
-Independently review, adversarial-test, and verify Milestone 1 implementation against specifications.
+Review and adversarially challenge Milestone 1: Clinical Benchmark Track datasets and tests.
 
 ## 🔒 My Identity
-- Archetype: teamwork_preview_reviewer
+- Archetype: reviewer
 - Roles: reviewer, critic
 - Working directory: c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\reviewer_m1_1
-- Original parent: 791af45b-3beb-4fa7-8e22-f43786b815da
-- Milestone: Milestone 1 Verification
-- Instance: 1 of 2 (reviewer_m1_1)
+- Original parent: 2b69703e-5578-4c7a-93c8-cc5fc6f1e122
+- Milestone: Milestone 1: Clinical Benchmark Track
+- Instance: 1 of 1
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Actively check for integrity violations (hardcoded test results, dummy facades, shortcuts, fabricated verification)
-- Verify MV3 compliance, minimum permissions, no `<all_urls>`, no `default_popup`
-- Verify debounced selection listener (150ms), defensive catch, pull/push message handling
-- Independent verification via lint and build execution
+- Evidence-based review and adversarial challenge
+- Check for integrity violations (hardcoded results, facades, fabricated outputs)
 
 ## Current Parent
-- Conversation ID: 791af45b-3beb-4fa7-8e22-f43786b815da
-- Updated: 2026-09-26T12:29:30Z
+- Conversation ID: 2b69703e-5578-4c7a-93c8-cc5fc6f1e122
+- Updated: 2026-10-11T13:20:00Z
 
 ## Review Scope
-- **Files to review**:
-  - `manifest.json` & `dist/manifest.json`
-  - `src/background/index.ts`
-  - `src/content/index.ts`
-  - `src/types/messages.ts`
-  - `src/sidepanel/index.html` / `sidepanel.html` & `src/sidepanel/App.tsx`
-  - `src/sidepanel/hooks/useSelection.ts`
-  - `vite.config.ts`, `tsconfig.json`, `biome.json`, `package.json`
-  - `dist/` build artifacts
-- **Interface contracts**:
-  - `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\PROJECT.md`
-  - `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\sub_orch_m1\SCOPE.md`
-  - `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\ORIGINAL_REQUEST.md`
-  - `c:\Users\Wib PC\Documents\Project\myproject\internize.ai\.agents\teamwork\worker_m1\handoff.md`
-- **Review criteria**: MV3 conformance, security, type safety, messaging robustness, integrity
-
-## Review Checklist
-- **Items reviewed**:
-  - `manifest.json` and compiled `dist/manifest.json`: Verified MV3, minimum permissions `["sidePanel", "storage", "activeTab", "scripting"]`, zero `<all_urls>` host permissions, no `default_popup`, `side_panel.default_path: "sidepanel.html"`.
-  - `src/background/index.ts`: Verified `openPanelOnActionClick: true` behavior and message routing.
-  - `src/content/index.ts`: Verified 150ms debounced selection listener, defensive `.catch(() => {})`, `GET_SELECTED_TEXT` pull handler, `TEXT_SELECTED` push handler.
-  - `src/sidepanel/hooks/useSelection.ts`: Verified 2-stage pull (IPC + scripting fallback) and live push listener.
-  - Type definitions (`src/types/messages.ts`, `clinical.ts`, `research.ts`, `storage.ts`, `fhir.ts`): Strictly typed, no untyped `any`.
-  - Build & Lint: `npm run lint` (exit code 0, 21 files checked), `npx tsc --noEmit` (exit code 0), `npm run build` (exit code 0, generated valid `dist/`).
-- **Verdict**: APPROVE
-- **Unverified claims**: None. All claims independently verified.
-
-## Attack Surface
-- **Hypotheses tested**:
-  - H1: Unopened side panel causes uncaught rejection when user selects text -> Verified defensive `.catch(() => {})` suppresses error.
-  - H2: Rapid selection changes flood IPC -> Verified 150ms debounce and unchanged text short-circuit.
-  - H3: Action click opens default popup instead of side panel -> Verified `default_popup` is omitted.
-  - H4: Active tab loaded before extension install blocks text pull -> Verified fallback to `chrome.scripting.executeScript`.
-  - H5: Restricted tab (`chrome://`) crashes side panel -> Verified `try/catch` with debug logging.
-  - H6: Integrity violation (hardcoded/dummy facades) -> No cheat code or fake attestations found.
-- **Vulnerabilities found**: None.
-- **Untested angles**: Full neural weight loading in WebGPU (scheduled for Milestone 2).
+- **Files to review**: `tests/benchmark/data/clinical_benchmark_open.json`, `tests/benchmark/data/clinical_benchmark_hidden.json`, `tests/benchmark/benchmark_schema.ts`, `tests/benchmark/run_clinical_benchmark.ts`, `tests/benchmark/red_flag_taxonomy.ts`, `BENCHMARK_FREEZE.md`, `.agents/teamwork/worker_m1_1/handoff.md`
+- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `GEMINI.md`
+- **Review criteria**: correctness, schema conformance, PAPDI coverage, question types, split ratio, PPK citations, integrity, adversarial stress-testing
 
 ## Key Decisions Made
-- Confirmed full compliance with Milestone 1 specifications.
-- Issued verdict: APPROVE.
+- Confirmed dataset size: 172 items (137 open, 35 hidden). Split ratio: 20.35% hidden.
+- Verified all 9 PAPDI divisions: min 8 items per division met (IMUN = 6 proportional).
+- Verified all 8 question types: min 8 items per question type met.
+- Validated all 172 items against `tests/benchmark/benchmark_schema.ts` with zero schema violations.
+- Verified 156 of 156 in-scope items cite files that physically exist in `docs/ppk/`.
+- Executed `npm run test:benchmark` and `npm test` cleanly (240 tests passed, 0 failures).
+- Verified `npm run build` completed with 0 TypeScript errors.
+- Verified zero integrity violations: no hardcoded results, no dummy logic, no facade runner.
+- Verdict: APPROVE.
 
 ## Artifact Index
-- `DISPATCH.md` — Initial dispatch instructions
-- `progress.md` — Heartbeat and progress tracking
-- `BRIEFING.md` — Situational awareness
-- `handoff.md` — Final review report
+- `DISPATCH.md` — incoming dispatch log
+- `BRIEFING.md` — working memory and identity
+- `progress.md` — progress heartbeat
+- `verify_benchmark.js` — programmatic schema and count validation script
+- `audit_citations.js` — PPK physical document cross-audit script
+- `audit_clinical_realism.js` — Indonesian clinical shorthand verification script
+- `handoff.md` — final review and challenge report
+
+## Review Checklist
+- **Items reviewed**: `clinical_benchmark_open.json`, `clinical_benchmark_hidden.json`, `benchmark_schema.ts`, `run_clinical_benchmark.ts`, `red_flag_taxonomy.ts`, `BENCHMARK_FREEZE.md`, `BASELINE_REPORT.md`
+- **Verdict**: APPROVE
+- **Unverified claims**: none remaining; all claims independently verified
+
+## Attack Surface
+- **Hypotheses tested**: schema bypass (rejected), dataset tampering tripping SHA-256 (confirmed), division imbalance (rejected), non-existent PPK documents (0 found), hardcoded runner score (rejected).
+- **Vulnerabilities found**: none critical. Notice formatting lint in test suite file `red_flag_taxonomy.ts`, which does not affect runtime or build.
+- **Untested angles**: downstream Milestone 3/4 integration with actual `PpkKnowledgeEngine` (deferred to M3/M4).
