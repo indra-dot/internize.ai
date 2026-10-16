@@ -14,7 +14,8 @@
     "test:e2e": "vitest run tests/e2e",
     "test:watch": "vitest",
     "test:benchmark": "tsx tests/benchmark/run_clinical_benchmark.ts",
-    "ingest:ppk": "tsx scripts/ingest_ppk/run_ingest.ts"
+    "ingest:ppk": "tsx scripts/ingest_ppk/run_ingest.ts",
+    "pack": "powershell -Command \"Compress-Archive -Path dist/* -DestinationPath internize-ai-extension.zip -Force\""
   },
   "dependencies": {
     "@huggingface/transformers": "^3.3.3",

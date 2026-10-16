@@ -350,6 +350,19 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
           kembali secara lokal di memori browser Anda.
         </p>
       </div>
+
+      {/* Version & Build Metadata */}
+      <div
+        data-testid="settings-version-info"
+        className="flex items-center justify-between pt-2 px-1 text-[11px] text-slate-400 border-t border-slate-100"
+      >
+        <span className="font-medium text-slate-500">
+          internize.ai Sp.PD &bull; Versi 2.1.0
+        </span>
+        <span className="px-2 py-0.5 rounded bg-maroon-50 text-maroon-800 font-bold border border-maroon-200/60 text-[10px]">
+          v2.1.0
+        </span>
+      </div>
     </div>
   );
 };

@@ -49,8 +49,15 @@ export const Header: React.FC<HeaderProps> = ({
               <h1 className="text-sm font-bold tracking-tight text-slate-900 leading-none">
                 internize<span className="text-maroon-900 font-black">.ai</span>
               </h1>
-              <span className="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-maroon-900 text-gold-300 border border-gold-600/40 shadow-2xs">
+              <span
+                data-testid="header-version-badge"
+                className="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-maroon-900 text-gold-300 border border-gold-600/40 shadow-2xs"
+                title="Versi 2.1.0"
+              >
                 Internize 2.1
+              </span>
+              <span className="text-[9px] font-bold text-slate-400">
+                v2.1.0
               </span>
             </div>
             <p className="text-[9.5px] text-slate-500 font-medium tracking-wide mt-0.5">
