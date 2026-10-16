@@ -22,6 +22,7 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { InfoTooltip } from '../../components/ui/Tooltip';
 import { ClinicalEngineCoordinator } from '../../services/clinical/engine';
 import { loadClinicalDraft, saveClinicalDraft } from '../../services/storage/chromeStorage';
 import type {
@@ -269,68 +270,159 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
         </div>
       </div>
 
-      {/* ── 1. Alur Kerja Linear (Clean Step Indicator) ───────────────── */}
-      <div className="bg-slate-100/90 border border-slate-200/90 rounded-xl p-2.5 shadow-2xs">
-        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500">
+      {/* ── 1. Langkah 1-2-3 Banner Visual Guide ───────────────── */}
+      <div
+        data-testid="langkah-123-banner"
+        className="bg-gradient-to-r from-maroon-50/70 via-white to-gold-50/60 border border-maroon-200/90 rounded-xl p-3 shadow-2xs space-y-2.5"
+      >
+        <div className="flex items-center justify-between px-0.5">
+          <div className="flex items-center gap-1.5 text-maroon-950 font-bold text-xs">
+            <Sparkles className="w-3.5 h-3.5 text-gold-600" />
+            <span>Alur Kerja Klinis 3 Langkah (Langkah 1-2-3)</span>
+          </div>
+          <span className="text-[10px] text-slate-500 font-semibold">
+            100% On-Device • 0 PHI Egress
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+          {/* Langkah 1 */}
           <div
-            className={`flex items-center gap-1.5 transition-colors ${
-              !hasInput ? 'text-maroon-900 font-bold' : 'text-emerald-700'
+            data-testid="langkah-step-1"
+            className={`p-2.5 rounded-lg border transition-all ${
+              !hasInput
+                ? 'bg-white border-maroon-300 shadow-2xs text-maroon-950 ring-1 ring-maroon-200'
+                : 'bg-emerald-50/70 border-emerald-300 text-emerald-950'
             }`}
           >
-            <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                !hasInput
-                  ? 'bg-maroon-900 text-gold-300'
-                  : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-              }`}
-            >
-              1
-            </span>
-            <span>Input Catatan</span>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${
+                    !hasInput
+                      ? 'bg-maroon-900 text-gold-300'
+                      : 'bg-emerald-600 text-white'
+                  }`}
+                >
+                  1
+                </span>
+                <span className="font-extrabold text-[11px]">Langkah 1</span>
+              </div>
+              {hasInput ? (
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+              ) : (
+                <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-maroon-100 text-maroon-900">
+                  Aktif
+                </span>
+              )}
+            </div>
+            <div className="font-bold text-slate-800 text-[11px]">
+              Input / Contoh Kasus
+            </div>
+            <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
+              Tempel catatan, sorot di EMR, atau klik 1-klik contoh kasus.
+            </p>
           </div>
 
-          <span className="text-slate-300">&rarr;</span>
-
+          {/* Langkah 2 */}
           <div
-            className={`flex items-center gap-1.5 transition-colors ${
-              hasInput && !hasResults
-                ? 'text-maroon-900 font-bold'
-                : hasResults
-                  ? 'text-emerald-700'
-                  : 'text-slate-400'
+            data-testid="langkah-step-2"
+            className={`p-2.5 rounded-lg border transition-all ${
+              hasInput
+                ? 'bg-white border-maroon-300 shadow-2xs text-maroon-950 ring-1 ring-maroon-200'
+                : 'bg-slate-50/80 border-slate-200 text-slate-400'
             }`}
           >
-            <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                hasInput && !hasResults
-                  ? 'bg-maroon-900 text-gold-300'
-                  : hasResults
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                    : 'bg-slate-200 text-slate-500'
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${
+                    hasInput
+                      ? 'bg-maroon-900 text-gold-300'
+                      : 'bg-slate-200 text-slate-500'
+                  }`}
+                >
+                  2
+                </span>
+                <span
+                  className={`font-extrabold text-[11px] ${
+                    hasInput ? 'text-maroon-950' : 'text-slate-500'
+                  }`}
+                >
+                  Langkah 2
+                </span>
+              </div>
+              {hasInput && (
+                <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-maroon-100 text-maroon-900">
+                  Pilih Mode
+                </span>
+              )}
+            </div>
+            <div
+              className={`font-bold text-[11px] flex items-center gap-1 ${
+                hasInput ? 'text-slate-800' : 'text-slate-500'
               }`}
             >
-              2
-            </span>
-            <span>Analisis Medis</span>
+              <span>Pilih Mode Telaah</span>
+              <InfoTooltip term="POMR" />
+            </div>
+            <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
+              Pilih: Jawab Konsul TS, POMR Bangsal, atau Ringkas Kasus.
+            </p>
           </div>
 
-          <span className="text-slate-300">&rarr;</span>
-
+          {/* Langkah 3 */}
           <div
-            className={`flex items-center gap-1.5 transition-colors ${
-              hasResults ? 'text-maroon-900 font-bold' : 'text-slate-400'
+            data-testid="langkah-step-3"
+            className={`p-2.5 rounded-lg border transition-all ${
+              hasResults
+                ? 'bg-emerald-50/70 border-emerald-300 text-emerald-950'
+                : hasInput
+                  ? 'bg-amber-50/50 border-amber-300/80 text-amber-950'
+                  : 'bg-slate-50/80 border-slate-200 text-slate-400'
             }`}
           >
-            <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                hasResults
-                  ? 'bg-maroon-900 text-gold-300 shadow-2xs'
-                  : 'bg-slate-200 text-slate-500'
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${
+                    hasResults
+                      ? 'bg-emerald-600 text-white'
+                      : hasInput
+                        ? 'bg-gold-500 text-maroon-950 font-black'
+                        : 'bg-slate-200 text-slate-500'
+                  }`}
+                >
+                  3
+                </span>
+                <span
+                  className={`font-extrabold text-[11px] ${
+                    hasResults || hasInput ? 'text-maroon-950' : 'text-slate-500'
+                  }`}
+                >
+                  Langkah 3
+                </span>
+              </div>
+              {hasResults ? (
+                <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                  Draf Siap
+                </span>
+              ) : hasInput ? (
+                <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-gold-100 text-maroon-900 border border-gold-300">
+                  Salin &amp; Cek
+                </span>
+              ) : null}
+            </div>
+            <div
+              className={`font-bold text-[11px] ${
+                hasResults || hasInput ? 'text-slate-800' : 'text-slate-500'
               }`}
             >
-              3
-            </span>
-            <span>Review &amp; Salin Draf</span>
+              Salin Draf &amp; Cek PPK
+            </div>
+            <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
+              Salin ringkasan EMR &amp; telusuri algoritma 121 PPK RS.
+            </p>
           </div>
         </div>
       </div>
@@ -394,18 +486,23 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
             />
           )}
 
+          {/* ⚡ Prominent 1-Click Sample Button for Beginners */}
+          <button
+            type="button"
+            data-testid="prominent-sample-preop-btn"
+            onClick={handleLoadSpPdSample}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-600 hover:to-amber-500 text-maroon-950 font-black text-xs border border-amber-300 shadow-sm transition-all hover:scale-[1.005] active:scale-[0.99] cursor-pointer"
+            title="Klik untuk langsung memuat contoh kasus klinis pre-operatif terencana lengkap dengan lab & komorbid"
+          >
+            <Zap className="w-4 h-4 text-maroon-950 fill-maroon-950 shrink-0" />
+            <span>[ ⚡ Coba Contoh Kasus Pre-Op (1-Klik) ]</span>
+          </button>
+
           {/* Quick Preset Buttons */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
             <span className="text-[10.5px] text-slate-500 font-medium shrink-0 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-gold-600" /> Contoh Kasus:
+              <Sparkles className="w-3 h-3 text-gold-600" /> Contoh Lain:
             </span>
-            <button
-              type="button"
-              onClick={handleLoadSpPdSample}
-              className="shrink-0 px-2 py-0.5 rounded-full bg-slate-100 hover:bg-gold-50 text-slate-700 hover:text-maroon-900 border border-slate-200 hover:border-gold-400 transition-colors text-[10.5px]"
-            >
-              Pre-Op Bedah (DM+HT)
-            </button>
             <button
               type="button"
               onClick={handleLoadRaberSample}
@@ -520,37 +617,38 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
             langsung menghasilkan draf jawaban konsul toleransi operasi, format POMR bangsal, atau
             resume medis seketika.
           </p>
-          <div className="pt-2 flex items-center justify-center gap-2 flex-wrap">
-            <Button
+          <div className="pt-2 flex flex-col items-center justify-center gap-2">
+            <button
               type="button"
-              variant="secondary"
-              size="sm"
+              data-testid="empty-state-sample-preop-btn"
               onClick={handleLoadSpPdSample}
-              className="text-xs text-maroon-900 bg-white hover:bg-gold-50 border border-maroon-300 gap-1.5 shadow-2xs"
+              className="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-600 hover:to-amber-500 text-maroon-950 font-black text-xs border border-amber-300 shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
             >
-              <RotateCcw className="w-3 h-3 text-gold-600" />
-              <span>Pre-Op Bedah (DM+HT)</span>
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleLoadRaberSample}
-              className="text-xs text-maroon-900 bg-white hover:bg-gold-50 border border-maroon-300 gap-1.5 shadow-2xs"
-            >
-              <RotateCcw className="w-3 h-3 text-gold-600" />
-              <span>Rawat Bersama Obsgyn</span>
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleLoadAkutSample}
-              className="text-xs text-maroon-900 bg-white hover:bg-gold-50 border border-maroon-300 gap-1.5 shadow-2xs"
-            >
-              <RotateCcw className="w-3 h-3 text-gold-600" />
-              <span>Evaluasi Akut CITO</span>
-            </Button>
+              <Zap className="w-3.5 h-3.5 fill-maroon-950 text-maroon-950" />
+              <span>[ ⚡ Coba Contoh Kasus Pre-Op (1-Klik) ]</span>
+            </button>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleLoadRaberSample}
+                className="text-xs text-maroon-900 bg-white hover:bg-gold-50 border border-maroon-300 gap-1.5 shadow-2xs"
+              >
+                <RotateCcw className="w-3 h-3 text-gold-600" />
+                <span>Rawat Bersama Obsgyn</span>
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleLoadAkutSample}
+                className="text-xs text-maroon-900 bg-white hover:bg-gold-50 border border-maroon-300 gap-1.5 shadow-2xs"
+              >
+                <RotateCcw className="w-3 h-3 text-gold-600" />
+                <span>Evaluasi Akut CITO</span>
+              </Button>
+            </div>
           </div>
         </div>
       )}

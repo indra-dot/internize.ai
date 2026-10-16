@@ -1,5 +1,6 @@
 import { Cpu, ShieldCheck, Trash2 } from 'lucide-react';
 import type React from 'react';
+import { clearAllPatientSessions } from '../../services/storage/chromeStorage';
 import { Badge } from '../ui/Badge';
 
 export interface HeaderProps {
@@ -18,6 +19,14 @@ export const Header: React.FC<HeaderProps> = ({
     typeof chrome !== 'undefined' && chrome.runtime?.getURL
       ? chrome.runtime.getURL('icons/icon48.png')
       : '/icons/icon48.png';
+
+  const handleClearSession = async () => {
+    if (onClearSessionClick) {
+      onClearSessionClick();
+    } else {
+      await clearAllPatientSessions();
+    }
+  };
 
   return (
     <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-maroon-100/90 px-3.5 py-2 shadow-[0_1px_3px_rgba(74,21,27,0.04)]">
@@ -49,18 +58,18 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Quick Action: Wipe Patient Session */}
-          {onClearSessionClick && (
-            <button
-              type="button"
-              onClick={onClearSessionClick}
-              title="Bersihkan Sesi Pasien (Hapus draft & memori peramban)"
-              className="p-1 rounded-md text-slate-400 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors flex items-center gap-1 text-[10px]"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-slate-400 hover:text-rose-600" />
-              <span className="hidden sm:inline font-semibold">Bersihkan Sesi</span>
-            </button>
-          )}
+          {/* Quick Action: Wipe Patient Session (Panic Button) */}
+          <button
+            type="button"
+            data-testid="header-clear-session-btn"
+            onClick={handleClearSession}
+            title="Bersihkan seluruh sesi & draf pasien seketika (Panic Button)"
+            aria-label="Bersihkan Sesi"
+            className="flex items-center gap-1 px-2 py-1 text-[10.5px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+            <span className="font-bold">Bersihkan Sesi</span>
+          </button>
 
           {/* Quick Action: Feature Tour Help Button */}
           {onHelpClick && (

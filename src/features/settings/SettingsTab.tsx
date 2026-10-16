@@ -13,6 +13,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { InfoTooltip } from '../../components/ui/Tooltip';
 import {
   DEFAULT_GEMINI_MODEL,
   GEMINI_AVAILABLE_MODELS,
@@ -143,7 +144,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
         <CardHeader className="py-2.5">
           <div className="flex items-center gap-1.5">
             <KeyRound className="w-4 h-4 text-gold-500" />
-            <CardTitle>Google Gemini API (BYOK - Bring Your Own Key)</CardTitle>
+            <CardTitle className="flex items-center gap-1.5">
+              <span>Google Gemini API (BYOK - Bring Your Own Key)</span>
+              <InfoTooltip term="BYOK" />
+            </CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-4 space-y-3.5">
@@ -158,8 +162,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
           {connectionStatus !== 'testing' && !apiKey.trim() && (
             <div className="flex items-center gap-2 text-xs text-amber-800 bg-amber-50 rounded-lg p-2.5 border border-amber-200">
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
-              <span className="font-semibold">
-                🟡 Kunci Belum Diisi: Menggunakan Mode Offline Otomatis (CROGE Engine)
+              <span className="font-semibold flex items-center gap-1">
+                <span>🟡 Kunci Belum Diisi: Menggunakan Mode Offline Otomatis (CROGE Engine)</span>
+                <InfoTooltip term="CROGE" />
               </span>
             </div>
           )}
