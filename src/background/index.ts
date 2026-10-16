@@ -30,7 +30,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
       if (message.type === 'PING') {
         sendResponse({
           type: 'PONG',
-          version: '2.1.0',
+          version: '2.2.0',
           uptime: performance.now(),
         });
         return true;

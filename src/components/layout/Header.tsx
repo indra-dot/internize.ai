@@ -52,12 +52,12 @@ export const Header: React.FC<HeaderProps> = ({
               <span
                 data-testid="header-version-badge"
                 className="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-maroon-900 text-gold-300 border border-gold-600/40 shadow-2xs"
-                title="Versi 2.1.0"
+                title="Versi 2.2.0"
               >
-                Internize 2.1
+                Internize 2.2
               </span>
               <span className="text-[9px] font-bold text-slate-400">
-                v2.1.0
+                v2.2.0
               </span>
             </div>
             <p className="text-[9.5px] text-slate-500 font-medium tracking-wide mt-0.5">
@@ -85,8 +85,8 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             data-testid="header-help-tour-btn"
             onClick={onHelpClick || onHelpTour}
-            title="Buka Panduan Fitur Internize 2.1"
-            aria-label="Panduan Fitur Internize 2.1"
+            title="Buka Panduan Fitur Internize 2.2"
+            aria-label="Panduan Fitur Internize 2.2"
             className="p-1 rounded-md text-gold-700 hover:text-maroon-900 hover:bg-gold-50 border border-gold-300/60 transition-colors flex items-center justify-center font-bold text-xs w-6 h-6 shrink-0 cursor-pointer shadow-2xs"
           >
             ?

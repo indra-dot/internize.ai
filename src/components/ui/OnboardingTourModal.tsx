@@ -45,8 +45,8 @@ export const ONBOARDING_TOUR_STEPS: OnboardingTourStepData[] = [
     pillarNumber: 1,
     pillar: 'Pilar 1: Klinis PPK',
     category: 'Klinis PPK',
-    title: 'Selamat Datang di Internize 2.1',
-    subtitle: 'Asisten Klinis & Riset Sp.PD Berbasis 121 PPK PAPDI',
+    title: 'Selamat Datang di Internize 2.2',
+    subtitle: 'Asisten Klinis & Riset Sp.PD Berbasis 121 PPK PAPDI & 8 CDSS Suites',
     summary:
       'Asisten cerdas Sp.PD yang beroperasi 100% on-device di browser tanpa kebocoran PHI (Zero PHI Egress), diperkuat 121 PPK dari 9 divisi PAPDI.',
   },
@@ -108,7 +108,7 @@ export const ONBOARDING_TOUR_STEPS: OnboardingTourStepData[] = [
     title: 'Siap Memulai Telaah Kasus!',
     subtitle: 'Mulai Praktik Klinis Cepat, Terstruktur & Aman',
     summary:
-      'Klik tombol di bawah untuk langsung mencoba contoh kasus Pre-Operatif Bedah dan melihat Internize 2.1 menyusun draf konsultasi secara instan.',
+      'Klik tombol di bawah untuk langsung mencoba contoh kasus Pre-Operatif Bedah dan melihat Internize 2.2 menyusun draf konsultasi secara instan.',
   },
 ];
 
@@ -180,7 +180,7 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
           <div className="space-y-3 text-xs leading-relaxed text-slate-700">
             <p>
               <strong className="text-maroon-950 font-bold">internize.ai</strong> kini diperbarui ke
-              versi <strong className="text-maroon-900 font-extrabold">Internize 2.1</strong> dengan
+              versi <strong className="text-maroon-900 font-extrabold">Internize 2.2</strong> dengan
               otak klinis baru:{' '}
               <strong className="text-slate-900">
                 121 Panduan Praktik Klinis (PPK) &amp; Clinical Pathways

@@ -88,9 +88,9 @@ describe('Milestone 4: Interactive Onboarding Tour Modal Suite (Features 15 & 16
       expect(ONBOARDING_TOUR_STEPS[6].pillarNumber).toBe(0);
     });
 
-    it('Step 1 highlights Welcome to Internize 2.1, 121 PPK, and Zero PHI Egress', () => {
+    it('Step 1 highlights Welcome to Internize 2.2, 121 PPK, and Zero PHI Egress', () => {
       const step1 = ONBOARDING_TOUR_STEPS[0];
-      expect(step1.title).toBe('Selamat Datang di Internize 2.1');
+      expect(step1.title).toBe('Selamat Datang di Internize 2.2');
       expect(step1.subtitle).toContain('121 PPK PAPDI');
       expect(step1.summary).toContain('100% on-device');
       expect(step1.summary).toContain('Zero PHI Egress');
@@ -190,7 +190,7 @@ describe('Milestone 4: Interactive Onboarding Tour Modal Suite (Features 15 & 16
 
       // Title & Subtitle
       expect(html).toContain('data-testid="tour-step-title"');
-      expect(html).toContain('Selamat Datang di Internize 2.1');
+      expect(html).toContain('Selamat Datang di Internize 2.2');
       expect(html).toContain('data-testid="tour-step-subtitle"');
 
       // Content & Step Indicators
@@ -395,7 +395,7 @@ describe('Milestone 4: Interactive Onboarding Tour Modal Suite (Features 15 & 16
       );
 
       expect(html).toContain('data-testid="header-help-tour-btn"');
-      expect(html).toContain('title="Buka Panduan Fitur Internize 2.1"');
+      expect(html).toContain('title="Buka Panduan Fitur Internize 2.2"');
       expect(html).toContain('?');
     });
 
