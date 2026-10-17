@@ -253,7 +253,7 @@ export const CdssExplorerModal: React.FC<CdssExplorerModalProps> = ({
       size="lg"
       hideCloseButton={true}
       className="w-[96vw] max-w-5xl h-[92vh] max-h-[92vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl border border-amber-500/30 bg-slate-900"
-      bodyClassName="flex flex-col flex-1 min-h-0 overflow-hidden p-0"
+      bodyClassName="flex flex-col flex-1 h-full max-h-[92vh] min-h-0 overflow-hidden p-0"
     >
       {/* HEADER BAR */}
       <div className="flex items-center justify-between px-4 py-3 bg-[#4A151B] border-b border-amber-500/20 text-white shrink-0">
@@ -287,8 +287,8 @@ export const CdssExplorerModal: React.FC<CdssExplorerModalProps> = ({
       <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
         {/* SIDEBAR: SEARCH & SELECTOR */}
         <div
-          className={`w-full md:w-80 border-r border-slate-800 flex flex-col bg-slate-950 shrink-0 ${
-            selectedCalcId ? 'hidden md:flex' : 'flex'
+          className={`w-full md:w-80 border-r border-slate-800 flex flex-col bg-slate-950 min-h-0 max-h-full overflow-hidden ${
+            selectedCalcId ? 'hidden md:flex md:shrink-0' : 'flex flex-1 md:flex-initial md:shrink-0'
           }`}
         >
           {/* SEARCH & SUITE PILLS */}
@@ -304,7 +304,7 @@ export const CdssExplorerModal: React.FC<CdssExplorerModalProps> = ({
               />
             </div>
 
-            <div className="flex gap-1 overflow-x-auto mt-2 pb-1 scrollbar-thin">
+            <div className="flex flex-wrap gap-1 mt-2">
               <button
                 onClick={() => setSelectedSuite('ALL')}
                 className={`px-2 py-0.5 rounded text-[10px] whitespace-nowrap transition-colors ${
@@ -332,7 +332,7 @@ export const CdssExplorerModal: React.FC<CdssExplorerModalProps> = ({
           </div>
 
           {/* CALCULATORS LIST */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-1 overscroll-contain">
             {filteredCalculators.map((calc: CdssCalculatorMeta) => {
               const isSelected = calc.id === selectedCalcId;
               return (

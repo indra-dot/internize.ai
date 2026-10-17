@@ -144,7 +144,7 @@ async function runInternalMedicineTests() {
   assert(stableConsult.toleranceStatus === 'LAIK OPERASI', 'U3.1: Stable patient is LAIK OPERASI', `Got: ${stableConsult.toleranceStatus}`);
   assert(stableConsult.riskStratification.rcriLeeScore === 0, 'U3.2: RCRI Lee Score is 0 for low-risk patient');
   assert(stableConsult.preOpAdvis.length > 0, 'U3.3: Pre-op advis generated');
-  assert(stableConsult.fullDraftText.includes('LAIK OPERASI'), 'U3.4: Full draft text includes LAIK OPERASI');
+  assert(stableConsult.fullDraftText.startsWith('Saat ini dengan risiko tindakan :'), 'U3.4: Full draft text starts directly with Saat ini dengan risiko tindakan :');
 
   // Case B: Controlled comorbidity -> LAIK OPERASI DENGAN CATATAN
   const comorbCase = 'Konsul TS Bedah: Pasien 60 th dengan DM tipe 2 dan Hipertensi, rencana kolesistektomi. TD 150/90, GDS 210, Hb 11.5, Cr 1.1. RPO Metformin, Amlodipin.';
@@ -170,7 +170,7 @@ async function runInternalMedicineTests() {
   // Case D: Rawat Bersama Preset
   const raberConsult = generateConsultationAnswer(comorbCase, 'raber');
   assert(raberConsult.consultType === 'raber', 'U3.9: Rawat Bersama preset honors consultType');
-  assert(raberConsult.fullDraftText.includes('RAWAT BERSAMA'), 'U3.10: Full draft includes RAWAT BERSAMA agreement');
+  assert(raberConsult.fullDraftText.includes('Advis & Rekomendasi Sp.PD:'), 'U3.10: Full draft includes Advis & Rekomendasi Sp.PD');
 
   // Case E: Operasi CITO / Life-Saving Emergensi -> Prosedur berjalan dengan stabilisasi paralel
   const lifeSavingConsult = generateConsultationAnswer(criticalCase, 'life_saving');
@@ -207,7 +207,7 @@ RPO: Captopril 2x25mg, Furosemid 1x40mg, Metformin 2x500mg.`;
   assert(prob1.ptx.length > 0, 'U4.5: Problem #1 has Ptx (Planning Therapy)');
   assert(prob1.pmx.length > 0, 'U4.6: Problem #1 has Pmx (Planning Monitoring)');
   assert(prob1.pex.length > 0, 'U4.7: Problem #1 has Pex (Planning Education)');
-  assert(pomr.fullDraftText.includes('PLAN OF MANAGEMENT'), 'U4.8: POMR full draft contains POMR header');
+  assert(pomr.fullDraftText.includes('#1.') && pomr.fullDraftText.includes('- Pdx:'), 'U4.8: POMR full draft contains concise #1 and - Pdx: lines');
 
   // -------------------------------------------------------------------------
   // Suite 5: Mode Ringkas Kasus (Resume Medis & Critical Labs)
@@ -218,7 +218,7 @@ RPO: Captopril 2x25mg, Furosemid 1x40mg, Metformin 2x500mg.`;
   assert(summary.pastHistory.length > 0, 'U5.2: Past history (RPD) captured');
   assert(summary.currentMedications.length > 0, 'U5.3: Current medications (RPO) captured');
   assert(summary.ongoingTherapy.length > 0, 'U5.4: Ongoing therapy summary present');
-  assert(summary.fullDraftText.includes('RESUME MEDIS & RINGKASAN KASUS'), 'U5.5: Full draft contains case summary header');
+  assert(summary.fullDraftText.includes('1. DAFTAR MASALAH AKTIF:'), 'U5.5: Full draft contains concise 1. DAFTAR MASALAH AKTIF: header');
 
   // -------------------------------------------------------------------------
   // Suite 6: Edge Cases & Boundary Values

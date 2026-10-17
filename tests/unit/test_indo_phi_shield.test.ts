@@ -563,4 +563,34 @@ PLANNING (P):
       expect(redacted).toContain('Furosemide 40 mg IV');
     });
   });
+
+  // ─── Suite 11: Slash-Delimited Hospital Patient Headers & Ward Collision Guards ───
+  describe('Suite 11: Slash-Delimited Hospital Patient Headers & Ward Collision Guards', () => {
+    it('redacts ALL-CAPS Balinese patient name and 8-digit MRN in "NI NYOMAN LEBET/P/61th/26086921" while preserving /P/61th/', () => {
+      const input = `Bakung Barat bed 11
+NI NYOMAN LEBET/P/61th/26086921
+
+Selamat malam dokter, izin konsul pasien dari Leader THT.`;
+      const res = deidentifyText(input);
+      expect(res.redactedText).toContain('[NAME]/P/61th/[MRN]');
+      expect(res.redactedText).not.toContain('NI NYOMAN LEBET');
+      expect(res.redactedText).not.toContain('26086921');
+      // Ward and staff role should NOT be falsely redacted as [NAME]
+      expect(res.redactedText).toContain('Bakung Barat bed 11');
+      expect(res.redactedText).toContain('Leader THT');
+    });
+
+    it('redacts standalone Balinese names (I Wayan, Ni Made, Ida Bagus, Anak Agung, I Gusti) in both Title Case and ALL-CAPS', () => {
+      const samples = [
+        'Pasien I WAYAN SUDARMA masuk IGD',
+        'Pasien Ni Made Sari kontrol poli',
+        'Pasien Ida Bagus Putra dirawat di ruang Angsoka',
+        'Pasien ANAK AGUNG GEDE RAKA rencana operasi',
+      ];
+      for (const s of samples) {
+        const res = deidentifyText(s);
+        expect(res.redactedText).toContain('[NAME]');
+      }
+    });
+  });
 });

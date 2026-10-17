@@ -30,13 +30,14 @@ const SAFE_HARBOR_PATTERNS: PatternDef[] = [
     replacement: '[EMAIL]',
     patterns: [/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}\b/gi],
   },
-  // 3. Medical Record Numbers (Indonesian & International MRN)
+  // 3. Medical Record Numbers (Indonesian & International MRN, including slash-delimited headers like /P/61th/26086921)
   {
     category: 'MRN',
     replacement: '[MRN]',
     patterns: [
       /\b(?:No\.?\s*RM|RM|NRM|MRN|No\.?\s*Rekam\s*Medis|Nomor\s*Rekam\s*Medis|Rekam\s*Medis|Medical\s*Record(?:\s*Number)?)[:.\s#]+(?=[A-Za-z0-9\-./]*\d)(?:[A-Za-z0-9\/-]|\.(?=\d)){3,16}\b/gi,
       /\bMR#\s*(\d{4,10})\b/gi,
+      /(?<=\/\s*(?:[LP]\s*\/\s*)?\d{1,3}\s*(?:thn?|tahun|yo|y\.?o\.?)?\s*\/\s*)(?:RM\s*)?\d{5,12}\b/gi,
     ],
   },
   // 4. IP addresses
@@ -133,18 +134,24 @@ const SAFE_HARBOR_PATTERNS: PatternDef[] = [
       /\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+(?:19|20)\d{2}\b/gi,
     ],
   },
-  // 12. Names — Indonesian honorifics, doctors/DPJP, labeled patients, Western names
+  // 12. Names — slash-delimited headers, Balinese/Indonesian names (ALL-CAPS & Title Case), honorifics, doctors/DPJP
   {
     category: 'NAME',
     replacement: '[NAME]',
     patterns: [
+      // Slash-delimited patient identity header: e.g. "NI NYOMAN LEBET/P/61th/26086921" -> "[NAME]/P/61th/[MRN]"
+      /\b(?:(?:Tn|Ny|Nn|By|Sdr|Sdri|Bp|Bpk|An|Ibu)\.?\s+)?[A-Z][A-Za-z'.]+(?:\s+[A-Z][A-Za-z'.]+){0,4}(?=\s*\/\s*(?:[LP]|Laki(?:-laki)?|Perempuan|Wanita|Pria|\d{1,3}\s*(?:thn?|tahun|yo|y\.?o\.?))\s*\/)/g,
+      // Balinese names (Title Case or ALL-CAPS): Ni/I + Wayan/Made/Nyoman/Ketut/Putu/Gede/Kadek/Komang/Nengah/Luh + surname
+      /\b(?:(?:I|NI|Ni|Ida\s+Bagus|IDA\s+BAGUS|Ida\s+Ayu|IDA\s+AYU|Anak\s+Agung|ANAK\s+AGUNG|Cokorda|COKORDA|Tjokorda|TJOKORDA|I\s+Gusti|I\s+GUSTI|Gusti|GUSTI|Dewa\s+Ayu|DEWA\s+AYU|Dewa|DEWA|Desak|DESAK)\s+)?(?:Wayan|WAYAN|Made|MADE|Nyoman|NYOMAN|Ketut|KETUT|Putu|PUTU|Gede|GEDE|Kadek|KADEK|Komang|KOMANG|Nengah|NENGAH|Luh|LUH|Ngurah|NGURAH)\s+[A-Z][a-zA-Z'.]+(?:\s+[A-Z][a-zA-Z'.]+){0,2}(?!\s+(?:bed|kamar|kmr)\b)\b/g,
+      /\b(?:Ida\s+Bagus|IDA\s+BAGUS|Ida\s+Ayu|IDA\s+AYU|Anak\s+Agung|ANAK\s+AGUNG|I\s+Gusti|I\s+GUSTI|Cokorda|COKORDA|Dewa\s+Ayu|DEWA\s+AYU|Desak\s+Putu|DESAK\s+PUTU)\s+[A-Z][a-zA-Z'.]+(?:\s+[A-Z][a-zA-Z'.]+){0,2}(?!\s+(?:bed|kamar|kmr)\b)\b/g,
+      // Indonesian honorifics (supports Title Case and ALL-CAPS)
       /\b(?:Tn|Ny|Nn|By|Sdr|Sdri|Bp|Bpk)\.?\s+(?:(?:Ny\.?\s+)?[A-Z][a-zA-Z'.]+(?:\s+[A-Z][a-zA-Z'.]+){0,3})\b/g,
       /\b(?:An|an)\.?\s+(?!(?:defisiensi|aplastik|hemolitik|gravis|pernisiosa|renal|normositik|mikrositik|makrositik|megaloblastik|sideroblastik|ec|akut|kronik|pasien|dokter)\b)(?:[A-Z][a-zA-Z'.]+(?:\s+[A-Z][a-zA-Z'.]+){0,3})\b/g,
       /\b(?:Ibu|ibu)\.?\s+(?!(?:jari|hamil|menyusui|kandung|bayi)\b)(?:[A-Z][a-zA-Z'.]+(?:\s+[A-Z][a-zA-Z'.]+){0,3})\b/g,
       /\b(?:dr\.|drg\.|Dr\.|Dokter|dokter|DPJP)[:.\s]+(?:dr\.?\s+)?([A-Z][a-zA-Z'.]+(?:\s+[A-Z][a-zA-Z'.]+){0,3}(?:,\s*Sp\.[A-Z]{1,4}(?:-[A-Z]{1,4})?)?)\b/g,
       /\b(?:Pasien|Nama(?:\s*Pasien)?)[:.\s]+(?!(?:An\.?\s+(?:defisiensi|aplastik|hemolitik|gravis|pernisiosa|renal|normositik|mikrositik|makrositik|megaloblastik|sideroblastik|ec|akut|kronik)|Anemia\b|RM\b|ICU\b|IGD\b|HCU\b|Bangsal\b|Ruang\b)\b)([A-Z][a-zA-Z'.]+(?:\s+[A-Z][a-zA-Z'.]+){0,3})\b/g,
-      /(?!\b(?:Medical Record|Rekam Medis|Rumah Sakit|Tanda Vital|Daftar Masalah|Catatan Perkembangan|Tgl Lahir|Tanggal Lahir|Tgl Masuk|Tanggal Masuk|Pasien|Curiga|Evaluasi|Terapi|Riwayat|Kesan|Diagnosis|Problem|Suspek|Observasi|Kasus|Status|Kondisi|Anemia|Defisiensi|Aplastik|Hemolitik)\b)\b([A-Z][a-z]{1,19})\s+(?!(?:An(?:\.|\b)|Anemia\b))([A-Z][a-z]{1,19})\s+(?!(?:An(?:\.|\b)|Anemia\b))([A-Z][a-z]{1,24})\b/g,
-      /(?!\b(?:Medical Record|Rekam Medis|Rumah Sakit|Tanda Vital|Daftar Masalah|Catatan Perkembangan|Tgl Lahir|Tanggal Lahir|Tgl Masuk|Tanggal Masuk|Pasien|Curiga|Evaluasi|Terapi|Riwayat|Kesan|Diagnosis|Problem|Suspek|Observasi|Kasus|Status|Kondisi|Anemia|Defisiensi|Aplastik|Hemolitik)\b)\b([A-Z][a-z]{1,19})\s+(?!(?:An(?:\.|\b)|Anemia\b))([A-Z][a-z]{1,24})\b/g,
+      /(?!\b(?:Medical Record|Rekam Medis|Rumah Sakit|Tanda Vital|Daftar Masalah|Catatan Perkembangan|Tgl Lahir|Tanggal Lahir|Tgl Masuk|Tanggal Masuk|Pasien|Curiga|Evaluasi|Terapi|Riwayat|Kesan|Diagnosis|Problem|Suspek|Observasi|Kasus|Status|Kondisi|Anemia|Defisiensi|Aplastik|Hemolitik|Ruang|Bangsal|Kamar|Gedung|Lantai|Wing|Paviliun|Angsoka|Bakung|Cempaka|Dahlia|Flamboyan|Garuda|Kamboja|Kenanga|Lely|Mahottama|Mawar|Melati|Nusa|Padma|Ratna|Sandat|Seruni|Tunjung|Jempiring|Amerta|Leader|Senior|Junior|Chief|Staf|Konsulen|Residen|Bagian|Divisi|Departemen|KSM|SMF)\b)\b([A-Z][a-z]{1,19})\s+(?!(?:An(?:\.|\b)|Anemia\b|THT\b|Bedah\b|Interna\b|Obgyn\b|Anestesi\b))([A-Z][a-z]{1,19})\s+(?!(?:An(?:\.|\b)|Anemia\b|THT\b|Bedah\b|Interna\b|Obgyn\b|Anestesi\b))([A-Z][a-z]{1,24})(?!\s+(?:bed|kamar|kmr)\b)\b/g,
+      /(?!\b(?:Medical Record|Rekam Medis|Rumah Sakit|Tanda Vital|Daftar Masalah|Catatan Perkembangan|Tgl Lahir|Tanggal Lahir|Tgl Masuk|Tanggal Masuk|Pasien|Curiga|Evaluasi|Terapi|Riwayat|Kesan|Diagnosis|Problem|Suspek|Observasi|Kasus|Status|Kondisi|Anemia|Defisiensi|Aplastik|Hemolitik|Ruang|Bangsal|Kamar|Gedung|Lantai|Wing|Paviliun|Angsoka|Bakung|Cempaka|Dahlia|Flamboyan|Garuda|Kamboja|Kenanga|Lely|Mahottama|Mawar|Melati|Nusa|Padma|Ratna|Sandat|Seruni|Tunjung|Jempiring|Amerta|Leader|Senior|Junior|Chief|Staf|Konsulen|Residen|Bagian|Divisi|Departemen|KSM|SMF)\b)\b([A-Z][a-z]{1,19})\s+(?!(?:An(?:\.|\b)|Anemia\b|THT\b|Bedah\b|Interna\b|Obgyn\b|Anestesi\b))([A-Z][a-z]{1,24})(?!\s+(?:bed|kamar|kmr)\b)\b/g,
     ],
   },
   // 13. Account numbers

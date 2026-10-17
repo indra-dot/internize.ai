@@ -13,7 +13,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "1 - 2 g IV q6h"
           },
           {
@@ -37,7 +37,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "2 g IV q4h"
           },
           {
@@ -70,7 +70,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "1.5 - 3 g IV q6h"
       },
       {
@@ -103,7 +103,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "2 - 4 million units IV q4h"
           },
           {
@@ -127,7 +127,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "3 - 4 million units IV q4h (18-24 MU/day)"
           },
           {
@@ -160,7 +160,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "4.5 g IV q6h (standard) or 3.375 g IV q6h"
       },
       {
@@ -191,7 +191,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "1 - 2 g IV q8h"
       },
       {
@@ -227,7 +227,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "1 - 2 g IV q24h (2 g q12h for meningitis)"
       },
       {
@@ -258,7 +258,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "2 g IV q8h"
       },
       {
@@ -296,7 +296,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "1 - 2 g IV q8-12h"
           },
           {
@@ -311,7 +311,7 @@
           },
           {
             "minCrCl": 0,
-            "label": "CrCl &le; 10 mL/min",
+            "label": "CrCl ≤ 10 mL/min",
             "recommendation": "250 - 500 mg IV q24h"
           }
         ],
@@ -325,7 +325,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "2 g IV q8h"
           },
           {
@@ -340,7 +340,7 @@
           },
           {
             "minCrCl": 0,
-            "label": "CrCl &le; 10 mL/min",
+            "label": "CrCl ≤ 10 mL/min",
             "recommendation": "1 g IV q24h (monitor EEG/mental status)"
           }
         ],
@@ -363,7 +363,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "1.5 - 3 g IV q12h (no adjustment)"
       },
       {
@@ -401,7 +401,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "1 g IV q8h (standard or 3h extended infusion)"
           },
           {
@@ -430,7 +430,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "2 g IV q8h (3h extended infusion)"
           },
           {
@@ -470,7 +470,7 @@
         "adjustments": [
           {
             "minCrCl": 60,
-            "label": "CrCl &ge; 60 mL/min",
+            "label": "CrCl ≥ 60 mL/min",
             "recommendation": "500 mg IV q6h (or 1 g q8h)"
           },
           {
@@ -499,7 +499,7 @@
         "adjustments": [
           {
             "minCrCl": 60,
-            "label": "CrCl &ge; 60 mL/min",
+            "label": "CrCl ≥ 60 mL/min",
             "recommendation": "1 g IV q6-8h"
           },
           {
@@ -537,7 +537,7 @@
     "adjustments": [
       {
         "minCrCl": 30,
-        "label": "CrCl &ge; 30 mL/min",
+        "label": "CrCl ≥ 30 mL/min",
         "recommendation": "1 g IV q24h"
       },
       {
@@ -563,7 +563,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "500 - 750 mg PO/IV q24h"
       },
       {
@@ -599,7 +599,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "400 mg IV q8-12h or 500 - 750 mg PO q12h"
       },
       {
@@ -630,7 +630,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "400 mg PO/IV q24h (no adjustment)"
       },
       {
@@ -665,7 +665,7 @@
         "adjustments": [
           {
             "minCrCl": 60,
-            "label": "CrCl &ge; 60 mL/min",
+            "label": "CrCl ≥ 60 mL/min",
             "recommendation": "5 - 7 mg/kg IV q24h",
             "dose_factor": 5
           },
@@ -699,7 +699,7 @@
         "adjustments": [
           {
             "minCrCl": 60,
-            "label": "CrCl &ge; 60 mL/min",
+            "label": "CrCl ≥ 60 mL/min",
             "recommendation": "1 - 1.7 mg/kg IV q8h (synergy 1 mg/kg q8h)",
             "dose_factor": 1.5
           },
@@ -742,7 +742,7 @@
     "adjustments": [
       {
         "minCrCl": 60,
-        "label": "CrCl &ge; 60 mL/min",
+        "label": "CrCl ≥ 60 mL/min",
         "recommendation": "15 mg/kg IV q24h",
         "dose_factor": 15
       },
@@ -783,7 +783,7 @@
     "adjustments": [
       {
         "minCrCl": 90,
-        "label": "CrCl &ge; 90 mL/min",
+        "label": "CrCl ≥ 90 mL/min",
         "recommendation": "15 - 20 mg/kg IV q8-12h (target AUC 400-600)",
         "dose_factor": 15
       },
@@ -826,7 +826,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "4 - 6 mg/kg IV q24h",
             "dose_factor": 4
           },
@@ -848,7 +848,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "6 - 8 mg/kg IV q24h",
             "dose_factor": 6
           },
@@ -870,7 +870,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "8 - 10 mg/kg IV q24h",
             "dose_factor": 8
           },
@@ -900,7 +900,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "600 mg PO/IV q12h (no adjustment)"
       },
       {
@@ -933,7 +933,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "500 mg PO/IV q8h (no adjustment)"
           },
           {
@@ -957,7 +957,7 @@
         "adjustments": [
           {
             "minCrCl": 10,
-            "label": "CrCl &ge; 10 mL/min",
+            "label": "CrCl ≥ 10 mL/min",
             "recommendation": "500 mg IV q6-8h"
           },
           {
@@ -987,7 +987,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "1 DS tablet (160 mg TMP) PO q12h"
           },
           {
@@ -1011,7 +1011,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "1 - 2 DS tablets PO q12h"
           },
           {
@@ -1036,7 +1036,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "4 mg/kg (TMP) IV/PO q12h",
             "dose_factor": 4
           },
@@ -1064,7 +1064,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "5 mg/kg (TMP) IV/PO q12h",
             "dose_factor": 5
           },
@@ -1092,7 +1092,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "5 mg/kg (TMP) IV q8h (15 mg/kg/day)",
             "dose_factor": 5
           },
@@ -1120,7 +1120,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "15 - 20 mg/kg/day (TMP) divided q6-8h IV",
             "dose_factor": 15
           },
@@ -1156,7 +1156,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "600 - 900 mg IV q8h or 300 - 450 mg PO q6-8h (no adjustment)"
       },
       {
@@ -1188,7 +1188,7 @@
     "adjustments": [
       {
         "minCrCl": 60,
-        "label": "CrCl &ge; 60 mL/min",
+        "label": "CrCl ≥ 60 mL/min",
         "recommendation": "100 mg PO q12h x 5 days"
       },
       {
@@ -1223,7 +1223,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "5 mg/kg IV q8h",
             "dose_factor": 5
           },
@@ -1258,7 +1258,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "250 mg/m2 IV q12h"
           },
           {
@@ -1288,7 +1288,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "5 mg/kg IV q8h",
             "dose_factor": 5
           },
@@ -1322,7 +1322,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "10 mg/kg IV q8h",
             "dose_factor": 10
           },
@@ -1366,7 +1366,7 @@
         "adjustments": [
           {
             "minCrCl": 25,
-            "label": "CrCl &ge; 25 mL/min",
+            "label": "CrCl ≥ 25 mL/min",
             "recommendation": "800 mg PO 5x/day (q4h while awake)"
           },
           {
@@ -1390,7 +1390,7 @@
         "adjustments": [
           {
             "minCrCl": 25,
-            "label": "CrCl &ge; 25 mL/min",
+            "label": "CrCl ≥ 25 mL/min",
             "recommendation": "400 mg PO TID (q8h) or 200 mg 5x/day"
           },
           {
@@ -1425,7 +1425,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "1 g PO q8h"
           },
           {
@@ -1454,7 +1454,7 @@
         "adjustments": [
           {
             "minCrCl": 30,
-            "label": "CrCl &ge; 30 mL/min",
+            "label": "CrCl ≥ 30 mL/min",
             "recommendation": "1 g PO q12h or 500 mg PO q12h"
           },
           {
@@ -1478,7 +1478,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "2 g PO q12h x 1 day (2 doses total)"
           },
           {
@@ -1518,7 +1518,7 @@
         "adjustments": [
           {
             "minCrCl": 60,
-            "label": "CrCl &ge; 60 mL/min",
+            "label": "CrCl ≥ 60 mL/min",
             "recommendation": "900 mg PO q12h"
           },
           {
@@ -1552,7 +1552,7 @@
         "adjustments": [
           {
             "minCrCl": 60,
-            "label": "CrCl &ge; 60 mL/min",
+            "label": "CrCl ≥ 60 mL/min",
             "recommendation": "900 mg PO q24h"
           },
           {
@@ -1599,7 +1599,7 @@
         "adjustments": [
           {
             "minCrCl": 70,
-            "label": "CrCl &ge; 70 mL/min",
+            "label": "CrCl ≥ 70 mL/min",
             "recommendation": "5 mg/kg IV q12h",
             "dose_factor": 5
           },
@@ -1639,7 +1639,7 @@
         "adjustments": [
           {
             "minCrCl": 70,
-            "label": "CrCl &ge; 70 mL/min",
+            "label": "CrCl ≥ 70 mL/min",
             "recommendation": "5 mg/kg IV q24h",
             "dose_factor": 5
           },
@@ -1689,7 +1689,7 @@
         "adjustments": [
           {
             "minCrCl": 61,
-            "label": "CrCl &ge; 61 mL/min",
+            "label": "CrCl ≥ 61 mL/min",
             "recommendation": "75 mg PO BID (q12h) x 5 days"
           },
           {
@@ -1704,7 +1704,7 @@
           },
           {
             "minCrCl": 0,
-            "label": "CrCl &le; 10 mL/min",
+            "label": "CrCl ≤ 10 mL/min",
             "recommendation": "30 mg PO single dose (or 30 mg post-HD every other session)"
           }
         ],
@@ -1718,7 +1718,7 @@
         "adjustments": [
           {
             "minCrCl": 61,
-            "label": "CrCl &ge; 61 mL/min",
+            "label": "CrCl ≥ 61 mL/min",
             "recommendation": "75 mg PO once daily (q24h)"
           },
           {
@@ -1733,7 +1733,7 @@
           },
           {
             "minCrCl": 0,
-            "label": "CrCl &le; 10 mL/min",
+            "label": "CrCl ≤ 10 mL/min",
             "recommendation": "30 mg PO post every other HD session"
           }
         ],
@@ -1758,7 +1758,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "800 mg load, then 400 mg PO/IV q24h (100% dose)"
           },
           {
@@ -1777,7 +1777,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "200 - 400 mg load, then 100 - 200 mg q24h"
           },
           {
@@ -1796,7 +1796,7 @@
         "adjustments": [
           {
             "minCrCl": 50,
-            "label": "CrCl &ge; 50 mL/min",
+            "label": "CrCl ≥ 50 mL/min",
             "recommendation": "800 mg load, then 800 mg PO/IV q24h"
           },
           {
@@ -1825,7 +1825,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "IV: 6 mg/kg q12h load, then 4 mg/kg q12h; PO: 200 mg q12h"
       },
       {
@@ -1851,7 +1851,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "300 mg PO (delayed-release) q24h (after 300 mg q12h load Day 1)"
       },
       {
@@ -1877,7 +1877,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "70 mg IV Day 1, then 50 mg IV q24h (no adjustment)"
       },
       {
@@ -1908,7 +1908,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "100 mg IV q24h (150 mg for esophageal) (no adjustment)"
       },
       {
@@ -1940,7 +1940,7 @@
     "adjustments": [
       {
         "minCrCl": 50,
-        "label": "CrCl &ge; 50 mL/min",
+        "label": "CrCl ≥ 50 mL/min",
         "recommendation": "3 - 5 mg/kg IV q24h (ensure NS pre-hydration)",
         "dose_factor": 3
       },

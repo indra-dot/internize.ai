@@ -24,8 +24,9 @@
 
 import {
   DEFAULT_GEMINI_MODEL,
-  INTERACTIONS_API_REVISION,
+  extractGeminiErrorMessage,
   loadGeminiConfig,
+  resolveModelCandidates,
 } from '../gemini/client';
 import {
   type MarkdownGuardrailResult,
@@ -249,26 +250,30 @@ const SYSTEM_PROMPT = `You are "Internize Unified Clinical Synthesizer", an elit
       "Eutiroid/Subklinis"
     ]
   },
-  "jawab_konsul": "string — the complete, formal consultation answer. For MODE 'konsul', follow the exact draft template starting directly with 'Saat ini dengan risiko tindakan :', then 'Optimal dilakukan tindakan apabila :', and 'Advis & Rekomendasi Sp.PD:' (A. Pre-Operatif, B. Intra-Operatif, C. Post-Operatif & Rawat Bersama). For MODE 'pomr' or 'ringkasan', this may be an empty string.",
+  "jawab_konsul": "string — concise, direct consultation answer starting directly with 'Saat ini dengan risiko tindakan :', then 'Optimal dilakukan tindakan apabila :', and 'Advis & Rekomendasi Sp.PD:' (A. Pre-Operatif, B. Intra-Operatif, C. Post-Operatif & Rawat Bersama). Keep each advis item short and direct (1 concise line). NO formal letter greeting/closing, NO literature citations.",
   "problems": [
     {
-      "nama_masalah": "string — problem/diagnosis name (Indonesian medical terminology)",
+      "nama_masalah": "string — concise problem/diagnosis name (Indonesian medical terminology)",
       "divisi_papdi": "string — PAPDI division OR external cross-specialty ('Neurologi / Saraf', 'Bedah Saraf', 'Bedah / Lintas Disiplin', etc.)",
       "urgensi": "cito | high | moderate | routine",
-      "clinical_reasoning": "string — evidence-based rationale linking history, examination, and lab findings to this diagnosis",
+      "clinical_reasoning": "string — 1 short sentence linking key lab/vital finding to diagnosis",
       "planning": {
-        "dx": "string — Plan Diagnostik: further investigations needed",
-        "tx": "string — Plan Terapeutik: full drug regimen (generic name, dose, route, frequency, duration) per FORNAS",
-        "mx": "string — Plan Monitoring: specific vital signs, fluid balance, serial labs",
-        "ex": "string — Plan Edukasi: patient/family education points"
+        "dx": "string — MAX 1 CONCISE LINE: specific diagnostic test needed (no fluff, no citations)",
+        "tx": "string — MAX 1 CONCISE LINE: generic drug name, dose, route, frequency (no textbook explanation, no citations)",
+        "mx": "string — MAX 1 CONCISE LINE: specific vital/lab parameter to monitor",
+        "ex": "string — MAX 1 CONCISE LINE: brief key education point"
       }
     }
   ],
-  "ringkasan_emr": "string — A clean, plain-text EMR-ready summary paragraph (NO markdown syntax, no bullet points, no headers) combining: one-liner patient synopsis, dominant clinical syndrome, haemodynamic status, active problem summary, and key therapeutic plan. Carry all PHI tokens verbatim."
+  "ringkasan_emr": "string — Concise, direct plain-text summary (1. DAFTAR MASALAH AKTIF, 2. TANDA VITAL & LAB ABNORMAL, 3. RPD & RPO, 4. TERAPI AKTIF). NO citations, NO filler sentences. Carry all PHI tokens verbatim."
 }
 
 ================================================================================
 ### MODE-SPECIFIC RULES:
+- STRICT ANTI-BLOAT & NO CITATION RULE (ALL MODES):
+    • NEVER include literature/guideline citations (e.g., '[PPK ...]', 'Berdasarkan PPK PAPDI...', 'Sesuai pedoman...').
+    • NEVER include formal letter openings/closings ('Terima kasih atas kepercayaan TS...', 'Salam sejawat', 'Tanda tangan DPJP').
+    • Keep every bullet and 4P item (dx, tx, mx, ex) to 1 short, direct clinical phrase.
 - Mode "konsul":
     • Populate evaluasi_preoperatif with all four scores using the exact English risk string:
       - ARISCAT score [X] points ([Y]% risk of in-hospital post-op pulmonary complication)
@@ -297,30 +302,30 @@ Eutiroid/Subklinis
 
 Advis & Rekomendasi Sp.PD:
 A. Pre-Operatif:
-	• [Instruksi puasa, hidrasi, penyesuaian obat, target optimalisasi spesifik pasien]
+- [1 baris instruksi langsung spesifik pasien]
 B. Intra-Operatif:
-	• [Monitoring hemodinamik, MAP, cairan, EKG spesifik pasien]
+- [1 baris instruksi langsung spesifik pasien]
 C. Post-Operatif & Rawat Bersama:
-	• [Ruang perawatan pasca-bedah, serial lab monitoring, evaluasi komorbid spesifik pasien]
-    • problems must list all active medical issues relevant to perioperative management.
-    • hal_perlu_diperhatikan must include perioperative drug management instructions.
+- [1 baris instruksi langsung spesifik pasien]
+    • problems must list active medical issues concisely.
+    • hal_perlu_diperhatikan must include concise perioperative drug/safety alerts (max 1 line per item).
 
 - Mode "pomr":
     • Set evaluasi_preoperatif to null.
     • jawab_konsul may be an empty string "".
-    • problems must cover all 11 PAPDI divisions that are active; include SOAP-style reasoning in clinical_reasoning.
-    • hal_perlu_diperhatikan must include cross-specialty safety alerts.
+    • problems must list only genuine active problems with 1-line concise planning (dx, tx, mx, ex).
+    • hal_perlu_diperhatikan must include concise safety alerts.
 
 - Mode "ringkasan":
     • Set evaluasi_preoperatif to null.
     • jawab_konsul may be an empty string "".
     • problems should be a concise list of the dominant active problems.
-    • ringkasan_emr is the primary output: a handoff-ready SBAR-style plain-text paragraph.
+    • ringkasan_emr is a concise 4-point summary (1. Masalah Aktif, 2. Vital & Lab Abnormal, 3. RPD & RPO, 4. Terapi Aktif).
 
 - Mode "research_extract":
     • Set evaluasi_preoperatif to null.
     • jawab_konsul may be an empty string "".
-    • problems should list the clinical problems with LOINC-mapped lab findings in clinical_reasoning.
+    • problems should list the clinical problems with LOINC-mapped lab findings.
     • ringkasan_emr should include a Safe Harbor privacy integrity summary.
 
 OUTPUT REMINDER: Return ONLY the JSON object. No markdown. No intro. No outro.`;
@@ -877,11 +882,13 @@ export async function runCloudSynthesizer(
     hazardAlerts,
   });
 
-  // ── Step 4: Send to Google Gemini Interactions API ────────────────────────
+  // ── Step 4: Send to Google Gemini API ─────────────────────────────────────
   const model = geminiConfig.model || DEFAULT_GEMINI_MODEL;
-  onStatus?.('sending', `Menghubungi Google Gemini Interactions API (${model})...`);
+  const modelCandidates = resolveModelCandidates(model);
+  const primaryModel = modelCandidates[0];
+  const apiKey = geminiConfig.apiKey.trim();
+  onStatus?.('sending', `Menghubungi Google Gemini API (${primaryModel})...`);
 
-  // API key is sent in the x-goog-api-key header, never in the URL (URLs end up in logs and history)
   const interactionsEndpoint = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 
   let rawTextOutput = '';
@@ -898,56 +905,157 @@ export async function runCloudSynthesizer(
       timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     }
 
-    // Attempt 1: Modern Interactions API with store: false (Medical privacy invariant)
-    let response = await fetch(interactionsEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Api-Revision': INTERACTIONS_API_REVISION,
-        'x-goog-api-key': geminiConfig.apiKey,
-      },
-      body: JSON.stringify({
-        model,
-        input: userPrompt,
-        system_instruction: SYSTEM_PROMPT,
-        store: false, // Ensure prompt & outputs are ephemeral on Google Cloud
-        response_format: {
-          type: 'text',
-          mime_type: 'application/json',
-        },
-      }),
-      signal: controller.signal,
-    });
+    let response: Response | null = null;
+    let lastErrorMsg = '';
 
-    // Attempt 2: Fallback to generateContent if interactions endpoint is 404/405
-    if (response.status === 404 || response.status === 405) {
-      const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      response = await fetch(fallbackEndpoint, {
+    // Attempt 1: Modern Interactions API with store: false (Medical privacy invariant)
+    // NOTE: Never send 'Api-Revision' header from browser fetch as it triggers CORS preflight 403 Forbidden.
+    try {
+      const interactionsRes = await fetch(interactionsEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-goog-api-key': geminiConfig.apiKey,
+          'x-goog-api-key': apiKey,
         },
         body: JSON.stringify({
+          model: primaryModel,
+          input: userPrompt,
+          system_instruction: SYSTEM_PROMPT,
+          store: false, // Ensure prompt & outputs are ephemeral on Google Cloud
+          response_format: [
+            {
+              type: 'text',
+              mime_type: 'application/json',
+            },
+          ],
+        }),
+        signal: controller.signal,
+      });
+
+      if (interactionsRes.ok) {
+        response = interactionsRes;
+      } else {
+        const errJson = await interactionsRes.json().catch(() => null);
+        lastErrorMsg = extractGeminiErrorMessage(
+          errJson,
+          interactionsRes.status,
+          interactionsRes.statusText,
+        );
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw err;
+      }
+      lastErrorMsg = err instanceof Error ? err.message : String(err);
+    }
+
+    // Attempt 2: Fallback to generateContent across Gemini 3.x model candidates
+    if (!response) {
+      for (const candidateModel of modelCandidates) {
+        const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:generateContent`;
+        const payloadBody = JSON.stringify({
           systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
           contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
           generationConfig: {
             temperature: 0.2,
             responseMimeType: 'application/json',
           },
-        }),
-        signal: controller.signal,
-      });
+        });
+
+        let fallbackRes: Response;
+        try {
+          fallbackRes = await fetch(fallbackEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey,
+            },
+            body: payloadBody,
+            signal: controller.signal,
+          });
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AbortError') {
+            throw err;
+          }
+          fallbackRes = await fetch(`${fallbackEndpoint}?key=${encodeURIComponent(apiKey)}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: payloadBody,
+            signal: controller.signal,
+          });
+        }
+
+        if (fallbackRes.ok) {
+          response = fallbackRes;
+          break;
+        }
+
+        const errJson = await fallbackRes.json().catch(() => null);
+        lastErrorMsg = extractGeminiErrorMessage(
+          errJson,
+          fallbackRes.status,
+          fallbackRes.statusText,
+        );
+
+        const isModelNotFound =
+          fallbackRes.status === 404 ||
+          /not found|not supported|invalid model/i.test(lastErrorMsg);
+        if (isModelNotFound) {
+          continue;
+        }
+        break;
+      }
+    }
+
+    // Attempt 3: Vertex AI Express Mode fallback if key starts with 'AQ.' and generativelanguage rejected it
+    if (!response && apiKey.startsWith('AQ.')) {
+      for (const candidateModel of modelCandidates) {
+        try {
+          const vertexEndpoint = `https://aiplatform.googleapis.com/v1/publishers/google/models/${candidateModel}:generateContent?key=${encodeURIComponent(apiKey)}`;
+          const vertexRes = await fetch(vertexEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+              contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+              generationConfig: {
+                temperature: 0.2,
+                responseMimeType: 'application/json',
+              },
+            }),
+            signal: controller.signal,
+          });
+
+          if (vertexRes.ok) {
+            response = vertexRes;
+            break;
+          }
+
+          const errJson = await vertexRes.json().catch(() => null);
+          const msg = extractGeminiErrorMessage(errJson, vertexRes.status, vertexRes.statusText);
+          if (vertexRes.status === 404 || /not found|not supported/i.test(msg)) {
+            continue;
+          }
+          lastErrorMsg = msg;
+          break;
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AbortError') {
+            throw err;
+          }
+        }
+      }
     }
 
     if (timeoutId) clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      const errJson = await response.json().catch(() => null) as { error?: { message?: string } } | null;
-      const errMsg = errJson?.error?.message || `HTTP ${response.status} ${response.statusText}`;
+    if (!response) {
       return {
         ok: false,
-        error: `Gemini API Error: ${errMsg}`,
+        error: `Gemini API Error: ${lastErrorMsg || 'Gagal menghubungi Google Gemini API.'}`,
         latencyMs: Math.round(performance.now() - t0),
       };
     }

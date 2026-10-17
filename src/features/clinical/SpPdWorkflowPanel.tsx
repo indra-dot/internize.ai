@@ -37,7 +37,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Ca
 import { InfoTooltip } from '../../components/ui/Tooltip';
 import {
   InternalMedicineEngine,
-  convertPpkToProtocolTemplate,
   type SpPdConsultResult,
   type SpPdPomrResult,
   type SpPdSummaryResult,
@@ -45,7 +44,6 @@ import {
   type SurgicalUrgencyType,
   type OperativeToleranceStatus,
 } from '../../services/clinical/internalMedicineEngine';
-import { ProtocolCard } from './ProtocolCard';
 import { PpkExplorerModal } from './PpkExplorerModal';
 import { PrivacySensorPreviewModal } from './PrivacySensorPreviewModal';
 import { CdssExplorerModal } from './CdssExplorerModal';
@@ -138,7 +136,6 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
   
   // Streamlined 3-tab focus: 'konsul' | 'pomr' | 'ringkas'
   const [activeColumn, setActiveColumn] = useState<'konsul' | 'pomr' | 'ringkas'>('konsul');
-  const [showGroundingAccordion, setShowGroundingAccordion] = useState<boolean>(false);
   const [showEmrPreview, setShowEmrPreview] = useState<boolean>(false);
   const [showPrivacyPreview, setShowPrivacyPreview] = useState<boolean>(false);
   const [showPpkExplorer, setShowPpkExplorer] = useState<boolean>(false);
@@ -344,23 +341,6 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
 
   const structuredOutput = activeCloudResult?.structuredOutput;
 
-  // Single source of truth for the copyable EMR summary
-  const emrReadyText = useMemo(() => {
-    if (activeColumn === 'konsul') {
-      if (structuredOutput?.jawab_konsul?.trim()) {
-        return structuredOutput.jawab_konsul.trim();
-      }
-      return consultResult.fullDraftText;
-    }
-    if (activeColumn === 'ringkas') {
-      return summaryResult.fullDraftText || structuredOutput?.ringkasan_emr?.trim() || pomrResult.fullDraftText;
-    }
-    if (structuredOutput?.ringkasan_emr?.trim()) {
-      return structuredOutput.ringkasan_emr.trim();
-    }
-    return pomrResult.fullDraftText || summaryResult.fullDraftText;
-  }, [structuredOutput, activeColumn, consultResult.fullDraftText, summaryResult.fullDraftText, pomrResult.fullDraftText]);
-
   // Unified fallback pre-operative evaluation for Offline CROGE mode
   const unifiedEvaluasiPreop: EvaluasiPreoperatif = useMemo(() => {
     if (structuredOutput?.evaluasi_preoperatif) {
@@ -475,16 +455,42 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
         nama_masalah: p.title,
         divisi_papdi: p.divisionName,
         urgensi,
-        clinical_reasoning: `Identifikasi masalah aktif berdasarkan temuan klinis, riwayat penyakit, serta data lab terkait divisi ${p.divisionName}.`,
+        clinical_reasoning: '',
         planning: {
-          dx: p.pdx.join('; ') || 'Pemeriksaan penunjang sesuai indikasi klinis lanjutan',
-          tx: p.ptx.join('; ') || 'Regimen terapi medikamentosa terstandar PAPDI/FORNAS',
-          mx: p.pmx.join('; ') || 'Monitoring tanda vital ketat, produksi urin, dan evaluasi lab serial',
-          ex: p.pex.join('; ') || 'Edukasi kondisi klinis, tujuan pengobatan, dan prognosis kepada keluarga',
+          dx: p.pdx.slice(0, 2).join('; ') || 'Evaluasi penunjang sesuai indikasi',
+          tx: p.ptx.slice(0, 2).join('; ') || 'Terapi sesuai indikasi klinis',
+          mx: p.pmx.slice(0, 2).join('; ') || 'Monitor tanda vital & respon klinis',
+          ex: p.pex.slice(0, 1).join('; ') || 'Edukasi rencana terapi & tanda bahaya',
         },
       };
     });
   }, [structuredOutput, pomrResult.problems]);
+
+  // Single source of truth for the copyable EMR summary (concise, zero-fluff)
+  const emrReadyText = useMemo(() => {
+    if (activeColumn === 'konsul') {
+      if (structuredOutput?.jawab_konsul?.trim()) {
+        return structuredOutput.jawab_konsul.trim();
+      }
+      return consultResult.fullDraftText;
+    }
+    if (activeColumn === 'ringkas') {
+      if (structuredOutput?.ringkasan_emr?.trim()) {
+        return structuredOutput.ringkasan_emr.trim();
+      }
+      return summaryResult.fullDraftText;
+    }
+    // POMR mode: only output concise #1, #2 + 4P lines
+    if (unifiedProblems.length > 0) {
+      return unifiedProblems
+        .map(
+          (p, i) =>
+            `#${i + 1}. ${p.nama_masalah}\n- Pdx: ${p.planning.dx || '-'}\n- Ptx: ${p.planning.tx || '-'}\n- Pmx: ${p.planning.mx || '-'}\n- Pex: ${p.planning.ex || '-'}`,
+        )
+        .join('\n\n');
+    }
+    return pomrResult.fullDraftText;
+  }, [structuredOutput, activeColumn, consultResult.fullDraftText, summaryResult.fullDraftText, pomrResult.fullDraftText, unifiedProblems]);
 
   // Oncology staging result — memoized from the same inputText, zero extra cost
   const oncologyResult: OncologyConversionResult | null = useMemo(() => {
@@ -657,98 +663,138 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
     );
   };
 
-  // Comprehensive Pre-operative Multi-Risk Stratification Card
-  const renderEvaluasiPreop = (evaluasi: EvaluasiPreoperatif) => (
-    <Card className="border border-maroon-200/90 shadow-sm bg-white overflow-hidden">
-      <CardHeader className="py-2.5 px-3 bg-gradient-to-r from-maroon-50/90 via-white to-gold-50/50 border-b border-maroon-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <HeartPulse className="w-4 h-4 text-maroon-800 shrink-0" />
-            <div>
-              <CardTitle className="text-xs font-extrabold text-maroon-950">
-                Stratifikasi Risiko Tindakan Operatif
-              </CardTitle>
-              <p className="text-[10px] text-slate-500 font-normal">
-                Multi-Risk Index: Kardiovaskular, Pulmonal, Perdarahan & Tromboemboli
-              </p>
-            </div>
-          </div>
-          <span className="text-[9.5px] px-2 py-0.5 rounded font-bold bg-maroon-100 text-maroon-900 border border-maroon-200">
-            {evaluasi.status_toleransi}
-          </span>
-        </div>
-      </CardHeader>
+  // Comprehensive Pre-operative Multi-Risk Stratification Card (Copyable full block + clickable mini-cards)
+  const renderEvaluasiPreop = (evaluasi: EvaluasiPreoperatif) => {
+    const fullRiskText = [
+      'Saat ini dengan risiko tindakan :',
+      ...evaluasi.risiko_tindakan.map(
+        (r) => `- ${r.nama_skor}: ${r.poin} (${r.interpretasi})`,
+      ),
+      '',
+      'Optimal dilakukan tindakan apabila :',
+      ...evaluasi.target_optimalisasi.map((t) => `- ${t}`),
+    ].join('\n');
 
-      <CardContent className="p-3 space-y-3">
-        {/* 4 Grid Mini-Cards for Risk Scores */}
-        <div className="grid grid-cols-2 gap-2">
-          {evaluasi.risiko_tindakan.map((r, idx) => {
-            const colorMap: Record<string, string> = {
-              low: 'bg-emerald-50/80 border-emerald-300 text-emerald-950',
-              moderate: 'bg-amber-50/80 border-amber-300 text-amber-950',
-              high: 'bg-orange-50/80 border-orange-400 text-orange-950',
-              critical: 'bg-rose-50/80 border-rose-400 text-rose-950',
-              unknown: 'bg-slate-50/90 border-slate-300 text-slate-800',
-            };
-            const badgeMap: Record<string, string> = {
-              low: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-              moderate: 'bg-amber-100 text-amber-800 border-amber-300',
-              high: 'bg-orange-100 text-orange-800 border-orange-300',
-              critical: 'bg-rose-100 text-rose-800 border-rose-300',
-              unknown: 'bg-slate-200 text-slate-700 border-slate-300',
-            };
-
-            return (
-              <div
-                key={idx}
-                className={`p-2.5 rounded-xl border ${colorMap[r.level_risiko] || colorMap.moderate} text-[10.5px] space-y-1 shadow-2xs transition-all`}
-              >
-                <div className="flex items-center justify-between gap-1">
-                  <span className="font-bold text-[10px] uppercase tracking-tight truncate text-slate-700">
-                    {r.nama_skor}
-                  </span>
-                  <span className={`text-[8.5px] uppercase font-extrabold px-1.5 py-0.2 rounded border ${badgeMap[r.level_risiko] || badgeMap.moderate}`}>
-                    {r.isPartial ? 'Data Kurang' : r.level_risiko}
-                  </span>
-                </div>
-                <div className="font-extrabold text-sm text-slate-900 leading-none">
-                  {r.poin}
-                </div>
-                <p className="text-[10px] text-slate-700 leading-snug font-medium pt-0.5">
-                  {r.interpretasi}
+    return (
+      <Card className="border border-maroon-200/90 shadow-sm bg-white overflow-hidden">
+        <CardHeader className="py-2.5 px-3 bg-gradient-to-r from-maroon-50/90 via-white to-gold-50/50 border-b border-maroon-100">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <HeartPulse className="w-4 h-4 text-maroon-800 shrink-0" />
+              <div className="min-w-0">
+                <CardTitle className="text-xs font-extrabold text-maroon-950 truncate">
+                  Stratifikasi Risiko Tindakan Operatif
+                </CardTitle>
+                <p className="text-[10px] text-slate-500 font-normal truncate">
+                  Klik skor untuk menyalin satuan, atau salin seluruh stratifikasi
                 </p>
-                {r.isPartial && (
-                  <div className="pt-0.5">
-                    <span className="inline-flex items-center gap-1 text-[8.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100/90 text-amber-900 border border-amber-300">
-                      ⚠️ Data Kurang (Lengkapi di Form PPK/CDSS)
-                    </span>
-                  </div>
-                )}
               </div>
-            );
-          })}
-        </div>
-
-        {/* Target Optimalisasi Sebelum Tindakan */}
-        {evaluasi.target_optimalisasi.length > 0 && (
-          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-1.5">
-            <div className="font-bold text-[10.5px] text-slate-800 flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Optimal Dilakukan Tindakan Apabila:</span>
             </div>
-            <ul className="space-y-1 pl-1">
-              {evaluasi.target_optimalisasi.map((target, idx) => (
-                <li key={idx} className="flex items-start gap-1.5 text-[10.5px] text-slate-700">
-                  <span className="w-1.5 h-1.5 rounded-full bg-maroon-700 shrink-0 mt-1" />
-                  <span className="leading-snug font-medium">{target}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[9.5px] px-2 py-0.5 rounded font-bold bg-maroon-100 text-maroon-900 border border-maroon-200">
+                {evaluasi.status_toleransi}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                data-testid="copy-stratifikasi-risiko-btn"
+                onClick={() => handleCopy(fullRiskText, 'Stratifikasi Risiko')}
+                className="h-6 px-2 text-[10px] border-maroon-300 text-maroon-800 hover:bg-maroon-50 font-semibold"
+              >
+                {copiedKey === 'Stratifikasi Risiko' ? (
+                  <Check className="w-3 h-3 text-emerald-600 mr-1" />
+                ) : (
+                  <Copy className="w-3 h-3 mr-1" />
+                )}
+                Salin Risiko
+              </Button>
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+        </CardHeader>
+
+        <CardContent className="p-3 space-y-3">
+          {/* 4 Grid Mini-Cards for Risk Scores (Clickable to Copy Individual Score) */}
+          <div className="grid grid-cols-2 gap-2">
+            {evaluasi.risiko_tindakan.map((r, idx) => {
+              const colorMap: Record<string, string> = {
+                low: 'bg-emerald-50/80 border-emerald-300 text-emerald-950 hover:bg-emerald-100/70',
+                moderate: 'bg-amber-50/80 border-amber-300 text-amber-950 hover:bg-amber-100/70',
+                high: 'bg-orange-50/80 border-orange-400 text-orange-950 hover:bg-orange-100/70',
+                critical: 'bg-rose-50/80 border-rose-400 text-rose-950 hover:bg-rose-100/70',
+                unknown: 'bg-slate-50/90 border-slate-300 text-slate-800 hover:bg-slate-100/80',
+              };
+              const badgeMap: Record<string, string> = {
+                low: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                moderate: 'bg-amber-100 text-amber-800 border-amber-300',
+                high: 'bg-orange-100 text-orange-800 border-orange-300',
+                critical: 'bg-rose-100 text-rose-800 border-rose-300',
+                unknown: 'bg-slate-200 text-slate-700 border-slate-300',
+              };
+              const singleLineScore = `${r.nama_skor}: ${r.poin} (${r.interpretasi})`;
+              const scoreCopyKey = `Skor ${r.nama_skor}`;
+
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleCopy(singleLineScore, scoreCopyKey)}
+                  title={`Klik untuk menyalin: ${singleLineScore}`}
+                  className={`p-2.5 rounded-xl border text-left cursor-pointer ${colorMap[r.level_risiko] || colorMap.moderate} text-[10.5px] space-y-1 shadow-2xs transition-all group`}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="font-bold text-[10px] uppercase tracking-tight truncate text-slate-700">
+                      {r.nama_skor}
+                    </span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className={`text-[8.5px] uppercase font-extrabold px-1.5 py-0.2 rounded border ${badgeMap[r.level_risiko] || badgeMap.moderate}`}>
+                        {r.isPartial ? 'Data Kurang' : r.level_risiko}
+                      </span>
+                      {copiedKey === scoreCopyKey ? (
+                        <Check className="w-3 h-3 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-2.5 h-2.5 text-slate-400 opacity-60 group-hover:opacity-100" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="font-extrabold text-sm text-slate-900 leading-none select-text">
+                    {r.poin}
+                  </div>
+                  <p className="text-[10px] text-slate-700 leading-snug font-medium pt-0.5 select-text">
+                    {r.interpretasi}
+                  </p>
+                  {r.isPartial && (
+                    <div className="pt-0.5">
+                      <span className="inline-flex items-center gap-1 text-[8.5px] font-bold px-1.5 py-0.5 rounded bg-amber-100/90 text-amber-900 border border-amber-300">
+                        ⚠️ Data Kurang (Lengkapi di Form PPK/CDSS)
+                      </span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Target Optimalisasi Sebelum Tindakan */}
+          {evaluasi.target_optimalisasi.length > 0 && (
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-1.5">
+              <div className="font-bold text-[10.5px] text-slate-800 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Optimal Dilakukan Tindakan Apabila:</span>
+              </div>
+              <ul className="space-y-1 pl-1">
+                {evaluasi.target_optimalisasi.map((target, idx) => (
+                  <li key={idx} className="flex items-start gap-1.5 text-[10.5px] text-slate-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-maroon-700 shrink-0 mt-1" />
+                    <span className="leading-snug font-medium">{target}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-3.5 select-text">
@@ -1101,73 +1147,10 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                     <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-[11.5px] text-slate-800 leading-relaxed font-sans whitespace-pre-wrap select-text">
                       {activeConsultDraft}
                     </div>
-
-                    {/* Grounding Data & Lab Collapsible */}
-                    <div className="pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setShowGroundingAccordion((v) => !v)}
-                        className="w-full flex items-center justify-between p-2 rounded-lg bg-slate-100/90 hover:bg-slate-200/90 text-slate-700 text-[10.5px] font-bold transition-colors border border-slate-200"
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <Activity className="w-3.5 h-3.5 text-maroon-800" />
-                          Data Grounding Klinis (Vitals, Lab, CKD-EPI)
-                        </span>
-                        {showGroundingAccordion ? (
-                          <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
-                        ) : (
-                          <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-                        )}
-                      </button>
-
-                      {showGroundingAccordion && (
-                        <div className="mt-2 p-3 bg-white border border-slate-200 rounded-lg space-y-2 text-[10.5px]">
-                          <div className="font-bold text-slate-700">Tanda Vital:</div>
-                          <div className="text-slate-600">
-                            TD: {pomrResult.vitals.rawMatched.bp || 'Tidak tercatat'} | HR:{' '}
-                            {pomrResult.vitals.heartRate || '-'} | RR:{' '}
-                            {pomrResult.vitals.respiratoryRate || '-'} | Temp:{' '}
-                            {pomrResult.vitals.temperature || '-'} °C
-                          </div>
-                          <div className="font-bold text-slate-700 pt-1">Hasil Lab Abnormal:</div>
-                          <div className="space-y-1">
-                            {pomrResult.abnormalLabs.length > 0 ? (
-                              pomrResult.abnormalLabs.map((lab, i) => (
-                                <div key={i} className="text-slate-600">
-                                  • {lab.name}: {lab.value} {lab.unit} ({lab.flag}) — {lab.interpretation}
-                                </div>
-                              ))
-                            ) : (
-                              <div className="text-slate-400 italic">Tidak ada lab abnormal signifikan</div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
                   </CardContent>
                 </Card>
               );
             })()}
-
-            {/* Matched PPK Protocols & Titration Tables for Consult */}
-            {consultResult.matchedProtocols && consultResult.matchedProtocols.length > 0 && (
-              <div className="space-y-2 pt-1">
-                <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-1.5 text-maroon-950 font-extrabold text-xs">
-                    <BookOpen className="w-4 h-4 text-gold-600" />
-                    <span>Protokol PPK & Titrasi Perioperatif Terkait ({consultResult.matchedProtocols.length})</span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 font-medium">
-                    121 Dokumen PAPDI
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {consultResult.matchedProtocols.map((proto) => (
-                    <ProtocolCard key={proto.id} protocol={proto} onShowToast={onShowToast} />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -1455,17 +1438,6 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                       {/* Expanded Problem Details */}
                       {isExpanded && (
                         <div className="border-t border-slate-100 bg-white space-y-0 text-[11px]">
-                          {/* Clinical Reasoning Section */}
-                          <div className="p-3 bg-slate-50/90 border-b border-slate-100 space-y-1">
-                            <div className="text-[10px] font-extrabold text-maroon-950 uppercase tracking-tight flex items-center gap-1">
-                              <Sparkles className="w-3 h-3 text-gold-600" />
-                              <span>Clinical Reasoning &amp; Evidensi Penunjang:</span>
-                            </div>
-                            <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
-                              {problem.clinical_reasoning}
-                            </p>
-                          </div>
-
                           {/* ── Embedded Oncology Staging Widget (dynamically bound to oncology card) ── */}
                           {idx === oncologyProblemIndex && oncologyResult && (() => {
                             const onco = oncologyResult;
@@ -1687,31 +1659,11 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                 })}
               </CardContent>
             </Card>
-
-            {/* Matched PPK Protocols & Titration Section for POMR */}
-            {pomrResult.matchedPpkGuidelines && pomrResult.matchedPpkGuidelines.length > 0 && (
-              <div className="space-y-2 pt-1">
-                <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-1.5 text-maroon-950 font-extrabold text-xs">
-                    <BookOpen className="w-4 h-4 text-gold-600" />
-                    <span>Panduan Praktik Klinis (PPK PAPDI) & Protokol Terkait ({pomrResult.matchedPpkGuidelines.length})</span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 font-medium">
-                    121 Dokumen PAPDI
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {pomrResult.matchedPpkGuidelines.map(convertPpkToProtocolTemplate).map((proto) => (
-                    <ProtocolCard key={proto.id} protocol={proto} onShowToast={onShowToast} />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════
-            TAB 3: RINGKAS KASUS (CHRONOLOGICAL & ABNORMAL LAB HIGHLIGHTS)
+            TAB 3: RINGKAS KASUS (CONCISE 4-SECTION SUMMARY)
             ══════════════════════════════════════════════════════════════════════ */}
         {activeColumn === 'ringkas' && (
           <div className="space-y-3">
@@ -1721,7 +1673,7 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                 <div className="flex items-center gap-1.5">
                   <BookOpen className="w-4 h-4 text-maroon-800" />
                   <CardTitle className="text-xs font-bold text-maroon-950">
-                    Ringkasan Kronologis Kasus &amp; Masalah Aktif
+                    Ringkas Kasus (Masalah, Vital/Lab, RPD/RPO &amp; Terapi)
                   </CardTitle>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -1729,7 +1681,7 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                     size="sm"
                     variant="outline"
                     data-testid="copy-ringkas-btn"
-                    onClick={() => handleCopy(summaryResult.fullDraftText, 'Ringkasan Kasus')}
+                    onClick={() => handleCopy(emrReadyText, 'Ringkasan Kasus')}
                     className="h-7 text-xs gap-1 font-semibold"
                   >
                     {copiedKey === 'Ringkasan Kasus' ? (
@@ -1747,7 +1699,7 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                   <Button
                     size="sm"
                     data-testid="inject-ringkas-btn"
-                    onClick={() => handleInject(summaryResult.fullDraftText, 'Ringkasan Kasus')}
+                    onClick={() => handleInject(emrReadyText, 'Ringkasan Kasus')}
                     className="h-7 text-xs bg-gold-500 hover:bg-gold-400 text-maroon-950 font-bold gap-1 shadow-2xs"
                   >
                     <MousePointerClick className="w-3 h-3 text-maroon-900" />
@@ -1756,66 +1708,13 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
                 </div>
               </CardHeader>
               <CardContent className="p-3 space-y-3">
-                {/* Profil & Keluhan Utama */}
-                {(summaryResult.patientBrief || summaryResult.chiefComplaint) && (
-                  <div className="p-2.5 rounded-lg bg-amber-50/60 border border-amber-200/80 text-[11px] text-amber-950">
-                    <span className="font-bold text-amber-900">Profil &amp; Keluhan Utama: </span>
-                    <span className="font-medium">{summaryResult.patientBrief || summaryResult.chiefComplaint}</span>
-                  </div>
-                )}
-
-                {/* RPD & RPO Chips */}
-                {(summaryResult.pastHistory.length > 0 || summaryResult.currentMedications.length > 0) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                    {summaryResult.pastHistory.length > 0 && (
-                      <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
-                        <span className="font-bold text-slate-700 block mb-1">Riwayat Penyakit Dahulu (RPD):</span>
-                        <div className="flex flex-wrap gap-1">
-                          {summaryResult.pastHistory.map((h, i) => (
-                            <span key={i} className="px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-800 text-[10px]">
-                              {h}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {summaryResult.currentMedications.length > 0 && (
-                      <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
-                        <span className="font-bold text-slate-700 block mb-1">Riwayat Pengobatan (RPO):</span>
-                        <div className="flex flex-wrap gap-1">
-                          {summaryResult.currentMedications.map((m, i) => (
-                            <span key={i} className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 text-[10px]">
-                              {m}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* Full Draft Box */}
                 <div
                   data-testid="ringkas-content"
                   className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-sans text-slate-800 leading-relaxed whitespace-pre-wrap select-text shadow-inner"
                 >
-                  {summaryResult.fullDraftText}
+                  {emrReadyText}
                 </div>
-
-                {/* PPK Citations if available */}
-                {summaryResult.ppkCitations && summaryResult.ppkCitations.length > 0 && (
-                  <div className="p-2.5 rounded-lg bg-maroon-50/50 border border-maroon-200 text-[10.5px] text-maroon-900 space-y-1">
-                    <span className="font-bold flex items-center gap-1">
-                      <BookOpen className="w-3 h-3 text-gold-600" />
-                      <span>Rujukan Panduan Praktik Klinis (PPK PAPDI):</span>
-                    </span>
-                    <ul className="list-disc pl-4 space-y-0.5 text-[10px] text-slate-700">
-                      {summaryResult.ppkCitations.map((cite, i) => (
-                        <li key={i}>{cite}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </CardContent>
             </Card>
 

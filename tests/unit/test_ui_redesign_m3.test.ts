@@ -180,19 +180,24 @@ describe('Milestone 3: Beginner User-Friendly UI Redesign Suite (Features 10-14)
       expect(summary.criticalAbnormalLabs).toBeDefined();
     });
 
-    it('identifies RPD, RPO, and Chief Complaint in case summary', () => {
+    it('identifies RPD, RPO, and Chief Complaint in concise 4-section case summary without fluff or citations', () => {
       const summary: SpPdSummaryResult =
         InternalMedicineEngine.generateCaseSummary(SAMPLE_COMORBID_WARD);
 
-      expect(summary.fullDraftText).toContain('=== RESUME MEDIS & RINGKASAN KASUS PENYAKIT DALAM (Sp.PD) ===');
-      expect(summary.fullDraftText).toContain('DAFTAR MASALAH AKTIF');
+      expect(summary.fullDraftText).toContain('1. DAFTAR MASALAH AKTIF:');
+      expect(summary.fullDraftText).toContain('2. TANDA VITAL & LAB ABNORMAL:');
+      expect(summary.fullDraftText).toContain('3. RPD & RPO:');
+      expect(summary.fullDraftText).toContain('4. TERAPI AKTIF:');
+      expect(summary.fullDraftText).not.toContain('=== RESUME MEDIS');
+      expect(summary.fullDraftText).not.toContain('&bull;');
+      expect(summary.fullDraftText).not.toMatch(/&(?:bull|amp|ge|le|gt|lt|ndash|mdash|nbsp);/i);
+      expect(summary.ppkCitations).toEqual([]);
       expect(summary.patientBrief || summary.chiefComplaint).toBeDefined();
     });
 
-    it('includes Ringkas Kasus view elements: copy button, inject button, and content box', () => {
+    it('includes Ringkas Kasus and copyable Stratifikasi Risiko button in SpPdWorkflowPanel', () => {
       const summary = InternalMedicineEngine.generateCaseSummary(SAMPLE_PREOP_CONSUL);
-      expect(summary.fullDraftText).toContain('DAFTAR MASALAH AKTIF');
-      expect(summary.fullDraftText).toContain('Sp.PD');
+      expect(summary.fullDraftText).toContain('1. DAFTAR MASALAH AKTIF:');
 
       const html = ReactDOMServer.renderToString(
         React.createElement(SpPdWorkflowPanel, {
@@ -200,6 +205,8 @@ describe('Milestone 3: Beginner User-Friendly UI Redesign Suite (Features 10-14)
         }),
       );
       expect(html).toContain('data-testid="mode-tab-ringkas"');
+      expect(html).toContain('data-testid="copy-stratifikasi-risiko-btn"');
+      expect(html).toContain('Salin Risiko');
     });
   });
 

@@ -417,6 +417,24 @@ export function runMarkdownGuardrail(
 }
 
 /**
+ * Decodes common HTML entities (&bull;, &ge;, &le;, &amp;, etc.) into clean Unicode characters
+ * so raw HTML entity codes never appear in clinical notes or EMR outputs.
+ */
+export function decodeHtmlEntities(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/&bull;/gi, '•')
+    .replace(/&ndash;/gi, '–')
+    .replace(/&mdash;/gi, '—')
+    .replace(/&ge;/gi, '≥')
+    .replace(/&le;/gi, '≤')
+    .replace(/&gt;/gi, '>')
+    .replace(/&lt;/gi, '<')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&');
+}
+
+/**
  * Replaces all tokens in a Markdown string with real patient identifiers.
  * Runs 100% locally in browser memory.
  */
@@ -424,13 +442,14 @@ export function reidentifyMarkdown(
   markdown: string,
   tokenMap: Map<string, string>,
 ): string {
-  if (tokenMap.size === 0) return markdown;
+  let result = decodeHtmlEntities(markdown);
+  if (tokenMap.size === 0) return result;
 
-  let result = markdown;
   for (const [token, realValue] of tokenMap) {
     const escaped = token.replace(/[[\]]/g, '\\$&');
     result = result.replace(new RegExp(escaped, 'g'), realValue);
   }
   return result;
 }
+
 

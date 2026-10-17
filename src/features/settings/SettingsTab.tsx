@@ -87,8 +87,15 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
       onShowToast?.('Koneksi Google Gemini API berhasil diverifikasi!', 'success');
     } else {
       setConnectionStatus('error');
-      setConnectionError(result.error ?? 'Unknown error');
-      onShowToast?.('Kunci tidak valid atau kuota habis.', 'error');
+      const errMsg = result.error ?? 'Unknown error';
+      setConnectionError(errMsg);
+      if (/failed to fetch|network|cors/i.test(errMsg)) {
+        onShowToast?.('Gagal menghubungi server Google Gemini. Periksa koneksi internet Anda.', 'error');
+      } else if (/quota|rate limit|429|resource_exhausted/i.test(errMsg)) {
+        onShowToast?.('Kuota / Rate limit tercapai sementara.', 'error');
+      } else {
+        onShowToast?.('Kunci tidak valid atau ditolak oleh server.', 'error');
+      }
     }
   };
 
@@ -101,13 +108,14 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
         return;
       }
 
-      // Detect Google API Key format (AIzaSy...)
-      const match = cleaned.match(/AIzaSy[A-Za-z0-9_-]{33}/);
-      const token = match
-        ? match[0]
-        : cleaned.startsWith('AIzaSy')
-          ? cleaned.replace(/\s+/g, '')
-          : cleaned;
+      // Detect Google API Key format (AIzaSy... or newer AQ.... Auth key)
+      const aizaMatch = cleaned.match(/AIzaSy[A-Za-z0-9_-]{33}/);
+      const aqMatch = cleaned.match(/AQ\.[A-Za-z0-9._-]{20,}/);
+      const token = aizaMatch
+        ? aizaMatch[0]
+        : aqMatch
+          ? aqMatch[0]
+          : cleaned.replace(/\s+/g, '');
 
       setApiKey(token);
       await saveGeminiConfig({
@@ -175,7 +183,11 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
                 <div className="w-2.5 h-2.5 rounded-full bg-rose-500 mt-1 shrink-0" />
                 <div>
                   <p className="font-semibold">
-                    🔴 Kunci Tidak Valid / Kuota Habis: Periksa kembali kunci Anda atau klik 'Ambil Kunci Baru'
+                    {/failed to fetch|network|cors/i.test(connectionError)
+                      ? '🔴 Gagal Menghubungi Server Gemini: Periksa koneksi jaringan atau coba lagi'
+                      : /quota|rate limit|429|resource_exhausted/i.test(connectionError)
+                        ? '🔴 Batas Rate Limit / Kuota Tercapai: Tunggu sejenak atau ganti model Gemini 3.x'
+                        : "🔴 Kunci Tidak Valid / Kuota Habis: Periksa kembali kunci Anda atau klik 'Ambil Kunci Baru'"}
                   </p>
                   {connectionError && (
                     <p className="text-[10px] text-rose-600 mt-0.5 break-all">{connectionError}</p>
@@ -237,7 +249,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
                   setApiKey(e.target.value);
                   setConnectionStatus('idle');
                 }}
-                placeholder="AIzaSy..."
+                placeholder="AIzaSy... atau AQ...."
                 className="w-full text-xs p-2 pr-9 rounded-lg border border-slate-200 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 font-mono text-slate-800"
               />
               <button
