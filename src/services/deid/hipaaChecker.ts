@@ -2,6 +2,10 @@
  * hipaaChecker.ts
  * Evaluates a de-identification result against HIPAA Safe Harbor criteria
  * and computes a structured compliance report.
+ *
+ * Attribution / Acknowledgements:
+ * HIPAA Safe Harbor 18-category verification criteria and residual risk evaluation
+ * methodology adapted from OpenMed by Maziyar Panahi (https://github.com/maziyarpanahi/openmed).
  */
 
 import type { DeidEntity, HipaaComplianceResult } from '../../types/research';

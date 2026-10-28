@@ -1,6 +1,12 @@
 /**
  * deidentifier.ts
  * On-device HIPAA Safe Harbor de-identification engine.
+ *
+ * Attribution / Acknowledgements:
+ * De-identification taxonomy and 18 Safe Harbor rule strategies adapted from
+ * OpenMed by Maziyar Panahi (https://github.com/maziyarpanahi/openmed),
+ * calibrated for Indonesian clinical records (NIK 16-digit, BPJS 13-digit,
+ * local MRN formats, and Indonesian medical timestamps).
  * Covers all 18 Safe Harbor identifier categories (45 CFR §164.514(b)(2)).
  * Zero network calls — all processing is local regex + rule-based.
  */

@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both internize.ai and the foundational OpenMed project as below."
+authors:
+  - name: "internize.ai contributors"
+    alias: "indra-dot"
+title: "internize.ai: Asisten AI Klinis Spesialis Penyakit Dalam (Sp.PD) & Penelitian Medis"
+version: 2.2.0
+date-released: 2026-10-17
+url: "https://github.com/indra-dot/internize.ai"
+repository-code: "https://github.com/indra-dot/internize.ai"
+license: MIT
+keywords:
+  - clinical-ai
+  - internal-medicine
+  - de-identification
+  - hipaa-safe-harbor
+  - fhir-r4
+  - loinc
+  - indonesian-medical-nlp
+references:
+  - type: article
+    authors:
+      - family-names: Panahi
+        given-names: Maziyar
+    title: "OpenMed NER: Open-Source, Domain-Adapted State-of-the-Art Transformers for Biomedical NER Across 12 Public Datasets"
+    year: 2025
+    journal: "arXiv preprint arXiv:2508.01630"
+    url: "https://arxiv.org/abs/2508.01630"
+  - type: software
+    authors:
+      - family-names: Panahi
+        given-names: Maziyar
+    title: "OpenMed: On-device clinical and biomedical NLP library for named-entity recognition and PHI de-identification"
+    url: "https://github.com/maziyarpanahi/openmed"

@@ -245,6 +245,34 @@ internize.ai/
 
 ---
 
+## 📚 Penghargaan & Sitasi (Acknowledgements & Citations)
+
+Modul sensor privasi dan mesin de-identifikasi HIPAA Safe Harbor pada **internize.ai** terinspirasi serta mengadaptasi taksonomi dan prinsip de-identifikasi dari proyek riset dan pustaka open-source [**OpenMed**](https://github.com/maziyarpanahi/openmed) karya **Maziyar Panahi**. Arsitektur ini disesuaikan secara lokal untuk mendukung format pengenal klinis Indonesia (NIK 16-digit, BPJS 13-digit, format No. RM lokal, serta penanggalan klinis Indonesia).
+
+Jika Anda menggunakan fitur de-identifikasi atau penelitian berbasis **internize.ai**, mohon sertakan sitasi terhadap OpenMed dan internize.ai:
+
+### Sitasi Ilmiah OpenMed:
+- **Format APA**:
+  > Panahi, M. (2025). *OpenMed NER: Open-Source, Domain-Adapted State-of-the-Art Transformers for Biomedical NER Across 12 Public Datasets*. arXiv preprint arXiv:2508.01630.
+- **Tautan Repositori**: [https://github.com/maziyarpanahi/openmed](https://github.com/maziyarpanahi/openmed)
+
+```bibtex
+@misc{panahi2025openmedneropensourcedomainadapted,
+  title={OpenMed NER: Open-Source, Domain-Adapted State-of-the-Art Transformers for Biomedical NER Across 12 Public Datasets}, 
+  author={Maziyar Panahi},
+  year={2025},
+  eprint={2508.01630},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL},
+  url={https://arxiv.org/abs/2508.01630}
+}
+```
+
+### Sitasi internize.ai:
+Format sitasi terstruktur untuk GitHub tersedia melalui file [`CITATION.cff`](CITATION.cff) pada repositori ini.
+
+---
+
 ## 📄 Lisensi
 
 Proyek ini dirilis secara open-source di bawah ketentuan [MIT License](LICENSE).
