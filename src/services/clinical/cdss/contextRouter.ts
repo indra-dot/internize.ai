@@ -57,6 +57,12 @@ export interface RoutedCalculatorSuggestion {
   reason: string;
   priority: 'high' | 'medium';
   prefilledInputs: Record<string, any>;
+  computedResult?: {
+    value: string;
+    subvalue?: string;
+    status: 'ok' | 'warn' | 'bad';
+    interpretation: string;
+  };
 }
 
 /**
@@ -330,3 +336,13 @@ export function routeClinicalContextToCalculators(
 
   return suggestions;
 }
+
+export {
+  parseFastTrackLabKeep,
+  runInternaHubAutoCalc,
+  enrichSuggestionsWithAutoCalc,
+  type ParsedClinicalContext,
+  type AutoCalcScore,
+  type InternaHubAutoCalcResult
+} from './internahubAutoCalc';
+
