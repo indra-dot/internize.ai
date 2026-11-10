@@ -2,18 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build:all",
   "outputDirectory": "dist",
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "https://script.google.com/macros/s/AKfycbzt_iLfalvX8Csm3ULI5oxJPdswUoJ66zXVe8EdeBVcGYHXXe2lEzNCueUBIGIS2FLG/exec",
-      "permanent": false
-    },
-    {
-      "source": "/index.html",
-      "destination": "https://script.google.com/macros/s/AKfycbzt_iLfalvX8Csm3ULI5oxJPdswUoJ66zXVe8EdeBVcGYHXXe2lEzNCueUBIGIS2FLG/exec",
-      "permanent": false
-    }
-  ],
   "headers": [
     {
       "source": "/version.json",
