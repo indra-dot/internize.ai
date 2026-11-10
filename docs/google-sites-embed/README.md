@@ -4,17 +4,29 @@ Ada 2 cara praktis untuk memasang portal **internize.ai** ke Google Sites Anda:
 
 ---
 
-## Cara 1: Langsung Tempel Kode HTML (Paling Cepat & Direkomendasikan ⚡)
+## ⚡ URL Web App Google Apps Script Aktif (Siap Pakai)
 
-Tanpa perlu setup Google Apps Script, Anda bisa langsung menyematkan kode HTML interaktif:
+Jika Anda ingin langsung menyematkan URL tanpa mengedit kode:
+```text
+https://script.google.com/macros/s/AKfycbzt_iLfalvX8Csm3ULI5oxJPdswUoJ66zXVe8EdeBVcGYHXXe2lEzNCueUBIGIS2FLG/exec
+```
 
-1. Buka [Google Sites](https://sites.google.com/) dan buka situs Anda dalam mode edit.
-2. Di panel kanan, klik tab **Sisipkan (Insert)** > pilih **Sematkan (Embed)**.
-3. Pada jendela yang muncul, pilih tab **Sematkan kode (Embed code)**.
-4. Buka file [`docs/google-sites-embed/embed-code.html`](./embed-code.html), salin (copy) seluruh kodenya, dan tempelkan (paste) ke kotak tersebut.
-5. Klik **Berikutnya (Next)**, lalu klik **Sisipkan (Insert)**.
-6. Atur lebar dan tinggi kotak widget agar pas dan elegan di halaman situs Anda.
-7. Klik **Publikasikan (Publish)**. Selesai!
+**Langkah di Google Sites:**
+1. Buka [Google Sites](https://sites.google.com/) editor Anda.
+2. Di panel kanan, klik **Sisipkan (Insert)** > pilih **Sematkan (Embed)**.
+3. Pilih opsi **Berdasarkan URL (By URL)**.
+4. Tempelkan URL di atas, pilih opsi **Seluruh halaman / Pratinjau**, lalu klik **Sisipkan (Insert)**.
+5. Atur ukuran kotak widget agar pas dan elegan. Selesai!
+
+---
+
+## Cara Alternatif 1: Langsung Tempel Kode HTML (Custom Embed Code)
+
+Jika ingin kontrol visual 100% langsung di dalam Google Sites:
+1. Di panel kanan Google Sites, klik tab **Sisipkan (Insert)** > pilih **Sematkan (Embed)**.
+2. Pilih tab **Sematkan kode (Embed code)**.
+3. Buka file [`docs/google-sites-embed/embed-code.html`](./embed-code.html), salin seluruh kodenya, dan tempelkan ke kotak tersebut.
+4. Klik **Berikutnya (Next)** > **Sisipkan (Insert)**.
 
 Widget ini sudah dilengkapi:
 - ✅ Tombol **🚀 Buka Web App** mengarah ke `https://internizeai.vercel.app`
@@ -25,14 +37,11 @@ Widget ini sudah dilengkapi:
 
 ---
 
-## Cara 2: Menggunakan Google Apps Script (Opsional)
+## Cara Alternatif 2: Deploy Mandiri Google Apps Script
 
-Jika Anda ingin mengelolanya sebagai Google Apps Script Web App:
-
+Jika ingin menduplikasi script ke akun Google Workspace institusi rumah sakit:
 1. Buka [script.google.com](https://script.google.com/) dan buat **Proyek Baru**.
 2. Salin kode dari file [`docs/google-sites-embed/Code.gs`](./Code.gs) dan gantikan isi `Code.gs`.
 3. Klik tombol **Deploy (Terapkan)** di kanan atas > pilih **New deployment (Penerapan baru)**.
-4. Pilih roda gigi jenis penerapan > pilih **Web app (Aplikasi web)**.
-5. Pada bagian **Who has access (Siapa yang memiliki akses)**, ubah menjadi **Anyone (Siapa saja)**.
-6. Klik **Deploy** dan salin URL Web App yang dihasilkan.
-7. Di Google Sites: **Sisipkan** > **Sematkan** > **Berdasarkan URL** > tempel URL tersebut.
+4. Pilih tipe **Web app (Aplikasi web)**, set akses ke **Anyone (Siapa saja)**.
+5. Klik **Deploy** dan salin URL Web App yang dihasilkan.

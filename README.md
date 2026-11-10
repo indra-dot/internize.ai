@@ -6,6 +6,10 @@
   <p><strong>On-Device by Default • Cloud Opsional (BYOK) • Clinical Shorthand Parser • FHIR R4 • HIPAA Safe Harbor</strong></p>
 
   <p>
+    <a href="https://internizeai.vercel.app"><img src="https://img.shields.io/badge/Web_App-Live_on_Vercel-success?style=flat-square&logo=vercel" alt="Vercel Live" /></a>
+    <a href="https://script.google.com/macros/s/AKfycbzt_iLfalvX8Csm3ULI5oxJPdswUoJ66zXVe8EdeBVcGYHXXe2lEzNCueUBIGIS2FLG/exec"><img src="https://img.shields.io/badge/Google_Portal-Apps_Script-blue?style=flat-square&logo=google" alt="Google Apps Script" /></a>
+    <a href="https://internizeai.vercel.app/internize-ai-extension.zip"><img src="https://img.shields.io/badge/Chrome_Extension-Download_ZIP-gold?style=flat-square&color=CDA258" alt="Download Extension" /></a>
+    <a href="docs/PORTFOLIO.md"><img src="https://img.shields.io/badge/Docs-Portfolio_Case_Study-purple?style=flat-square" alt="Portfolio Case Study" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-amber.svg?style=flat-square" alt="License MIT" /></a>
     <img src="https://img.shields.io/badge/Chrome_Extension-Manifest_V3-maroon.svg?style=flat-square&color=581C24" alt="Manifest V3" />
     <img src="https://img.shields.io/badge/Privacy-On--Device_by_Default-gold.svg?style=flat-square&color=CDA258" alt="On-Device by Default" />
@@ -15,6 +19,16 @@
     <img src="https://img.shields.io/badge/Tests-223_E2E_%2B_Unit_Passing-brightgreen.svg?style=flat-square" alt="Tests 100% Passing" />
   </p>
 </div>
+
+---
+
+## 🚀 Akses & Tautan Cepat
+
+- 🌐 **Web App (Vercel Live)**: [https://internizeai.vercel.app](https://internizeai.vercel.app)
+- 🔗 **Google Sites / Apps Script Web Portal**: [Buka Portal Google Apps Script](https://script.google.com/macros/s/AKfycbzt_iLfalvX8Csm3ULI5oxJPdswUoJ66zXVe8EdeBVcGYHXXe2lEzNCueUBIGIS2FLG/exec)
+- 📦 **Unduh Ekstensi Chrome Langsung**: [internize-ai-extension.zip](https://internizeai.vercel.app/internize-ai-extension.zip)
+- 📖 **Studi Kasus & Portofolio Rekayasa**: [docs/PORTFOLIO.md](docs/PORTFOLIO.md)
+- 🎨 **Panduan Embed Google Sites**: [docs/google-sites-embed/README.md](docs/google-sites-embed/README.md)
 
 ---
 
