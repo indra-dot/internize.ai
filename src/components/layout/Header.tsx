@@ -1,4 +1,4 @@
-import { Cpu, KeyRound, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
+import { Cpu, Download, KeyRound, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { clearAllPatientSessions } from '../../services/storage/chromeStorage';
 import { Badge } from '../ui/Badge';
@@ -11,6 +11,7 @@ export interface HeaderProps {
   onHelpClick?: () => void;
   onHelpTour?: () => void;
   onClearSessionClick?: () => void;
+  onInstallGuideClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -20,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   onHelpClick,
   onHelpTour,
   onClearSessionClick,
+  onInstallGuideClick,
 }) => {
   const logoUrl =
     typeof chrome !== 'undefined' && chrome.runtime?.getURL
@@ -106,6 +108,21 @@ export const Header: React.FC<HeaderProps> = ({
             <Trash2 className="w-3.5 h-3.5 text-rose-600 shrink-0" />
             <span className="font-bold">Bersihkan Sesi</span>
           </button>
+
+          {/* Quick Action: Install / Update Guide Button */}
+          {onInstallGuideClick && (
+            <button
+              type="button"
+              data-testid="header-install-guide-btn"
+              onClick={onInstallGuideClick}
+              title="Panduan Pemasangan & Download Ekstensi Chrome"
+              aria-label="Panduan Ekstensi"
+              className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-maroon-900 bg-gold-50 hover:bg-gold-100 border border-gold-300/60 rounded-lg shadow-2xs transition-all cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-gold-700" />
+              <span className="hidden sm:inline font-bold">Ekstensi</span>
+            </button>
+          )}
 
           {/* Quick Action: Feature Tour Help Button */}
           <button

@@ -32,12 +32,15 @@ jobs:
       - name: Typecheck TypeScript
         run: npx tsc --noEmit
 
-      # Build first: the build-artifact test reads dist/manifest.json
-      - name: Build Extension (Vite + CRX)
-        run: npm run build:ext
+      # Build all: compiles extension, packages zip & version.json, builds web app into dist
+      - name: Build All (Extension, Packaging & Web App)
+        run: npm run build:all
 
-      - name: Build Offline-First Web App / PWA
-        run: npm run build:web
+      - name: Verify Distribution Artifacts
+        run: |
+          test -f dist/internize-ai-extension.zip
+          test -f dist/version.json
+          test -f internize-ai-extension.zip
 
       - name: Run Test Suite (Vitest)
         run: npm test

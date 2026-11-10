@@ -10,6 +10,9 @@
     "activeTab",
     "scripting"
   ],
+  "host_permissions": [
+    "https://internize-ai.vercel.app/*"
+  ],
   "action": {
     "default_title": "Open internize.ai Side Panel",
     "default_icon": {

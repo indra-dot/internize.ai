@@ -1,6 +1,8 @@
 import {
+  BookOpen,
   CheckCircle,
   ClipboardPaste,
+  Download,
   ExternalLink,
   Eye,
   EyeOff,
@@ -21,14 +23,16 @@ import {
   saveGeminiConfig,
   testGeminiConnection,
 } from '../../services/gemini/client';
+import { resolveDownloadUrl } from '../../services/updateChecker';
 
 export interface SettingsTabProps {
   onShowToast?: (message: string, type: 'info' | 'success' | 'warning' | 'error') => void;
+  onOpenInstallGuide?: () => void;
 }
 
 type ConnectionStatus = 'idle' | 'testing' | 'ok' | 'error';
 
-export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
+export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast, onOpenInstallGuide }) => {
   const [apiKey, setApiKey] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const [model, setModel] = useState<string>(DEFAULT_GEMINI_MODEL);
@@ -90,7 +94,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
       const errMsg = result.error ?? 'Unknown error';
       setConnectionError(errMsg);
       if (/failed to fetch|network|cors/i.test(errMsg)) {
-        onShowToast?.('Gagal menghubungi server Google Gemini. Periksa koneksi internet Anda.', 'error');
+        onShowToast?.(
+          'Gagal menghubungi server Google Gemini. Periksa koneksi internet Anda.',
+          'error',
+        );
       } else if (/quota|rate limit|429|resource_exhausted/i.test(errMsg)) {
         onShowToast?.('Kuota / Rate limit tercapai sementara.', 'error');
       } else {
@@ -111,11 +118,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
       // Detect Google API Key format (AIzaSy... or newer AQ.... Auth key)
       const aizaMatch = cleaned.match(/AIzaSy[A-Za-z0-9_-]{33}/);
       const aqMatch = cleaned.match(/AQ\.[A-Za-z0-9._-]{20,}/);
-      const token = aizaMatch
-        ? aizaMatch[0]
-        : aqMatch
-          ? aqMatch[0]
-          : cleaned.replace(/\s+/g, '');
+      const token = aizaMatch ? aizaMatch[0] : aqMatch ? aqMatch[0] : cleaned.replace(/\s+/g, '');
 
       setApiKey(token);
       await saveGeminiConfig({
@@ -127,7 +130,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
       // Otomatis jalankan uji koneksi mandiri
       await handleTestConnection(token);
     } catch {
-      onShowToast?.('Gagal membaca clipboard. Izinkan akses clipboard atau tempel manual.', 'error');
+      onShowToast?.(
+        'Gagal membaca clipboard. Izinkan akses clipboard atau tempel manual.',
+        'error',
+      );
     }
   };
 
@@ -339,6 +345,50 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
         </CardContent>
       </Card>
 
+      {/* Extension Distribution & Update Guide Card */}
+      <Card className="border-gold-500/30 shadow-xs bg-gradient-to-br from-white to-gold-50/20">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <Download className="w-4 h-4 text-maroon-800" />
+              <span>Ekstensi Chrome & Pemasangan Offline</span>
+            </CardTitle>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-maroon-900 text-gold-300 border border-gold-500/30">
+              Vercel Ready
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3 pt-0">
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Pasang internize.ai langsung di browser Chrome atau Microsoft Edge untuk mengakses panel
+            samping saat membuka rekam medis elektronik (EHR/RME) tanpa perlu terminal atau GitHub.
+          </p>
+          <div className="flex items-center gap-2 flex-wrap pt-1">
+            <a
+              href={resolveDownloadUrl('/internize-ai-extension.zip')}
+              download="internize-ai-extension.zip"
+              data-testid="settings-download-extension-zip"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-maroon-950 bg-gradient-to-r from-gold-400 to-gold-500 hover:from-gold-500 hover:to-gold-600 border border-gold-600/40 shadow-2xs transition-all active:scale-[0.98]"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download Paket Ekstensi (.zip)</span>
+            </a>
+
+            {onOpenInstallGuide && (
+              <button
+                type="button"
+                data-testid="settings-open-install-guide"
+                onClick={onOpenInstallGuide}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-maroon-900 bg-white hover:bg-gold-50 border border-gold-400/50 shadow-2xs transition-colors"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-gold-700" />
+                <span>Lihat Panduan 3 Langkah</span>
+              </button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Privacy Notice */}
       <div className="text-[11px] text-slate-500 bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-2">
         <p className="font-bold text-slate-700 flex items-center gap-1.5">
@@ -350,16 +400,20 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
           peramban pengguna tanpa koneksi internet sama sekali.
         </p>
         <p className="leading-relaxed">
-          <strong className="text-slate-700">Tier 3 (Opt-in Cloud Synthesizer - Interactions API):</strong> Teks pasien
-          di-deidentifikasi secara lokal terlebih dahulu. Semua nama, MRN, tanggal, dan nomor kontak
-          digantikan dengan token tokenisasi aman seperti{' '}
+          <strong className="text-slate-700">
+            Tier 3 (Opt-in Cloud Synthesizer - Interactions API):
+          </strong>{' '}
+          Teks pasien di-deidentifikasi secara lokal terlebih dahulu. Semua nama, MRN, tanggal, dan
+          nomor kontak digantikan dengan token tokenisasi aman seperti{' '}
           <span className="font-mono text-slate-700 bg-slate-200 px-1 py-0.5 rounded">
             [PATIENT_1]
           </span>{' '}
           sebelum dikirim ke endpoint Gemini Interactions API dengan parameter{' '}
-          <span className="font-mono text-slate-700 bg-slate-200 px-1 py-0.5 rounded">store: false</span>{' '}
-          (meminta Google tidak menyimpan riwayat teks di cloud). Pemulihan nama asli (re-identifikasi) dilakukan
-          kembali secara lokal di memori browser Anda.
+          <span className="font-mono text-slate-700 bg-slate-200 px-1 py-0.5 rounded">
+            store: false
+          </span>{' '}
+          (meminta Google tidak menyimpan riwayat teks di cloud). Pemulihan nama asli
+          (re-identifikasi) dilakukan kembali secara lokal di memori browser Anda.
         </p>
       </div>
 
@@ -368,9 +422,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
         data-testid="settings-version-info"
         className="flex items-center justify-between pt-2 px-1 text-[11px] text-slate-400 border-t border-slate-100"
       >
-        <span className="font-medium text-slate-500">
-          internize.ai Sp.PD &bull; Versi 2.2.0
-        </span>
+        <span className="font-medium text-slate-500">internize.ai Sp.PD &bull; Versi 2.2.0</span>
         <span className="px-2 py-0.5 rounded bg-maroon-50 text-maroon-800 font-bold border border-maroon-200/60 text-[10px]">
           v2.2.0
         </span>

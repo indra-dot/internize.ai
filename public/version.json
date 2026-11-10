@@ -1,0 +1,12 @@
+{
+  "version": "2.2.0",
+  "releaseDate": "2026-11-10",
+  "downloadUrl": "/internize-ai-extension.zip",
+  "minExtensionVersion": "2.0.0",
+  "changelog": [
+    "Pembaruan ekosistem distribusi: Deployment Vercel & Chrome Extension instan tanpa GitHub 404",
+    "In-app update checker dan panduan instalasi visual 3 langkah (InstallGuideModal)",
+    "Peningkatan kompatibilitas WebGPU/WASM On-Device Zero Egress via COOP/COEP Vercel headers",
+    "Integrasi 121 PPK Sp.PD & sinkronisasi otomatis status klinis offline-first"
+  ]
+}

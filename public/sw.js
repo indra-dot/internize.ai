@@ -20,6 +20,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  const url = new URL(event.request.url);
+
+  // Bypass service worker caching for version manifest and zip archives
+  if (url.pathname === '/version.json' || url.pathname.endsWith('.zip')) {
+    return;
+  }
+
   // Stale-while-revalidate for local scripts and static assets
   event.respondWith(
     caches.match(event.request).then((cached) => {

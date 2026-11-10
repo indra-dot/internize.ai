@@ -5,12 +5,21 @@ import { Header } from '../components/layout/Header';
 import { StatusBar } from '../components/layout/StatusBar';
 import { type TabId, TabNavigation } from '../components/layout/TabNavigation';
 import { ByokFirstModal } from '../components/ui/ByokFirstModal';
+import { InstallGuideModal } from '../components/ui/InstallGuideModal';
 import { OnboardingTourModal } from '../components/ui/OnboardingTourModal';
 import { Toast, type ToastType } from '../components/ui/Toast';
+import { UpdateNotificationBanner } from '../components/ui/UpdateNotificationBanner';
 import { ClinicalServiceTab } from '../features/clinical/ClinicalServiceTab';
 import { SettingsTab } from '../features/settings/SettingsTab';
 import { loadGeminiConfig } from '../services/gemini/client';
 import { clearAllPatientSessions } from '../services/storage/chromeStorage';
+import {
+  CURRENT_APP_VERSION,
+  checkForUpdate,
+  dismissUpdate,
+  isUpdateDismissed,
+  type VersionInfo,
+} from '../services/updateChecker';
 import { useSelection } from './hooks/useSelection';
 
 interface ToastItem {
@@ -25,9 +34,11 @@ export const App: React.FC = () => {
   const [hasApiKey, setHasApiKey] = useState<boolean>(false);
   const [showByokModal, setShowByokModal] = useState<boolean>(false);
   const [showTour, setShowTour] = useState<boolean>(false);
+  const [showInstallGuide, setShowInstallGuide] = useState<boolean>(false);
   const [sampleLoadTrigger, setSampleLoadTrigger] = useState<number>(0);
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
   const [swUpdateAvailable, setSwUpdateAvailable] = useState<boolean>(false);
+  const [updateInfo, setUpdateInfo] = useState<VersionInfo | null>(null);
   const { selection, pullActiveTabSelection } = useSelection();
 
   // Initial check: BYOK First check & Onboarding tour check
@@ -83,6 +94,31 @@ export const App: React.FC = () => {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  // Periodic Update Manifest Checker (/version.json)
+  useEffect(() => {
+    let isMounted = true;
+    const runCheck = async () => {
+      try {
+        const result = await checkForUpdate(CURRENT_APP_VERSION);
+        if (!isMounted) return;
+        if (result.updateAvailable && result.versionInfo) {
+          if (!isUpdateDismissed(result.latestVersion)) {
+            setUpdateInfo(result.versionInfo);
+          }
+        }
+      } catch {
+        // Silently catch network errors during offline / disconnected mode
+      }
+    };
+
+    runCheck();
+    const interval = setInterval(runCheck, 30 * 60 * 1000); // 30 minutes
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
     };
   }, []);
 
@@ -160,8 +196,22 @@ export const App: React.FC = () => {
         hasApiKey={hasApiKey}
         onByokClick={() => setShowByokModal(true)}
         onHelpClick={() => setShowTour(true)}
+        onInstallGuideClick={() => setShowInstallGuide(true)}
         onClearSessionClick={handleClearSession}
       />
+
+      {/* Extension Update Notification Banner */}
+      {updateInfo && (
+        <UpdateNotificationBanner
+          versionInfo={updateInfo}
+          currentVersion={CURRENT_APP_VERSION}
+          onOpenGuide={() => setShowInstallGuide(true)}
+          onDismiss={() => {
+            dismissUpdate(updateInfo.version);
+            setUpdateInfo(null);
+          }}
+        />
+      )}
 
       {/* PWA Auto-Update / Install Notification Bar */}
       {(swUpdateAvailable || deferredInstallPrompt) && (
@@ -231,6 +281,13 @@ export const App: React.FC = () => {
         onSelectSampleCase={handleStartSampleCase}
       />
 
+      {/* Visual 3-Step Install & Update Guide Modal */}
+      <InstallGuideModal
+        isOpen={showInstallGuide}
+        onClose={() => setShowInstallGuide(false)}
+        downloadUrl={updateInfo?.downloadUrl || '/internize-ai-extension.zip'}
+      />
+
       {/* Active Tab View: Purely Clinical & Settings */}
       <main className="flex-1 overflow-y-auto w-full max-w-5xl mx-auto">
         {activeTab === 'clinical' && (
@@ -242,7 +299,12 @@ export const App: React.FC = () => {
             onOpenByokModal={() => setShowByokModal(true)}
           />
         )}
-        {activeTab === 'settings' && <SettingsTab onShowToast={showToast} />}
+        {activeTab === 'settings' && (
+          <SettingsTab
+            onShowToast={showToast}
+            onOpenInstallGuide={() => setShowInstallGuide(true)}
+          />
+        )}
       </main>
 
       {/* Bottom System Status Bar */}

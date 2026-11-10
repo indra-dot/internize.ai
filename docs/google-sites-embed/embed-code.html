@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>internize.ai — Clinical Cockpit Sp.PD</title>
+  <style>
+    :root {
+      --maroon-dark: #380d12;
+      --maroon-base: #4A151B;
+      --maroon-light: #5f1c24;
+      --gold-base: #CDA258;
+      --gold-hover: #b88942;
+      --gold-light: #e8d19e;
+      --slate-dark: #0f172a;
+      --slate-card: #1e293b;
+      --slate-border: #334155;
+      --slate-text: #94a3b8;
+      --white: #ffffff;
+      --emerald: #10b981;
+      --emerald-bg: rgba(16, 185, 129, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: transparent;
+      color: var(--white);
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .widget-container {
+      width: 100%;
+      max-width: 680px;
+      background: linear-gradient(145deg, #180608 0%, #260a0f 50%, #150508 100%);
+      border: 1px solid rgba(205, 162, 88, 0.35);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 20px rgba(74, 21, 27, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glow-badge {
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(205, 162, 88, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(205, 162, 88, 0.15);
+      padding-bottom: 16px;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold-base), var(--maroon-base));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(205, 162, 88, 0.3);
+    }
+
+    .logo-box svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--white);
+    }
+
+    .brand-title span {
+      color: var(--gold-base);
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--slate-text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .version-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(205, 162, 88, 0.15);
+      border: 1px solid rgba(205, 162, 88, 0.4);
+      color: var(--gold-light);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .version-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+    }
+
+    .privacy-callout {
+      background: var(--emerald-bg);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: #a7f3d0;
+    }
+
+    .privacy-callout svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: var(--emerald);
+    }
+
+    .cta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 500px) {
+      .cta-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .btn-action {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 16px 18px;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-base) 0%, var(--gold-hover) 100%);
+      color: #1a080a;
+      box-shadow: 0 6px 20px rgba(205, 162, 88, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 8px 25px rgba(205, 162, 88, 0.5);
+    }
+
+    .btn-primary .btn-label {
+      font-size: 15px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1a080a;
+    }
+
+    .btn-primary .btn-sub {
+      font-size: 11px;
+      color: rgba(26, 8, 10, 0.85);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    .btn-secondary {
+      background: rgba(74, 21, 27, 0.5);
+      border: 1px solid rgba(205, 162, 88, 0.4);
+      color: var(--white);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(95, 28, 36, 0.7);
+      border-color: var(--gold-base);
+    }
+
+    .btn-secondary .btn-label {
+      font-size: 15px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--white);
+    }
+
+    .btn-secondary .btn-sub {
+      font-size: 11px;
+      color: var(--gold-light);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .guide-toggle {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(205, 162, 88, 0.3);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--gold-light);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .guide-toggle:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--gold-base);
+    }
+
+    .guide-content {
+      display: none;
+      margin-top: 14px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(205, 162, 88, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .guide-step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .guide-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--maroon-base);
+      border: 1px solid var(--gold-base);
+      color: var(--gold-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .step-text strong {
+      color: #f8fafc;
+    }
+
+    .step-text code {
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--gold-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="widget-container">
+    <div class="glow-badge"></div>
+
+    <div class="header-row">
+      <div class="brand-wrap">
+        <div class="logo-box">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">internize<span>.ai</span></div>
+          <div class="brand-sub">Clinical Cockpit Sp.PD</div>
+        </div>
+      </div>
+      <div class="version-pill">
+        <span class="version-dot"></span>
+        <span id="versionText">v2.2.0 (Live)</span>
+      </div>
+    </div>
+
+    <div class="privacy-callout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <div>
+        <strong>Zero-Egress & 100% On-Device:</strong> Rekam medis & teks klinis diproses lokal di peramban tanpa pernah dikirim ke cloud.
+      </div>
+    </div>
+
+    <div class="cta-grid">
+      <!-- Tombol 1: Buka Web App -->
+      <a href="https://internizeai.vercel.app" target="_blank" rel="noopener noreferrer" class="btn-action btn-primary">
+        <div class="btn-label">
+          <span>🚀 Buka Web App</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/>
+          </svg>
+        </div>
+        <div class="btn-sub">Langsung pakai di browser tanpa instalasi</div>
+      </a>
+
+      <!-- Tombol 2: Unduh Ekstensi -->
+      <a href="https://internizeai.vercel.app/internize-ai-extension.zip" download="internize-ai-extension.zip" class="btn-action btn-secondary">
+        <div class="btn-label">
+          <span>📦 Unduh Ekstensi</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+        </div>
+        <div class="btn-sub">Panel samping cerdas SIMRS/EHR (.ZIP)</div>
+      </a>
+    </div>
+
+    <!-- Toggle Panduan Instalasi -->
+    <button type="button" class="guide-toggle" onclick="toggleGuide()">
+      <span>💡 Cara Pasang Ekstensi Chrome (30 Detik)</span>
+      <span id="toggleIcon">▼</span>
+    </button>
+
+    <div class="guide-content" id="guideBody">
+      <div class="guide-step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          Klik tombol <strong>Unduh Ekstensi</strong> di atas, lalu <strong>Ekstrak (Unzip)</strong> file <code>internize-ai-extension.zip</code> ke folder komputer Anda.
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          Buka peramban Chrome / Edge, ketik <code>chrome://extensions</code> di bilah alamat, lalu aktifkan saklar <strong>Developer Mode</strong> di pojok kanan atas.
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          Klik tombol <strong>Load Unpacked</strong> (Muat yang belum dibongkar), lalu pilih folder hasil ekstrak tadi. Selesai! Klik ikon <code>internize.ai</code> di toolbar peramban untuk membuka panel klinis.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleGuide() {
+      const body = document.getElementById('guideBody');
+      const icon = document.getElementById('toggleIcon');
+      if (body.style.display === 'block') {
+        body.style.display = 'none';
+        icon.innerText = '▼';
+      } else {
+        body.style.display = 'block';
+        icon.innerText = '▲';
+      }
+    }
+
+    // Dynamic Version Fetcher from Vercel Endpoint
+    fetch('https://internizeai.vercel.app/version.json', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.version) {
+          document.getElementById('versionText').innerText = 'v' + data.version + ' (Latest)';
+        }
+      })
+      .catch(() => {
+        // Fallback silently if offline or blocked by browser settings
+      });
+  </script>
+</body>
+</html>

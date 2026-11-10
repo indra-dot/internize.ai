@@ -78,3 +78,5 @@ tests/m3_*.ts
 tests/m4_*.ts
 tests/m5_*.ts
 
+.vercel
+.env*
