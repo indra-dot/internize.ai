@@ -12,14 +12,14 @@ export interface GeminiConfig {
   model: string;
 }
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.6-flash';
 
 export const GEMINI_AVAILABLE_MODELS = [
-  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Default - Model Generasi 3 Terbaru)' },
-  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash (Penalaran & Kecepatan Seimbang)' },
-  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash (Multimodal & Kecepatan Stabil)' },
+  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash (Default - Stabil & Free Tier Friendly)' },
   { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (Cepat & Responsif)' },
-  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite (Super Cepat & Hemat Biaya)' },
+  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite (Super Cepat & Hemat Kuota)' },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Model Generasi 3 Terbaru - Tier Berbayar/Tinggi)' },
+  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash (Penalaran & Kecepatan Seimbang)' },
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview (Penalaran Pro Kompleks)' },
   { id: 'custom', name: 'Kustom (Ketik Manual)...' },
 ];
@@ -35,13 +35,15 @@ export function resolveModelCandidates(requestedModel: string): string[] {
   const candidates: string[] = [cleaned];
 
   if (cleaned === 'gemini-3.5-flash-lite') {
-    candidates.push('gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.8-flash');
-  } else if (cleaned === 'gemini-3.8-flash' || cleaned === 'gemini-3.7-flash' || cleaned === 'gemini-3.6-flash') {
-    candidates.push('gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite');
+    candidates.push('gemini-3.5-flash', 'gemini-3.6-flash');
+  } else if (cleaned === 'gemini-3.6-flash' || cleaned === 'gemini-3.5-flash') {
+    candidates.push('gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite');
+  } else if (cleaned === 'gemini-3.8-flash' || cleaned === 'gemini-3.7-flash') {
+    candidates.push('gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite');
   } else if (cleaned === 'gemini-3.1-pro-preview') {
-    candidates.push('gemini-3.8-flash', 'gemini-3.6-flash');
+    candidates.push('gemini-3.6-flash', 'gemini-3.5-flash');
   } else {
-    candidates.push('gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite');
+    candidates.push('gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite');
   }
 
   return Array.from(new Set(candidates.filter(Boolean)));
@@ -125,6 +127,15 @@ export async function saveGeminiConfig(config: GeminiConfig): Promise<void> {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
 
+function createTimeoutSignal(timeoutMs: number): AbortSignal {
+  if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    return AbortSignal.timeout(timeoutMs);
+  }
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(new Error(`Timeout ${timeoutMs}ms`)), timeoutMs);
+  return controller.signal;
+}
+
 /**
  * Tests connection to Google Gemini API.
  *
@@ -147,7 +158,7 @@ export async function testGeminiConnection(
 
   let lastErrorMessage = '';
 
-  // 1. Try modern Interactions API first (isolated try/catch so CORS/network errors still fall back)
+  // 1. Try modern Interactions API first (fast check with 3.5s timeout; CORS/network/404 falls back)
   try {
     const response = await fetch(interactionsEndpoint, {
       method: 'POST',
@@ -160,6 +171,7 @@ export async function testGeminiConnection(
         input: 'Ping test. Reply with OK.',
         store: false, // Medical privacy: do not store interaction in cloud history
       }),
+      signal: createTimeoutSignal(3500),
     });
 
     if (response.ok) {
@@ -191,6 +203,7 @@ export async function testGeminiConnection(
             contents: [{ parts: [{ text: 'Ping test. Reply with OK.' }] }],
             generationConfig: { maxOutputTokens: 5 },
           }),
+          signal: createTimeoutSignal(6000),
         });
       } catch {
         // Fallback if browser environment blocks custom x-goog-api-key header on preflight
@@ -203,6 +216,7 @@ export async function testGeminiConnection(
             contents: [{ parts: [{ text: 'Ping test. Reply with OK.' }] }],
             generationConfig: { maxOutputTokens: 5 },
           }),
+          signal: createTimeoutSignal(6000),
         });
       }
 
@@ -225,7 +239,16 @@ export async function testGeminiConnection(
       // For other errors (e.g. 400 API_KEY_INVALID, 429 quota), stop looping generativelanguage models
       break;
     } catch (err) {
-      lastErrorMessage = err instanceof Error ? err.message : 'Gagal menghubungi Google Gemini API.';
+      const isTimeout =
+        err instanceof Error &&
+        (err.name === 'AbortError' || err.name === 'TimeoutError' || /timeout|aborted/i.test(err.message));
+      lastErrorMessage = isTimeout
+        ? 'Waktu koneksi habis (Timeout 6s). Periksa koneksi internet Anda.'
+        : err instanceof Error
+          ? err.message
+          : 'Gagal menghubungi Google Gemini API.';
+      // Stop looping candidates on network/CORS error or timeout to prevent hanging the UI
+      break;
     }
   }
 
@@ -244,6 +267,7 @@ export async function testGeminiConnection(
             contents: [{ role: 'user', parts: [{ text: 'Ping test. Reply with OK.' }] }],
             generationConfig: { maxOutputTokens: 5 },
           }),
+          signal: createTimeoutSignal(6000),
         });
 
         if (vertexRes.ok) {

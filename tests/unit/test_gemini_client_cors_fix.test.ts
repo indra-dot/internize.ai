@@ -107,4 +107,23 @@ describe('Gemini Client CORS & Fallback Hardening', () => {
     expect(res.success).toBe(true);
     expect(res.resolvedModel).toBe('gemini-3.5-flash');
   });
+
+  it('stops cascading immediately on network/timeout error to avoid hanging the UI', async () => {
+    const fetchMock = vi
+      .fn()
+      // 1. interactions throws network error
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      // 2. generateContent with headers throws network error
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      // 3. generateContent with ?key= throws network error
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const res = await testGeminiConnection('AIzaSyTestKey1234567890123456789012345', 'gemini-3.5-flash-lite');
+    expect(res.success).toBe(false);
+    expect(res.error).toBe('Failed to fetch');
+    // Should NOT cascade to all 4 model candidates (which would cause 8+ network calls)
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
 });

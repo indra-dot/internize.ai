@@ -260,7 +260,7 @@ export const ByokFirstModal: React.FC<ByokFirstModalProps> = ({
             ))}
           </select>
           <p className="text-[10px] text-slate-500">
-            Model default <strong>Gemini 3.8 Flash</strong> menawarkan penalaran klinis generasi terbaru dengan kecepatan tinggi.
+            Model default <strong>Gemini 3.6 Flash</strong> mendukung paket gratis (Free Tier) Google AI Studio dengan penalaran klinis cepat dan stabil.
           </p>
         </div>
 

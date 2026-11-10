@@ -302,7 +302,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onShowToast }) => {
                 type="text"
                 value={customModel}
                 onChange={(e) => setCustomModel(e.target.value)}
-                placeholder="misal: gemini-3.8-flash atau models/gemini-3.1-pro-preview"
+                placeholder="misal: gemini-3.6-flash atau models/gemini-3.5-flash"
                 className="w-full text-xs p-2 rounded-lg border border-slate-200 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 font-mono text-slate-800"
               />
             </div>
