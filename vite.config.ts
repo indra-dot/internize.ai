@@ -4,30 +4,29 @@ import { crx } from '@crxjs/vite-plugin';
 import manifest from './manifest.json';
 import { resolve } from 'path';
 
+const isExtensionBuild = process.env.BUILD_TARGET === 'extension';
+
 export default defineConfig({
   plugins: [
     react(),
-    crx({ manifest }),
+    ...(isExtensionBuild ? [crx({ manifest })] : []),
   ],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
     },
   },
-  // Treat .onnx and .wasm binaries as static assets so Vite copies them
-  // into dist/ instead of trying to bundle them as JS modules.
   assetsInclude: ['**/*.onnx', '**/*.wasm'],
   build: {
     target: 'esnext',
     emptyOutDir: true,
+    outDir: isExtensionBuild ? 'dist-extension' : 'dist',
     rollupOptions: {
-      input: {
-        sidepanel: resolve(__dirname, 'sidepanel.html'),
-      },
+      input: isExtensionBuild
+        ? { sidepanel: resolve(__dirname, 'sidepanel.html') }
+        : { main: resolve(__dirname, 'index.html') },
     },
   },
-  // Exclude @huggingface/transformers from Vite pre-bundling — it manages
-  // its own ONNX Runtime Web workers and WASM paths internally.
   optimizeDeps: {
     exclude: ['@huggingface/transformers'],
   },
@@ -38,10 +37,8 @@ export default defineConfig({
       port: 5173,
     },
     headers: {
-      // Required for SharedArrayBuffer (WASM threads) in dev server
-      'Cross-Origin-Opener-Policy':   'same-origin',
+      'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
   },
 });
-

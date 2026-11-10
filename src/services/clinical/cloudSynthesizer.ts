@@ -48,6 +48,8 @@ import {
   formatCapriniLine,
   CONSENSUS_OPTIMAL_CONDITIONS,
 } from './protocols';
+import { PpkKnowledgeEngine } from './knowledge/ppkKnowledgeEngine';
+import { parseFastTrackLabKeep, runInternaHubAutoCalc } from './cdss/internahubAutoCalc';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -343,6 +345,8 @@ function buildUserPrompt(
     renalSummary?: string;
     hepaticSummary?: string;
     hazardAlerts?: string[];
+    ppkGuidanceStr?: string;
+    autoCalcStr?: string;
   },
 ): string {
   let prompt = `[MODE OPERASIONAL AKTIF]:
@@ -355,6 +359,14 @@ ${sanitizedText}
 - Tanda Vital: ${vitalsStr}
 - Laboratorium Abnormal & Serial: ${labsStr}
 - Baseline Deteksi Masalah Awal: ${problemsStr}`;
+
+  if (options?.autoCalcStr) {
+    prompt += `\n\n[KALKULASI DETERMINISTIK INTERNAHUB (drguswib CDSS Suite)]:\n${options.autoCalcStr}`;
+  }
+
+  if (options?.ppkGuidanceStr) {
+    prompt += `\n\n[PANDUAN PRAKTIK KLINIS (PPK PAPDI) WAJIB DIAMALKAN]:\n${options.ppkGuidanceStr}`;
+  }
 
   if (options?.renalSummary) {
     prompt += `\n- Evaluasi Fungsi Ginjal (CKD-EPI / CrCl): ${options.renalSummary}`;
@@ -873,6 +885,70 @@ export async function runCloudSynthesizer(
     );
   }
 
+  // ── Step 3b: PPK RAG & InternaHub Auto-Calc Grounding ──────────────────────
+  const ppkEngine = PpkKnowledgeEngine.getInstance();
+  const ppkLines: string[] = [];
+  const seenPpkDocs = new Set<string>();
+
+  for (const prob of activeProblems) {
+    const mg = ppkEngine.matchKnowledge(prob, vitals, abnormalLabs);
+    if (mg && !seenPpkDocs.has(mg.documentId)) {
+      seenPpkDocs.add(mg.documentId);
+      ppkLines.push(`• [PPK ${mg.division}: ${mg.documentTitle}]`);
+      if (mg.kriteriaDiagnosis?.length) {
+        ppkLines.push(`  - Kriteria Diagnosis: ${mg.kriteriaDiagnosis.join('; ')}`);
+      }
+      if (mg.ptx?.lini1?.length) {
+        const lini1 = mg.ptx.lini1
+          .map((d) => `${d.drugName} ${d.dose} ${d.route} ${d.frequency}${d.notes ? ` (${d.notes})` : ''}`)
+          .join('; ');
+        ppkLines.push(`  - Terapi Lini 1: ${lini1}`);
+      }
+      if (mg.ptx?.lini2?.length) {
+        const lini2 = mg.ptx.lini2
+          .map((d) => `${d.drugName} ${d.dose} ${d.route} ${d.frequency}${d.notes ? ` (${d.notes})` : ''}`)
+          .join('; ');
+        ppkLines.push(`  - Terapi Lini 2: ${lini2}`);
+      }
+      if (mg.ptx?.penyesuaianDosis?.length) {
+        const adj = mg.ptx.penyesuaianDosis
+          .map((a) => `${a.drugName} (${a.threshold}): ${a.recommendation}`)
+          .join('; ');
+        ppkLines.push(`  - Dosis Renal/Hepar: ${adj}`);
+      }
+      if (mg.ptx?.kontraindikasiDanRedFlags?.length) {
+        ppkLines.push(`  - KONTRAINDIKASI/RED FLAGS: ${mg.ptx.kontraindikasiDanRedFlags.join('; ')}`);
+      }
+      if (mg.kegawatanDanRujukan?.kriteriaIcu?.length) {
+        ppkLines.push(`  - Kriteria Masuk ICU/HCU: ${mg.kegawatanDanRujukan.kriteriaIcu.join('; ')}`);
+      }
+    }
+  }
+
+  // General guideline search if no division specific match
+  if (ppkLines.length === 0) {
+    const textMatches = ppkEngine.searchGuidelines(sanitizedText, 2);
+    for (const tm of textMatches) {
+      if (!seenPpkDocs.has(tm.documentId)) {
+        seenPpkDocs.add(tm.documentId);
+        ppkLines.push(`• [PPK ${tm.division}: ${tm.documentTitle}]`);
+        if (tm.ptx?.lini1?.length) {
+          const lini1 = tm.ptx.lini1.map((d) => `${d.drugName} ${d.dose} ${d.route}`).join('; ');
+          ppkLines.push(`  - Terapi Lini 1: ${lini1}`);
+        }
+      }
+    }
+  }
+
+  const ppkGuidanceStr = ppkLines.length > 0 ? ppkLines.join('\n') : undefined;
+
+  // InternaHub Auto-Calculate Grounding
+  const parsedCtx = parseFastTrackLabKeep(sanitizedText);
+  const autoCalcResult = runInternaHubAutoCalc(parsedCtx);
+  const autoCalcStr = autoCalcResult.scores.length > 0
+    ? autoCalcResult.scores.map((s) => `- ${s.name}: ${s.value} (${s.interpretation})`).join('\n')
+    : undefined;
+
   const userPrompt = buildUserPrompt(sanitizedText, vitalsStr, labsStr, problemsStr, mode, {
     surgicalUrgency: options.surgicalUrgency,
     toleranceStatus: consultAnswer?.toleranceStatus,
@@ -880,6 +956,8 @@ export async function runCloudSynthesizer(
     renalSummary,
     hepaticSummary,
     hazardAlerts,
+    ppkGuidanceStr,
+    autoCalcStr,
   });
 
   // ── Step 4: Send to Google Gemini API ─────────────────────────────────────

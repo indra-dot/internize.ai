@@ -4,7 +4,6 @@ import {
   BookOpen,
   CheckCircle2,
   FileSpreadsheet,
-  FileText,
   HeartPulse,
   KeyRound,
   Layers,
@@ -33,7 +32,7 @@ export interface OnboardingTourStepData {
   step: number; // 1-7
   pillarNumber: 1 | 2 | 3 | 0; // 0 for completion/start
   pillar: string; // e.g. 'Pilar 1: Klinis PPK'
-  category: 'Klinis PPK' | 'Riset HIPAA/FHIR' | 'Gemini Pribadi BYOK' | 'Siap Pakai';
+  category: 'Klinis PPK' | 'CDSS & Kalkulator' | 'Riset HIPAA/FHIR' | 'Gemini Pribadi BYOK' | 'Siap Pakai';
   title: string;
   subtitle: string;
   summary: string;
@@ -46,7 +45,7 @@ export const ONBOARDING_TOUR_STEPS: OnboardingTourStepData[] = [
     pillar: 'Pilar 1: Klinis PPK',
     category: 'Klinis PPK',
     title: 'Selamat Datang di Internize 2.2',
-    subtitle: 'Asisten Klinis & Riset Sp.PD Berbasis 121 PPK PAPDI & 8 CDSS Suites',
+    subtitle: 'Asisten Klinis Sp.PD Berbasis 121 PPK PAPDI & 8 CDSS Suites',
     summary:
       'Asisten cerdas Sp.PD yang beroperasi 100% on-device di browser tanpa kebocoran PHI (Zero PHI Egress), diperkuat 121 PPK dari 9 divisi PAPDI.',
   },
@@ -83,12 +82,12 @@ export const ONBOARDING_TOUR_STEPS: OnboardingTourStepData[] = [
   {
     step: 5,
     pillarNumber: 2,
-    pillar: 'Pilar 2: Riset HIPAA/FHIR',
-    category: 'Riset HIPAA/FHIR',
-    title: 'Riset Klinis, De-identifikasi HIPAA/Indonesia & Konversi FHIR R4',
-    subtitle: 'Sanitasi NIK, BPJS, No. RM & Standar Interoperabilitas Global',
+    pillar: 'Pilar 2: CDSS & Kalkulator Sp.PD',
+    category: 'CDSS & Kalkulator',
+    title: '8 CDSS Suites & 105+ Kalkulator Klinis InternaHub',
+    subtitle: 'Kalkulasi Otomatis dari Ekstraksi Lab & Parameter Klinis',
     summary:
-      'Tab Research menyensor otomatis 18 identifier HIPAA Safe Harbor serta identitas Indonesia (NIK 16 digit, BPJS 13 digit, No. RM lokal) dan mengonversi lab ke FHIR R4 Bundle.',
+      'Ekstraksi otomatis nilai lab untuk menghitung eGFR CKD-EPI, Skor RCRI Lee, Caprini VTE, Skor ARISCAT, MELD-Na, Child-Pugh, CURB-65, dan 105+ kalkulator klinis spesifik Sp.PD.',
   },
   {
     step: 6,
@@ -310,23 +309,19 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
         return (
           <div className="space-y-2.5 text-xs text-slate-700">
             <p className="leading-relaxed">
-              Pada tab <strong>Research</strong>, Anda dapat mengubah rekam medis mentah menjadi
-              data penelitian yang bersih dan berstandar internasional:
+              Internize dilengkapi <strong>8 CDSS Suites</strong> dan <strong>105+ Kalkulator Klinis InternaHub</strong> yang langsung terhitung otomatis dari catatan medis:
             </p>
             <div className="space-y-1.5">
               <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-950 flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                <HeartPulse className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                 <div className="text-[11px]">
-                  <strong>Indonesian PHI Shield:</strong> Otomatis menyensor NIK 16-digit, Nomor
-                  BPJS 13-digit, No. RM lokal, nomor HP/WA, dan alamat RT/RW.
+                  <strong>Kalkulator Risiko Bedah &amp; Organ:</strong> eGFR CKD-EPI otomatis, RCRI Lee Cardiac Risk, Caprini VTE, dan ARISCAT Pulmonary Risk terisi langsung dari teks.
                 </div>
               </div>
               <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 flex items-start gap-2">
-                <FileText className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
+                <Layers className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
                 <div className="text-[11px]">
-                  <strong>Interoperabilitas FHIR R4:</strong> Ekspor otomatis entitas klinis ke
-                  bundel FHIR R4 (Condition, Observation, Medication) serta CSV/JSON untuk publikasi
-                  riset.
+                  <strong>CDSS Explorer Spesifik Sp.PD:</strong> Akses cepat ke skor MELD-Na, Child-Pugh, CURB-65, NEWS2, qSOFA, HOMA-IR, dan kalkulator titrasi elektrolit/syringe pump.
                 </div>
               </div>
             </div>

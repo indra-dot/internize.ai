@@ -464,13 +464,13 @@ export function runInternaHubAutoCalc(
   const has = (...args: any[]) => args.every((a) => a !== undefined && a !== null && (typeof a !== 'number' || (!isNaN(a) && isFinite(a))));
 
   const {
-    na, k, cl, ca, glu, poct_latest, poct_min,
-    bun, ureum, cr, egfr_lab, alb, prot,
-    ast, alt, alp, bili, inr, plt,
-    wbc, ne_abs, ly_abs, hb,
-    ph, pco2, po2, hco3, fio2,
+    na, k, cl, ca, glu, poct_min,
+    bun, ureum, cr, alb, prot,
+    ast, alt, plt,
+    ne_abs, ly_abs,
+    hco3,
     ascites_alb, pleura_prot, pleura_ldh,
-    age, sex, bb, sbp, dbp, rr
+    age, sex, bb
   } = c;
 
   // 1. ELEKTROLIT & OSMOLARITAS

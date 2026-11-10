@@ -1,10 +1,12 @@
-import { Cpu, ShieldCheck, Trash2 } from 'lucide-react';
+import { Cpu, KeyRound, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { clearAllPatientSessions } from '../../services/storage/chromeStorage';
 import { Badge } from '../ui/Badge';
 
 export interface HeaderProps {
   onDeviceMode?: 'webgpu' | 'wasm' | 'ready';
+  hasApiKey?: boolean;
+  onByokClick?: () => void;
   onSettingsClick?: () => void;
   onHelpClick?: () => void;
   onHelpTour?: () => void;
@@ -13,6 +15,8 @@ export interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   onDeviceMode = 'ready',
+  hasApiKey = false,
+  onByokClick,
   onHelpClick,
   onHelpTour,
   onClearSessionClick,
@@ -67,6 +71,29 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* BYOK Status / Setup Quick Action */}
+          {hasApiKey ? (
+            <button
+              type="button"
+              onClick={onByokClick}
+              title="Kunci Google Gemini AI aktif (BYOK)"
+              className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg shadow-2xs transition-all cursor-pointer"
+            >
+              <Sparkles className="w-3 h-3 text-amber-600" />
+              <span>BYOK Aktif</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onByokClick}
+              title="Setup Google Gemini API Key (BYOK First)"
+              className="flex items-center gap-1 px-2 py-1 text-[10.5px] font-extrabold text-amber-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 border border-amber-500/60 rounded-lg shadow-xs transition-all active:scale-[0.98] cursor-pointer animate-pulse"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-maroon-900" />
+              <span>Setup BYOK</span>
+            </button>
+          )}
+
           {/* Quick Action: Wipe Patient Session (Panic Button) */}
           <button
             type="button"

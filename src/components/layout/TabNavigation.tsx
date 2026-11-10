@@ -1,8 +1,8 @@
 import { clsx } from 'clsx';
-import { FileSearch, Settings, Stethoscope } from 'lucide-react';
+import { Settings, Stethoscope } from 'lucide-react';
 import type React from 'react';
 
-export type TabId = 'clinical' | 'research' | 'settings';
+export type TabId = 'clinical' | 'settings';
 
 export interface TabNavigationProps {
   activeTab: TabId;
@@ -14,19 +14,13 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabCh
     {
       id: 'clinical' as TabId,
       label: 'Penyakit Dalam (Sp.PD)',
-      shortLabel: 'Penyakit Dalam',
+      shortLabel: 'Penyakit Dalam (Sp.PD)',
       icon: Stethoscope,
     },
     {
-      id: 'research' as TabId,
-      label: 'Research & Extraction',
-      shortLabel: 'Research',
-      icon: FileSearch,
-    },
-    {
       id: 'settings' as TabId,
-      label: 'Settings',
-      shortLabel: 'Config',
+      label: 'Pengaturan & Model (BYOK)',
+      shortLabel: 'Pengaturan',
       icon: Settings,
     },
   ];

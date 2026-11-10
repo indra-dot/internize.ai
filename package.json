@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:web": "tsc --noEmit && vite build",
+    "build:ext": "tsc --noEmit && cross-env BUILD_TARGET=extension vite build",
+    "sync:internahub": "tsx scripts/sync_internahub.ts",
     "lint": "biome check src",
     "test": "vitest run",
     "test:run": "vitest run",
@@ -15,7 +18,7 @@
     "test:watch": "vitest",
     "test:benchmark": "tsx tests/benchmark/run_clinical_benchmark.ts",
     "ingest:ppk": "tsx scripts/ingest_ppk/run_ingest.ts",
-    "pack": "powershell -Command \"Compress-Archive -Path dist/* -DestinationPath internize-ai-extension.zip -Force\""
+    "pack": "powershell -Command \"Compress-Archive -Path dist-extension/* -DestinationPath internize-ai-extension.zip -Force\""
   },
   "dependencies": {
     "@huggingface/transformers": "^3.3.3",
@@ -36,6 +39,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "cross-env": "^7.0.3",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",

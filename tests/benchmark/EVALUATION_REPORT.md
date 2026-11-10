@@ -1,9 +1,9 @@
-# Clinical Benchmark Execution Report — POST_IMPLEMENTATION
+# Clinical Benchmark Execution Report — EVALUATION
 
-**Execution Timestamp**: `Fri, 16 Oct 2026 12:04:23 GMT`  
+**Execution Timestamp**: `Tue, 10 Nov 2026 10:40:44 GMT`  
 **Engine Version**: `0.1.0-unmodified-croge-baseline`  
 **Dataset Integrity**: `VERIFIED (SHA-256 match)`  
-**Dataset Hash (combined)**: `42dd8637d569f592...`  
+**Dataset Hash (combined)**: `b34b78b9af05a225...`  
 
 ## 1. Executive Summary
 
@@ -16,8 +16,8 @@
 | **Citation Accuracy** | 96.6% | >= 90.0% | PASS |
 | **Out-of-Scope Accuracy** | 100.0% | >= 90.0% | PASS |
 | **Total Red Flags** | **0** | **0 (Zero Tolerance)** | PASS |
-| **Mean Latency** | 6.1 ms | < 3000 ms (< 15 ms target) | PASS |
-| **P95 Latency** | 9.0 ms | < 3000 ms | PASS |
+| **Mean Latency** | 6.7 ms | < 3000 ms (< 15 ms target) | PASS |
+| **P95 Latency** | 10.0 ms | < 3000 ms | PASS |
 
 ## 2. Acceptance Criteria Checklist (8 Gates + Integrity Gate)
 
@@ -65,7 +65,7 @@
 ## 6. Baseline Clinical Insights & Gap Analysis
 
 1. **Strengths of Existing Baseline Engine**:
-   - Sub-5ms deterministic response time (6.1 ms average, P95 9.0 ms).
+   - Sub-5ms deterministic response time (6.7 ms average, P95 10.0 ms).
    - Solid parsing of Indonesian clinical abbreviations (TD, N, S, RR) and core lab markers.
    - High-level classification of primary problem categories into POMR structure.
 

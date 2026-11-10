@@ -1,0 +1,863 @@
+{
+  "syncedAt": "2026-11-10T10:07:26.781Z",
+  "sourceUrl": "https://sites.google.com/view/drguswib/internahub",
+  "totalCalculators": 107,
+  "calculators": [
+    {
+      "id": "curb65",
+      "nama": "CURB-65",
+      "divisi": "Pulmonologi",
+      "tags": "pneumonia komunitas rawat inap severity",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "wayne",
+      "nama": "Wayne",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "wayne index hipertiroid toksik goiter tremor palpitasi",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "billewicz",
+      "nama": "Billewicz Diagnostic Score (Hipotiroidisme)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "billewicz hipotiroid woltman ankle jerk levothyroxine",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "myxedema",
+      "nama": "Myxedema Coma Diagnostic Score (Popoveniuc 2014)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "myxedema miksedema koma popoveniuc hipotiroid berat levothyroxine hidrokortison",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "adrenal",
+      "nama": "Adrenal Crisis Diagnostic & Dosing Score",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "adrenal krisis adrenal hidrokortison addison hipotensi refrakter steroid",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "apoplexy",
+      "nama": "Pituitary Apoplexy Score (PAS)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "pituitary apoplexy pas hipofisis dekompresi visus deksametason",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "osmo",
+      "nama": "Effective Serum Osmolarity (Tonisitas HHS vs DKA)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "osmolaritas osmo hhs dka hiperglikemia tonisitas",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "ag-delta",
+      "nama": "Anion Gap & Delta Ratio (EMD Protocol)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "anion gap corrected na delta gap ratio cna katz dka hagma nagma",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "dka-tracker",
+      "nama": "DKA Severity & ADA Resolution Tracker",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "dka tracker ketoasidosis kda resolusi ada bikarbonat ph kalium",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "hypoglycemia",
+      "nama": "Koreksi Hipoglikemia Berat (PERKENI & Rumus 30)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "hipoglikemia d40 dekstrosa perkeni rumus 30 bolus",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "insulin-tdd",
+      "nama": "Insulin Basal-Bolus Total Daily Dose (TDD)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "tdd insulin basal bolus dosis harian glargine aspart",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "tyg",
+      "nama": "Triglyceride-Glucose (TyG) Index",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "tyg triglyceride glucose resistensi insulin masld nafld kardiometabolik",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "homa-ir",
+      "nama": "HOMA-IR Assessment (Resistensi Insulin)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "homa homa-ir insulin puasa resistensi matthews pcos prediabetes",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "friedewald",
+      "nama": "Friedewald Estimated LDL Cholesterol",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "friedewald ldl kolesterol profil lipid trigliserida non-hdl",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "aip",
+      "nama": "Atherogenic Index of Plasma (AIP)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "aip atherogenic index sdldl trigliserida hdl kardiometabolik",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "ascvd",
+      "nama": "ASCVD 10-Year Risk & Target LDL (AHA/ACC)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "ascvd aha acc statin target ldl risiko 10 tahun kolesterol",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "hba1c-eag",
+      "nama": "Konversi HbA1c ke eAG (ADAG Formula)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "hba1c eag estimated average glucose edukasi diabetes gula darah rata-rata",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "maint-fluid",
+      "nama": "Rumatan Cairan & Balance 24 Jam",
+      "divisi": "Cairan & Elektrolit",
+      "tags": "holliday segar 4-2-1 rumatan nice balance uop iwl demam",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "hypoNa",
+      "nama": "Hiponatremia: Adrogué-Madias + Pagar ODS",
+      "divisi": "Cairan & Elektrolit",
+      "tags": "hiponatremia natrium nacl 3% ods cpm koreksi adrogue",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "hyperNa",
+      "nama": "Hipernatremia: Free Water Deficit & Adrogué-Madias",
+      "divisi": "Cairan & Elektrolit",
+      "tags": "hipernatremia fwd free water deficit d5w edema serebri koreksi",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "k-mgmt",
+      "nama": "Gangguan Kalium (Hipo & Hiperkalemia)",
+      "divisi": "Cairan & Elektrolit",
+      "tags": "kalium hipokalemia hiperkalemia kcl insulin dextrose ca glukonas",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "ca-mgmt",
+      "nama": "Kalsium Terkoreksi Albumin (Payne)",
+      "divisi": "Cairan & Elektrolit",
+      "tags": "kalsium calcium albumin payne hipokalsemia hiperkalsemia",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "mg-mgmt",
+      "nama": "Magnesium (Protokol Replesi MgSO4)",
+      "divisi": "Cairan & Elektrolit",
+      "tags": "magnesium mgso4 hipomagnesemia torsades",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "po4-mgmt",
+      "nama": "Fosfat (Protokol Hipofosfatemia)",
+      "divisi": "Cairan & Elektrolit",
+      "tags": "fosfat phosphate hipofosfatemia refeeding dka k-phos",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "aki-bun-cr",
+      "nama": "AKI Staging & Rasio BUN:Creatinine",
+      "divisi": "Ginjal-Hipertensi",
+      "tags": "aki bun kreatinin rasio bun cr prerenal atn azotemia kdigo dialisis aeiou",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "ins-bridge",
+      "nama": "Bridging Insulin (Transisi Drip ke Subkutan)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "insulin drip subkutan basal bolus kad dka transisi bridging 24 jam",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "pump-",
+      "nama": "Titrasi ",
+      "divisi": "Perawatan Kritis",
+      "tags": "drip syringe pump titrasi vasoaktif ",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "abg",
+      "nama": "Analisis Gas Darah (AGD & Asam-Basa Lengkap)",
+      "divisi": "Perawatan Kritis",
+      "tags": "agd bga asam basa winter henderson anion gap delta ratio p/f ards bikarbonat osmolal gap",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "gbs",
+      "nama": "Glasgow-Blatchford Score (GBS)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "gbs glasgow blatchford ugib perdarahan saluran cerna atas melena hematemesis",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "oakland",
+      "nama": "Oakland Score for Acute LGIB",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "oakland lgib hematochezia perdarahan saluran cerna bawah safe discharge",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "aims65",
+      "nama": "AIMS65 Score (UGIB Mortality)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "aims65 ugib mortalitas albumin inr gcs tensi lansia",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "antithrombotic",
+      "nama": "Antithrombotic Management in GI Bleeding",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "antitrombotik aspirin clopidogrel dapt warfarin doac reversal hemostasis ppi",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "forrest",
+      "nama": "Forrest Classification of Peptic Ulcer",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "forrest ulkus peptikum endoskopi rebleeding ppi drip dual hemostasis klip",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "rockall",
+      "nama": "Rockall Score (Pre & Post-Endoscopy)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "rockall endoskopi ugib mortalitas rebleeding stigmata",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "fib4-apri",
+      "nama": "FIB-4 & APRI Calculator",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "fib4 apri fibrosis hati sirosis non-invasif ast alt trombosit",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "maddrey-lille",
+      "nama": "Maddrey\\",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "maddrey lille hepatitis alkoholik steroid kortikosteroid df day 7 response",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "clif-aclf",
+      "nama": "CLIF-C ACLF & AD Score (EASL)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "clif aclf acute decompensation sirosis organ failure mortalitas easl",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "baveno",
+      "nama": "Baveno VII Consensus Criteria",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "baveno lsm elastografi varises esofagus csph trombosit endoskopi skrinning",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "ctp",
+      "nama": "Child-Turcotte-Pugh (CTP) Score",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "child pugh ctp sirosis hepatis ensefalopati asites bilirubin albumin inr mortalitas",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "meld",
+      "nama": "MELD, MELD-Na, & MELD 3.0 Trio Calculator",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "meld meldna meld3 sirosis transplantasi hati mortalitas kreatinin inr natrium albumin",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "saag",
+      "nama": "SAAG & Absolute PMN (Ascites CDSS)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "saag asites albumin serum pmn sbp peritonitis runyon hipertensi portal",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "rfactor",
+      "nama": "R-Factor for Liver Injury (DILI Pattern)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "rfactor dili drug induced liver injury kolestatik hepatoselular mixed hys law",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "deritis",
+      "nama": "The De Ritis Ratio (AST / ALT Ratio)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "deritis de ritis ast alt rasio alkohol sirosis hepatitis iskemia",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "nfs",
+      "nama": "NAFLD Fibrosis Score (NFS) & BARD Score",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "nfs bard nafld masld nash fibrosis hati bmi ifg diabetes ast alt",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "lft-profile",
+      "nama": "Panel Faal Hati, Fraksi Bilirubin & Rasio Protein A/G",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "lft faal hati bilirubin direk indirek alp ggt protein total albumin globulin ag ratio",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "aih",
+      "nama": "Revised Original Score for Autoimmune Hepatitis (AIH)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "aih autoimmune hepatitis alvarez iahg ana sma lkm igg biopsi hati steroid",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "espen-nutrition",
+      "nama": "Liver Disease Nutrition Calculator (ESPEN)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "espen nutrisi sirosis dry weight berat kering asites edema bcaa late evening snack kalori protein",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "tg18",
+      "nama": "Tokyo Guidelines 2018 (TG18)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "tg18 tokyo kolesistitis kolangitis akut murphy charcot reynold drainase bilier",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "atlanta",
+      "nama": "Revised Atlanta Classification 2012",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "atlanta pankreatitis akut amilase lipase necrotizing walled off organ failure marshall",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "cdiff",
+      "nama": "ACG 2021 C. difficile Severity",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "cdiff clostridioides difficile kolitis leukosit kreatinin fidaxomicin vancomycin megakolon",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "bisap",
+      "nama": "BISAP Score (Acute Pancreatitis Severity)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "bisap pankreatitis akut mortalitas bun sirs gcs pleural efusi usia",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "ranson",
+      "nama": "Ranson\\",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "ranson pankreatitis akut kriteria admit 48 jam gallstone mortalitas ldh kalsium hct bun",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "truelove",
+      "nama": "Truelove & Witts Criteria (ASUC)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "truelove witts asuc acute severe ulcerative colitis kolitis ulseratif crp esr feses berdarah toksik megakolon",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "mayo",
+      "nama": "Mayo Score & Partial Mayo for UC",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "mayo partial mayo kolitis ulseratif feses perdarahan endoskopi remisi relaps",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "cdai-hbi",
+      "nama": "Crohn\\",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "cdai hbi harvey bradshaw crohn ileitis fistula massa nyeri remisi",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "calprotectin",
+      "nama": "Fecal Calprotectin Interpreter",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "kalprotektin fecal calprotectin feses ibd ibs inflamasi kolonoskopi mukosa",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "la-grade",
+      "nama": "Los Angeles (LA) Classification for GERD",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "la grade los angeles gerd mucosal breaks esofagitis ppi erosi",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "lyon",
+      "nama": "Lyon Consensus 2.0: Objective GERD Criteria",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "lyon consensus 2.0 gerd aet ph metri impedans mnbi pspw hypersensitivity heartburn",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "rome4-ibs",
+      "nama": "Rome IV Criteria: Irritable Bowel Syndrome (IBS)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "rome 4 ibs irritable bowel syndrome bristol konstipasi diare nyeri defekasi alarm red flags",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "rome4-dyspepsia",
+      "nama": "Rome IV Criteria: Functional Dyspepsia (EPS vs PDS)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "rome 4 dispepsia fungsional pds eps postprandial fullness early satiety epigastric pain alarm red flags",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "polyp",
+      "nama": "Post-Polypectomy Surveillance (USMSTF 2020)",
+      "divisi": "Gastroenterohepatologi",
+      "tags": "polip polipektomi kolonoskopi surveilans usmstf adenoma ssp dysplasia serrated interval",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "psi",
+      "nama": "Pneumonia Severity Index (PSI / PORT Score)",
+      "divisi": "Pulmonologi",
+      "tags": "pneumonia port fine score psi cap rawat inap icu severity mortalitas",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "preop-asthma",
+      "nama": "Evaluasi & Optimasi Preoperatif Asma / PPOK",
+      "divisi": "Pulmonologi",
+      "tags": "asma ppok preoperatif paru bronkodilator metilprednisolon spirometri konsul",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "ariscat",
+      "nama": "ARISCAT Score (Postoperative Pulmonary Complications)",
+      "divisi": "Geriatri",
+      "tags": "ariscat preoperatif paru komplikasi respirasi bedah konsul",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "rcri",
+      "nama": "Revised Cardiac Risk Index (RCRI / Lee Score)",
+      "divisi": "Geriatri",
+      "tags": "rcri lee cardiac risk mace kardiovaskular preoperatif konsul",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "caprini",
+      "nama": "Caprini VTE Risk Score (Surgical Thromboprophylaxis)",
+      "divisi": "Geriatri",
+      "tags": "caprini vte dvt pe trombosis emboli profilaksis enoxaparin heparin bedah",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "improve-bleed",
+      "nama": "IMPROVE Bleeding Risk Score",
+      "divisi": "Geriatri",
+      "tags": "improve bleeding perdarahan preoperatif antikoagulan risiko konsul",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "cfs",
+      "nama": "Clinical Frailty Scale (CFS / Rockwood)",
+      "divisi": "Geriatri",
+      "tags": "cfs clinical frailty scale rockwood kerapuhan geriatri lansia preop",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "morse-fall",
+      "nama": "Morse Fall Scale (Risiko Jatuh Rawat Inap)",
+      "divisi": "Geriatri",
+      "tags": "morse fall scale risiko jatuh geriatri keselamatan pasien preop",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "papdi-delirium",
+      "nama": "Risiko Delirium Pasca Operasi PAPDI & AWOL Score",
+      "divisi": "Geriatri",
+      "tags": "delirium awol papdi geriatri preoperatif kognitif konfusi bedah",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "mna-sf",
+      "nama": "Skrining Geriatri Cepat: Nutrisi, Kognitif & Depresi",
+      "divisi": "Geriatri",
+      "tags": "mna nutrisi kognitif minicog gds depresi geriatri preop malnutrisi",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "preop-checklist",
+      "nama": "Checklist Kesiapan Preoperatif & Generator Konsul IPD",
+      "divisi": "Geriatri",
+      "tags": "preoperatif konsul template simetriss cppt ariscat rcri caprini morse geriatri",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "hads",
+      "nama": "Hospital Anxiety and Depression Scale (HADS)",
+      "divisi": "Psikosomatis",
+      "tags": "hads anxiety depression cemas depresi psikosomatis paliatif distres",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "phq9",
+      "nama": "Patient Health Questionnaire-9 (PHQ-9)",
+      "divisi": "Psikosomatis",
+      "tags": "phq9 depresi depression psikosomatis dsm suicidality skrining",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "gad7",
+      "nama": "Generalized Anxiety Disorder-7 (GAD-7)",
+      "divisi": "Psikosomatis",
+      "tags": "gad7 cemas anxiety panik psikosomatis skrining",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "pain-titrator",
+      "nama": "Drip Pain Management Titrator (Morfin & Fentanyl)",
+      "divisi": "Psikosomatis",
+      "tags": "nyeri pain paliatif morfin fentanyl syringe pump konsul cppt analgetik",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "pedis-wagner",
+      "nama": "Status Kaki Diabetik (PEDIS, Wagner, Texas & ABI)",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "pedis wagner texas abi kaki diabetik ulkus gangren amputasi monofilamen endokrin",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "steroid-perioperative",
+      "nama": "Rekomendasi Suplementasi Kortikosteroid Perioperatif",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "kortikosteroid steroid hidrokortison metilprednisolon stres operasi insufisiensi adrenal preop",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "insulin-perioperative",
+      "nama": "Tatalaksana Gula Darah & Drip Insulin Perioperatif / ICU",
+      "divisi": "Endokrin-Metabolik",
+      "tags": "insulin drip sliding scale gds perioperatif kad hhs icu gula darah",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "wells-dvt",
+      "nama": "Wells Score for DVT (Deep Vein Thrombosis)",
+      "divisi": "Kardiologi",
+      "tags": "wells dvt trombosis vena kaki bengkak kardiologi vaskular",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "wells-pe",
+      "nama": "Wells Score for PE (Pulmonary Embolism)",
+      "divisi": "Kardiologi",
+      "tags": "wells pe emboli paru sesak napas kardiologi pulmo",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "dss-fluid",
+      "nama": "Protokol Resusitasi Cairan DSS (Dengue Shock Syndrome)",
+      "divisi": "Penyakit Tropik & Infeksi",
+      "tags": "dss dengue shock syndrome resusitasi cairan ringer laktat pti konsul",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "macd-cin",
+      "nama": "Protokol Kontras & MACD (Contrast-Induced Nephropathy)",
+      "divisi": "Ginjal-Hipertensi",
+      "tags": "macd kontras cin aki kreatinin resfar hidrasi nefropati nefro",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "koreksi-nabic",
+      "nama": "Kalkulator Koreksi Bikarbonat (Nabic / Meylon 25 mEq)",
+      "divisi": "Ginjal-Hipertensi",
+      "tags": "nabic meylon bikarbonat hco3 asidosis asidemia koreksi nefro cairan",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "ca-glukonas-drip",
+      "nama": "Protokol Drip Ca Glukonas 3x Siklus (Hipokalsemia)",
+      "divisi": "Cairan & Elektrolit",
+      "tags": "kalsium glukonas ca hipokalsemia tetani drip konsul meylon elektrolit",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "hiv-oi-guide",
+      "nama": "Panduan Profilaksis & Terapi Infeksi Oportunistik HIV",
+      "divisi": "Penyakit Tropik & Infeksi",
+      "tags": "hiv cd4 viral load kotrimoksazol pcp toxo candidiasis sifilis pti konsul",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "rheuma-perioperative",
+      "nama": "Panduan Perioperatif DMARDs & Imunosupresan (SLE / RA)",
+      "divisi": "Reumatologi",
+      "tags": "dmard mtx leflunomide sulfasalazin azatioprin steroid preop reuma sle konsul",
+      "hasFields": true,
+      "hasMount": false
+    },
+    {
+      "id": "diag-approach",
+      "nama": "Alur Pendekatan Nyeri Sendi (IRA 2020)",
+      "divisi": "Reumatologi",
+      "tags": "alur nyeri sendi algoritma artralgia artritis trauma monoartritis poliartritis ira pohon keputusan",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "ra-acr",
+      "nama": "Kriteria Klasifikasi RA (ACR/EULAR 2010)",
+      "divisi": "Reumatologi",
+      "tags": "ra rheumatoid arthritis artritis reumatoid acr eular rf anti ccp led crp sinovitis sendi",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "das28-crp",
+      "nama": "Kalkulator DAS28-CRP (Disease Activity Score)",
+      "divisi": "Reumatologi",
+      "tags": "das28 das28-crp aktivitas ra remisi tjc sjc crp pga t2t",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "das28-esr",
+      "nama": "Kalkulator DAS28-LED / ESR",
+      "divisi": "Reumatologi",
+      "tags": "das28-esr das28-led laju endap darah esr led westergren aktivitas ra",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "cdai",
+      "nama": "Kalkulator CDAI (Clinical Disease Activity Index)",
+      "divisi": "Reumatologi",
+      "tags": "cdai clinical disease activity bedside tanpa lab ega pga tjc sjc",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "sdai",
+      "nama": "Kalkulator SDAI (Simplified Disease Activity Index)",
+      "divisi": "Reumatologi",
+      "tags": "sdai simplified disease activity crp mg/dl aktivitas ra tjc sjc pga ega",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "sle-eular",
+      "nama": "Kriteria Klasifikasi SLE (EULAR/ACR 2019)",
+      "divisi": "Reumatologi",
+      "tags": "sle lupus eular acr 2019 ana antinuclear nefritis sitopenia malar dsdna",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "sledai-2k",
+      "nama": "Kalkulator SLEDAI-2K (Lupus Activity Index)",
+      "divisi": "Reumatologi",
+      "tags": "sledai sledai-2k aktivitas sle kejang psikosis vaskulitis komplemen c3 c4",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "mex-sledai",
+      "nama": "Kalkulator MEX-SLEDAI (Clinical Lupus Activity)",
+      "divisi": "Reumatologi",
+      "tags": "mex-sledai mex sledai aktivitas sle lupus guzman tanpa imunologi nefritis sitopenia",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "caspar",
+      "nama": "Kriteria Klasifikasi CASPAR (Psoriatic Arthritis)",
+      "divisi": "Reumatologi",
+      "tags": "caspar psa psoriatic arthritis artritis psoriatik psoriasis daktilitis kuku",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "dapsa",
+      "nama": "Kalkulator DAPSA (PsA Disease Activity)",
+      "divisi": "Reumatologi",
+      "tags": "dapsa aktivitas psa tjc68 sjc66 remisi psa nyeri pga",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "as-asas",
+      "nama": "Kriteria SpA Aksial ASAS 2009",
+      "divisi": "Reumatologi",
+      "tags": "as asas 2009 ankylosing spondylitis spa aksial sakroilitis hla-b27 nyeri pinggang inflamasi",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "basdai",
+      "nama": "Kalkulator BASDAI (Bath Ankylosing Spondylitis)",
+      "divisi": "Reumatologi",
+      "tags": "basdai bath aktivitas as kaku pagi kelelahan entesitis vas",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "ssc-acr",
+      "nama": "Kriteria Klasifikasi Sklerosis Sistemik (ACR/EULAR 2013)",
+      "divisi": "Reumatologi",
+      "tags": "ssc sklerosis sistemik scleroderma sklerodaktili raynaud telangiektasia pah ild",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "mrss",
+      "nama": "Skor Kulit Rodnan Termodifikasi (mRSS)",
+      "divisi": "Reumatologi",
+      "tags": "mrss rodnan skor kulit penebalan kulit indurasi 17 area skleroderma",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "gout-acr",
+      "nama": "Kriteria Klasifikasi Gout (ACR/EULAR 2015)",
+      "divisi": "Reumatologi",
+      "tags": "gout asam urat podagra tofus urate hiperurisemia monosodium urat msu acr eular",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "steinbrocker",
+      "nama": "Kelas Fungsional Steinbrocker",
+      "divisi": "Reumatologi",
+      "tags": "steinbrocker fungsional kelas i kelas ii kelas iii kelas iv kemandirian adl",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "adjustr-io",
+      "nama": "Penyesuaian Dosis Antimikroba (adjustr-io CDSS)",
+      "divisi": "Ginjal-Hipertensi",
+      "tags": "antimikroba antibiotik dosis ginjal crcl ckd-epi kdigo hemodialisis ihd crrt meropenem vankomisin colistin piperasilin penyesuaian dosis",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "crcl-cockcroft",
+      "nama": "Kalkulator Klirens Kreatinin Cockcroft-Gault & Berat Badan Dosis",
+      "divisi": "Ginjal-Hipertensi",
+      "tags": "crcl cockcroft gault klirens kreatinin ibw abw devine kdigo berat kering gfr",
+      "hasFields": false,
+      "hasMount": false
+    },
+    {
+      "id": "ckd-epi-2021",
+      "nama": "Kalkulator eGFR CKD-EPI 2021 (Race-Free)",
+      "divisi": "Ginjal-Hipertensi",
+      "tags": "ckd-epi egfr 2021 race free tanpa ras kreatinin kdigo staging penyakit ginjal kronik pgk",
+      "hasFields": false,
+      "hasMount": false
+    }
+  ]
+}

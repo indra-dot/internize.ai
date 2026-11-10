@@ -14,6 +14,8 @@
  */
 
 import type { CdssCalculatorMeta, CdssSuiteId, CdssSuiteInfo } from './types';
+import rawAntimicrobialData from './antimicrobial_data.json';
+import rawInternaHubCatalog from './internahubCatalog.json';
 
 export const CDSS_SUITES: Record<CdssSuiteId, CdssSuiteInfo> = {
   HOM: {
@@ -563,4 +565,55 @@ export const CDSS_CALCULATORS_DB: CdssCalculatorMeta[] = [
   },
 ];
 
-export const ALL_CDSS_CALCULATORS = CDSS_CALCULATORS_DB;
+// Dynamically expand 36 ADJUSTR.IO Antimicrobial Dosing Calculators
+const ADJUSTR_IO_ITEMS: CdssCalculatorMeta[] = Object.entries(rawAntimicrobialData as Record<string, any>).map(
+  ([key, drug]) => ({
+    id: `adjustr-io-${key}`,
+    name: `Dosis Ginjal: ${drug.name}`,
+    shortName: drug.name,
+    suite: 'ADJUSTR_IO' as CdssSuiteId,
+    category: drug.class || 'Antimikroba Renal Dosing',
+    description: `Penyesuaian dosis ${drug.name} (${drug.class}) berdasarkan CrCl, CKD-EPI 2021, IHD, dan CRRT.`,
+    keywords: [key, drug.name.toLowerCase(), (drug.class || '').toLowerCase(), 'antibiotik', 'dosis ginjal', 'crcl', 'adjustr.io'],
+    evidenceSource: 'ADJUSTR.IO / Sanford Guide / Renal Drug Handbook',
+    requiredInputs: ['age', 'weight', 'serumCr', 'sex'],
+    guardrails: drug.note ? [drug.note] : undefined,
+  })
+);
+
+function mapDivisiToSuite(divisi: string): CdssSuiteId {
+  const d = divisi.toLowerCase();
+  if (d.includes('hemato') || d.includes('onkologi')) return 'HOM';
+  if (d.includes('gastro') || d.includes('hepatologi')) return 'GEH';
+  if (d.includes('kritis') || d.includes('pulmo') || d.includes('kardio')) return 'CALC_MED';
+  if (d.includes('cairan') || d.includes('elektrolit') || d.includes('ginjal')) return 'FLUID';
+  if (d.includes('endokrin') || d.includes('metabolik')) return 'EMD';
+  if (d.includes('reuma') || d.includes('alergi')) return 'RHEUMA';
+  if (d.includes('geriatri') || d.includes('psikosomatis')) return 'PREOP';
+  return 'ADJUSTR_IO';
+}
+
+const existingIds = new Set<string>([
+  ...CDSS_CALCULATORS_DB.map((c) => c.id),
+  ...ADJUSTR_IO_ITEMS.map((c) => c.id),
+]);
+
+const SYNCED_INTERNAHUB_ITEMS: CdssCalculatorMeta[] = (rawInternaHubCatalog.calculators || [])
+  .filter((c: any) => c.id && c.nama && c.id !== 'pump-' && !existingIds.has(c.id))
+  .map((c: any) => ({
+    id: c.id,
+    name: c.nama.replace(/\\+$/, ''),
+    shortName: c.nama.replace(/\\+$/, '').slice(0, 24),
+    suite: mapDivisiToSuite(c.divisi || ''),
+    category: c.divisi || 'InternaHub Suite',
+    description: `Kalkulator klinis InternaHub (${c.divisi}): ${(c.tags || '').slice(0, 90)}`,
+    keywords: [c.id, ...(c.tags ? c.tags.split(/\s+/) : []), (c.divisi || '').toLowerCase()],
+    evidenceSource: 'InternaHub Clinical Suite (drguswib)',
+    requiredInputs: ['age', 'weight', 'serumCr'],
+  }));
+
+export const ALL_CDSS_CALCULATORS: CdssCalculatorMeta[] = [
+  ...CDSS_CALCULATORS_DB,
+  ...ADJUSTR_IO_ITEMS,
+  ...SYNCED_INTERNAHUB_ITEMS,
+];

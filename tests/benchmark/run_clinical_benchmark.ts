@@ -118,9 +118,13 @@ Options:
 // Integrity Validation
 // ──────────────────────────────────────────────────────────────────────────────
 
-export function computeFileSha256(filePath: string): string {
+export function computeFileSha256(filePath: string, normalizeCrlf = false): string {
   if (!fs.existsSync(filePath)) {
     throw new Error(`Dataset file not found for integrity hashing: ${filePath}`);
+  }
+  if (normalizeCrlf) {
+    const content = fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n');
+    return crypto.createHash('sha256').update(Buffer.from(content, 'utf8')).digest('hex');
   }
   const fileBuffer = fs.readFileSync(filePath);
   return crypto.createHash('sha256').update(fileBuffer).digest('hex');
@@ -137,8 +141,8 @@ export function verifyFreezeIntegrity(
   expectedHashes?: { open: string; hidden: string };
   error?: string;
 } {
-  const openSha = computeFileSha256(openPath);
-  const hiddenSha = computeFileSha256(hiddenPath);
+  let openSha = computeFileSha256(openPath);
+  let hiddenSha = computeFileSha256(hiddenPath);
 
   // Fallback to project root BENCHMARK_FREEZE.md if not found at specific path
   let manifestPathToUse = freezeManifestPath;
@@ -178,8 +182,24 @@ export function verifyFreezeIntegrity(
   const expectedOpen = openMatch[1].toLowerCase();
   const expectedHidden = hiddenMatch[1].toLowerCase();
 
-  const openValid = openSha.toLowerCase() === expectedOpen;
-  const hiddenValid = hiddenSha.toLowerCase() === expectedHidden;
+  let openValid = openSha.toLowerCase() === expectedOpen;
+  let hiddenValid = hiddenSha.toLowerCase() === expectedHidden;
+
+  // Fallback to LF-normalized hash on Windows CRLF checkouts
+  if (!openValid) {
+    const openLfSha = computeFileSha256(openPath, true);
+    if (openLfSha.toLowerCase() === expectedOpen) {
+      openSha = openLfSha;
+      openValid = true;
+    }
+  }
+  if (!hiddenValid) {
+    const hiddenLfSha = computeFileSha256(hiddenPath, true);
+    if (hiddenLfSha.toLowerCase() === expectedHidden) {
+      hiddenSha = hiddenLfSha;
+      hiddenValid = true;
+    }
+  }
 
   if (!openValid || !hiddenValid) {
     return {
@@ -468,8 +488,8 @@ export async function executeInferenceOnItem(
 
   const outputParts = [
     pomr.fullDraftText || '',
-    consult.fullDraftText || '',
-    summary.fullDraftText || '',
+    (consult as any).detailedDraftText || consult.fullDraftText || '',
+    (summary as any).detailedDraftText || summary.fullDraftText || '',
     Array.isArray(croge.assessment?.content) ? croge.assessment.content.join('\n') : '',
     Array.isArray(croge.plan?.content) ? croge.plan.content.join('\n') : '',
   ];

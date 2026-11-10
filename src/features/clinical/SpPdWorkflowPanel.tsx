@@ -47,6 +47,9 @@ import {
 import { PpkExplorerModal } from './PpkExplorerModal';
 import { PrivacySensorPreviewModal } from './PrivacySensorPreviewModal';
 import { CdssExplorerModal } from './CdssExplorerModal';
+import { ApiKeyPromptBanner } from './ApiKeyPromptBanner';
+import { InternaHubQuickBar } from './InternaHubQuickBar';
+import { saveGeminiConfig, DEFAULT_GEMINI_MODEL } from '../../services/gemini/client';
 import { insertTextToActiveField } from '../../services/emr/fieldInjector';
 import {
   type CloudSynthesizerMode,
@@ -80,6 +83,8 @@ export interface SpPdWorkflowPanelProps {
   inputText: string;
   onShowToast?: (message: string, type: 'info' | 'success' | 'warning' | 'error') => void;
   onApplySample?: (sampleText: string) => void;
+  onOpenSettings?: () => void;
+  onOpenByokModal?: () => void;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -128,11 +133,15 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
   inputText,
   onShowToast,
   onApplySample,
+  onOpenSettings,
+  onOpenByokModal,
 }) => {
   // ── Clinical state ──────────────────────────────────────────────────────────
   const [surgicalUrgency, setSurgicalUrgency] = useState<SurgicalUrgencyType>('elektif');
   const [expandedProblem, setExpandedProblem] = useState<number | null>(0);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [draftMode, setDraftMode] = useState<'concise' | 'full'>('concise');
+  const [cdssInitialCalcId, setCdssInitialCalcId] = useState<string | undefined>(undefined);
   
   // Streamlined 3-tab focus: 'konsul' | 'pomr' | 'ringkas'
   const [activeColumn, setActiveColumn] = useState<'konsul' | 'pomr' | 'ringkas'>('konsul');
@@ -466,21 +475,30 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
     });
   }, [structuredOutput, pomrResult.problems]);
 
-  // Single source of truth for the copyable EMR summary (concise, zero-fluff)
+  // Single source of truth for the copyable EMR summary (supports 'concise' CPPT vs 'full' PPK)
   const emrReadyText = useMemo(() => {
     if (activeColumn === 'konsul') {
+      if (draftMode === 'full') {
+        return consultResult.detailedDraftText || consultResult.fullDraftText;
+      }
       if (structuredOutput?.jawab_konsul?.trim()) {
         return structuredOutput.jawab_konsul.trim();
       }
-      return consultResult.fullDraftText;
+      return consultResult.conciseDraftText || consultResult.fullDraftText;
     }
     if (activeColumn === 'ringkas') {
+      if (draftMode === 'full') {
+        return summaryResult.detailedDraftText || summaryResult.fullDraftText;
+      }
       if (structuredOutput?.ringkasan_emr?.trim()) {
         return structuredOutput.ringkasan_emr.trim();
       }
-      return summaryResult.fullDraftText;
+      return summaryResult.conciseDraftText || summaryResult.fullDraftText;
     }
-    // POMR mode: only output concise #1, #2 + 4P lines
+    // POMR mode
+    if (draftMode === 'full') {
+      return pomrResult.fullDraftText;
+    }
     if (unifiedProblems.length > 0) {
       return unifiedProblems
         .map(
@@ -489,8 +507,21 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
         )
         .join('\n\n');
     }
-    return pomrResult.fullDraftText;
-  }, [structuredOutput, activeColumn, consultResult.fullDraftText, summaryResult.fullDraftText, pomrResult.fullDraftText, unifiedProblems]);
+    return pomrResult.conciseDraftText || pomrResult.fullDraftText;
+  }, [
+    structuredOutput,
+    activeColumn,
+    draftMode,
+    consultResult.detailedDraftText,
+    consultResult.fullDraftText,
+    consultResult.conciseDraftText,
+    summaryResult.detailedDraftText,
+    summaryResult.fullDraftText,
+    summaryResult.conciseDraftText,
+    pomrResult.fullDraftText,
+    pomrResult.conciseDraftText,
+    unifiedProblems,
+  ]);
 
   // Oncology staging result — memoized from the same inputText, zero extra cost
   const oncologyResult: OncologyConversionResult | null = useMemo(() => {
@@ -798,6 +829,34 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
 
   return (
     <div className="space-y-3.5 select-text">
+      {/* ── Onboarding AI-First Banner (Google Gemini BYOK) ── */}
+      <ApiKeyPromptBanner
+        hasApiKey={cloudAvailable}
+        onOpenByokModal={onOpenByokModal}
+        onOpenSettings={() => {
+          if (onOpenSettings) {
+            onOpenSettings();
+          } else {
+            onShowToast?.('Silakan buka tab Settings untuk mengatur kunci Google Gemini API.', 'info');
+          }
+        }}
+        onQuickPasteKey={async (key) => {
+          await saveGeminiConfig({ apiKey: key, model: DEFAULT_GEMINI_MODEL });
+          setCloudAvailable(true);
+          onShowToast?.('Kunci API Google Gemini berhasil diaktifkan! Memulai sintesis AI...', 'success');
+        }}
+      />
+
+      {/* ── InternaHub Quick Bar (Auto-Extract Lab -> Auto-Calculate & 105+ Calculators) ── */}
+      <InternaHubQuickBar
+        inputText={inputText}
+        onShowToast={onShowToast}
+        onOpenCdssExplorer={(calcId) => {
+          setCdssInitialCalcId(calcId);
+          setShowCdssExplorer(true);
+        }}
+      />
+
       {/* ── Top Bar: Header, Engine Status & Sticky Action Bar ── */}
       <div className="bg-gradient-to-r from-maroon-900 via-maroon-950 to-slate-900 p-2.5 rounded-xl border border-gold-600/40 shadow-sm text-white">
         <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2 border-b border-maroon-800/80">
@@ -878,6 +937,20 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
               >
                 <Lock className="w-3 h-3 mr-0.5" />
                 <span>Sensor</span>
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setDraftMode(draftMode === 'concise' ? 'full' : 'concise')}
+                className={`h-6 px-1.5 text-[10px] border transition-colors ${
+                  draftMode === 'full'
+                    ? 'bg-amber-500 text-maroon-950 font-bold border-amber-300'
+                    : 'bg-slate-800/90 text-slate-300 border-slate-600 hover:bg-slate-700'
+                }`}
+                title="Ganti format salinan: Ringkas CPPT vs Lengkap PPK + Sitasi"
+              >
+                <span>{draftMode === 'concise' ? 'Mode: Ringkas CPPT' : 'Mode: Lengkap PPK'}</span>
               </Button>
 
               <Button
@@ -1060,9 +1133,12 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
 
             {/* Card: Draf Jawaban Konsul & Rekomendasi Sp.PD */}
             {(() => {
-              const activeConsultDraft = structuredOutput?.jawab_konsul?.trim()
-                ? structuredOutput.jawab_konsul
-                : consultResult.fullDraftText;
+              const activeConsultDraft =
+                draftMode === 'full'
+                  ? consultResult.fullDraftText
+                  : structuredOutput?.jawab_konsul?.trim()
+                    ? structuredOutput.jawab_konsul
+                    : consultResult.conciseDraftText || consultResult.fullDraftText;
 
               return (
                 <Card className="border border-maroon-200/90 shadow-sm bg-white overflow-hidden">
@@ -1848,7 +1924,11 @@ export const SpPdWorkflowPanel: React.FC<SpPdWorkflowPanelProps> = ({
       {/* ── CDSS Explorer Modal ── */}
       <CdssExplorerModal
         isOpen={showCdssExplorer}
-        onClose={() => setShowCdssExplorer(false)}
+        onClose={() => {
+          setShowCdssExplorer(false);
+          setCdssInitialCalcId(undefined);
+        }}
+        initialCalcId={cdssInitialCalcId}
         clinicalText={inputText}
         onInsertToDraft={(content) => {
           onApplySample ? onApplySample((inputText ? `${inputText}\n\n` : '') + content) : undefined;

@@ -27,6 +27,7 @@ export interface PatientContextSnapshot {
     ureum?: number;
     sodium?: number;
     potassium?: number;
+    chloride?: number;
     calcium?: number;
     albumin?: number;
     glucose?: number;

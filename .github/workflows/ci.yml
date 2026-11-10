@@ -1,13 +1,19 @@
-name: CI
+name: CI & Auto-Update PWA
 
 on:
   push:
     branches: [ "**" ]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   test-and-build:
-    name: Test & Build Extension
+    name: Test & Build Extension + PWA
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +34,29 @@ jobs:
 
       # Build first: the build-artifact test reads dist/manifest.json
       - name: Build Extension (Vite + CRX)
-        run: npm run build
+        run: npm run build:ext
+
+      - name: Build Offline-First Web App / PWA
+        run: npm run build:web
 
       - name: Run Test Suite (Vitest)
         run: npm test
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy-pwa:
+    name: Deploy Auto-Updating PWA to GitHub Pages
+    needs: test-and-build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

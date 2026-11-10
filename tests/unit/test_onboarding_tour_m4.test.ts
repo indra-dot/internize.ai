@@ -54,7 +54,7 @@ describe('Milestone 4: Interactive Onboarding Tour Modal Suite (Features 15 & 16
       expect(stepNumbers).toEqual([1, 2, 3, 4, 5, 6, 7]);
     });
 
-    it('covers all 3 core pillars (Klinis PPK, Riset HIPAA/FHIR, Gemini BYOK) plus Siap Memulai CTA', () => {
+    it('covers all 3 core pillars (Klinis PPK, CDSS & Kalkulator Sp.PD, Gemini BYOK) plus Siap Memulai CTA', () => {
       // Step 1 - 4: Pilar 1 (Klinis PPK)
       expect(ONBOARDING_TOUR_STEPS[0].pillar).toBe('Pilar 1: Klinis PPK');
       expect(ONBOARDING_TOUR_STEPS[0].category).toBe('Klinis PPK');
@@ -72,9 +72,9 @@ describe('Milestone 4: Interactive Onboarding Tour Modal Suite (Features 15 & 16
       expect(ONBOARDING_TOUR_STEPS[3].category).toBe('Klinis PPK');
       expect(ONBOARDING_TOUR_STEPS[3].pillarNumber).toBe(1);
 
-      // Step 5: Pilar 2 (Riset HIPAA/FHIR)
-      expect(ONBOARDING_TOUR_STEPS[4].pillar).toBe('Pilar 2: Riset HIPAA/FHIR');
-      expect(ONBOARDING_TOUR_STEPS[4].category).toBe('Riset HIPAA/FHIR');
+      // Step 5: Pilar 2 (CDSS & Kalkulator Sp.PD)
+      expect(ONBOARDING_TOUR_STEPS[4].pillar).toBe('Pilar 2: CDSS & Kalkulator Sp.PD');
+      expect(ONBOARDING_TOUR_STEPS[4].category).toBe('CDSS & Kalkulator');
       expect(ONBOARDING_TOUR_STEPS[4].pillarNumber).toBe(2);
 
       // Step 6: Pilar 3 (Gemini Pribadi BYOK)
@@ -122,14 +122,13 @@ describe('Milestone 4: Interactive Onboarding Tour Modal Suite (Features 15 & 16
       expect(step4.summary).toContain('tanpa perlu input kasus');
     });
 
-    it('Step 5 highlights Riset Klinis, De-identifikasi HIPAA/Indonesia & Konversi FHIR R4', () => {
+    it('Step 5 highlights 8 CDSS Suites & 105+ Kalkulator Klinis InternaHub', () => {
       const step5 = ONBOARDING_TOUR_STEPS[4];
-      expect(step5.title).toBe('Riset Klinis, De-identifikasi HIPAA/Indonesia & Konversi FHIR R4');
-      expect(step5.summary).toContain('18 identifier HIPAA Safe Harbor');
-      expect(step5.summary).toContain('NIK 16 digit');
-      expect(step5.summary).toContain('BPJS 13 digit');
-      expect(step5.summary).toContain('No. RM lokal');
-      expect(step5.summary).toContain('FHIR R4 Bundle');
+      expect(step5.title).toBe('8 CDSS Suites & 105+ Kalkulator Klinis InternaHub');
+      expect(step5.summary).toContain('eGFR CKD-EPI');
+      expect(step5.summary).toContain('Skor RCRI Lee');
+      expect(step5.summary).toContain('Caprini VTE');
+      expect(step5.summary).toContain('105+ kalkulator klinis');
     });
 
     it('Step 6 highlights API Gemini Pribadi (BYOK) dengan Pre-Scrubbing Sensor Otomatis', () => {
@@ -274,7 +273,7 @@ describe('Milestone 4: Interactive Onboarding Tour Modal Suite (Features 15 & 16
       expect(html).toContain('SLE');
     });
 
-    it('renders Step 5: Riset Klinis, De-identifikasi HIPAA/Indonesia & Konversi FHIR R4', () => {
+    it('renders Step 5: 8 CDSS Suites & 105+ Kalkulator Klinis InternaHub', () => {
       const html = ReactDOMServer.renderToString(
         React.createElement(OnboardingTourModal, {
           isOpen: true,
@@ -283,12 +282,13 @@ describe('Milestone 4: Interactive Onboarding Tour Modal Suite (Features 15 & 16
         }),
       );
 
-      expect(html).toContain('Pilar 2: Riset HIPAA/FHIR');
-      expect(html).toContain('Indonesian PHI Shield:');
-      expect(html).toContain('NIK 16-digit');
-      expect(html).toContain('Nomor BPJS 13-digit');
-      expect(html).toContain('No. RM lokal');
-      expect(html).toContain('Interoperabilitas FHIR R4:');
+      expect(html).toContain('Pilar 2: CDSS &amp; Kalkulator Sp.PD');
+      expect(html).toContain('8 CDSS Suites');
+      expect(html).toContain('105+ Kalkulator Klinis InternaHub');
+      expect(html).toContain('eGFR CKD-EPI');
+      expect(html).toContain('RCRI Lee Cardiac Risk');
+      expect(html).toContain('Caprini VTE');
+      expect(html).toContain('ARISCAT Pulmonary Risk');
     });
 
     it('renders Step 6: API Gemini Pribadi (BYOK) dengan Pre-Scrubbing Sensor Otomatis', () => {

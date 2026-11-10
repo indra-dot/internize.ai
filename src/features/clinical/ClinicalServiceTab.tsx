@@ -53,6 +53,8 @@ export interface ClinicalServiceTabProps {
   onTextChange?: (text: string) => void;
   onShowToast?: (message: string, type: 'info' | 'success' | 'warning' | 'error') => void;
   sampleLoadTrigger?: number;
+  onOpenSettings?: () => void;
+  onOpenByokModal?: () => void;
 }
 
 export const SAMPLE_CLINICAL_NOTE =
@@ -67,6 +69,8 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
   onTextChange,
   onShowToast,
   sampleLoadTrigger,
+  onOpenSettings,
+  onOpenByokModal,
 }) => {
   const [inputText, setInputText] = useState<string>(initialText);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -582,6 +586,8 @@ export const ClinicalServiceTab: React.FC<ClinicalServiceTabProps> = ({
           <SpPdWorkflowPanel
             inputText={inputText}
             onShowToast={onShowToast}
+            onOpenSettings={onOpenSettings}
+            onOpenByokModal={onOpenByokModal}
             onApplySample={(sample) => {
               setInputText(sample);
               onTextChange?.(sample);
