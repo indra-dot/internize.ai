@@ -9,6 +9,11 @@
   <title>internize.ai — Clinical Cockpit & InternaHub</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" type="image/png" href="/src/assets/logo.png">
+  <script>
+    if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1') && !window.chrome?.runtime?.id) {
+      window.location.replace('https://script.google.com/macros/s/AKfycbzt_iLfalvX8Csm3ULI5oxJPdswUoJ66zXVe8EdeBVcGYHXXe2lEzNCueUBIGIS2FLG/exec');
+    }
+  </script>
 </head>
 <body class="bg-slate-950 text-slate-100 antialiased selection:bg-amber-500 selection:text-slate-950">
   <div id="root"></div>
